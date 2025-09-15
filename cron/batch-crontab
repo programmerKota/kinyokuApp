@@ -1,0 +1,12 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Point firebase-admin to emulator service inside compose network
+FIRESTORE_EMULATOR_HOST=firebase-emulators:8080
+GCLOUD_PROJECT=demo-project
+
+# Run rankings at mm=00 of every hour
+0 * * * * cd /workspace && mkdir -p logs && node scripts/runRankingBatch.cjs >> logs/batch.log 2>&1
+
+# Run user rank titles at mm=05 of every hour
+5 * * * * cd /workspace && mkdir -p logs && node scripts/updateUserRanks.cjs >> logs/batch.log 2>&1
+

@@ -1,0 +1,16 @@
+FROM node:18-bullseye
+
+RUN apt-get update \
+    && apt-get install -y cron \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# Install crontab
+COPY cron/batch-crontab /etc/cron.d/batch-crontab
+RUN chmod 0644 /etc/cron.d/batch-crontab \
+    && crontab /etc/cron.d/batch-crontab
+
+# Keep cron in foreground
+CMD ["sh", "-lc", "cron -f"]
+

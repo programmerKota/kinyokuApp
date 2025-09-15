@@ -1,0 +1,14 @@
+FROM node:18-bullseye
+
+# Install firebase-tools
+RUN npm i -g firebase-tools@13.7.1 \
+    && apt-get update && apt-get install -y openjdk-17-jre-headless git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+EXPOSE 4000 8080 9099 9199
+
+CMD ["sh", "-c", "firebase emulators:start --only firestore,auth,storage --project demo-project --config firebase.json"]
+
+

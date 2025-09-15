@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  firebase-emulators:
+    build:
+      context: .
+      dockerfile: Dockerfile.firebase
+    container_name: firebase-emulators
+    command: sh -c "firebase emulators:start --only firestore,auth,storage --project demo-project --import=/data --export-on-exit --config firebase.json"
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+      - firebase_data:/data
+      - firebase_cache:/root/.cache
+    ports:
+      - "4000:4000" # Emulator UI
+      - "8080:8080" # Firestore
+      - "9099:9099" # Auth
+      - "9198:9199" # Storage (host 9198 -> container 9199)
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1g
+        reservations:
+          cpus: "0.25"
+          memory: 256m
+  
+  batch-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    container_name: batch-scheduler
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    environment:
+      - FIRESTORE_EMULATOR_HOST=firebase-emulators:8080
+      - GCLOUD_PROJECT=demo-project
+    depends_on:
+      - firebase-emulators
+    restart: unless-stopped
+volumes:
+  firebase_cache:
+    driver: local
+  firebase_data:
+    driver: local
