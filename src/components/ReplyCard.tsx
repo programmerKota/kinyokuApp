@@ -44,8 +44,6 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
     backgroundColor: colors.white,
   },
   header: {
@@ -81,7 +79,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   content: {
-    marginLeft: spacing.lg + 32,
+    // Align reply content start under the author name (32 avatar + spacing.sm)
+    marginLeft: 32 + spacing.sm,
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
     lineHeight: 20,

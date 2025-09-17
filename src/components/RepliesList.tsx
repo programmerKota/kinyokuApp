@@ -71,12 +71,10 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    // 親Postの本文開始位置（アバター+余白）に揃える
-    // PostCardは本文ブロックに marginLeft=CONTENT_LEFT_MARGIN.medium を適用している。
-    // ReplyCardは内部に paddingLeft=spacing.lg を持つため、その差分だけ親側で詰める。
-    // 68 - 16 = 52
+    // Place reply avatar left edge at the same 68px line as post content start.
+    // P (group padding) + 16 (card padding) = 68 -> P = 68 - 16 = 52
     paddingLeft: CONTENT_LEFT_MARGIN.medium - spacing.lg,
-    paddingBottom: spacing.sm, // 下部に余白を追加
+    paddingBottom: spacing.sm,
   },
 });
 
