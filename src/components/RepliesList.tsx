@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
 
-import { CommunityService } from '../services/firestore';
-import { UserStatsService } from '../services/userStatsService';
-import { colors, spacing } from '../theme';
-import type { CommunityComment } from '../types';
-import ReplyCard from './ReplyCard';
+import { CommunityService } from "../services/firestore";
+import { UserStatsService } from "../services/userStatsService";
+import { colors, spacing } from "../theme";
+import type { CommunityComment } from "../types";
+import ReplyCard from "./ReplyCard";
+import { CONTENT_LEFT_MARGIN } from "../utils/nameUtils";
 
 interface RepliesListProps {
   postId: string;
@@ -14,7 +15,9 @@ interface RepliesListProps {
 
 const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
   const [replies, setReplies] = useState<CommunityComment[]>([]);
-  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
+  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
+    new Map(),
+  );
 
   useEffect(() => {
     const unsubscribe = CommunityService.subscribeToPostReplies(
@@ -36,7 +39,8 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 
     for (const userId of uniqueUserIds) {
       try {
-        const averageDays = await UserStatsService.getUserAverageDaysForRank(userId);
+        const averageDays =
+          await UserStatsService.getUserAverageDaysForRank(userId);
         averageDaysMap.set(userId, averageDays);
       } catch {
         averageDaysMap.set(userId, 0);
@@ -67,7 +71,11 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    paddingLeft: 0, // インデントを削除
+    // 親Postの本文開始位置（アバター+余白）に揃える
+    // PostCardは本文ブロックに marginLeft=CONTENT_LEFT_MARGIN.medium を適用している。
+    // ReplyCardは内部に paddingLeft=spacing.lg を持つため、その差分だけ親側で詰める。
+    // 68 - 16 = 52
+    paddingLeft: CONTENT_LEFT_MARGIN.medium - spacing.lg,
     paddingBottom: spacing.sm, // 下部に余白を追加
   },
 });
