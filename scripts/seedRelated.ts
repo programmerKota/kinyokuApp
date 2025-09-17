@@ -1,24 +1,22 @@
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { faker } from "@faker-js/faker";
+import { faker } from '@faker-js/faker';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 // エミュレータに接続（本番データは変更しない）
-process.env.FIRESTORE_EMULATOR_HOST =
-  process.env.FIRESTORE_EMULATOR_HOST || "localhost:8080";
-initializeApp({ projectId: process.env.GCLOUD_PROJECT || "demo-project" });
+process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8080';
+initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'demo-project' });
 const db = getFirestore();
 
-const USERS = "users";
-const CH = "challenges";
-const POSTS = "communityPosts";
-const CMTS = "communityComments";
-const FOLLOWS = "follows";
-const TNS = "tournaments";
-const PARTS = "tournamentParticipants";
-const MSGS = "tournamentMessages";
+const USERS = 'users';
+const CH = 'challenges';
+const POSTS = 'communityPosts';
+const CMTS = 'communityComments';
+const FOLLOWS = 'follows';
+const TNS = 'tournaments';
+const PARTS = 'tournamentParticipants';
+const MSGS = 'tournamentMessages';
 
-const rand = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 async function createUsers(n: number): Promise<string[]> {
   const ids: string[] = [];
@@ -39,15 +37,15 @@ async function seedChallenges(userId: string, k: number) {
     const start = faker.date.recent({ days: 120 });
     const dur = rand(30 * 60 * 1000, 7 * 24 * 60 * 60 * 1000);
     const end = new Date(start.getTime() + dur);
-    const status = Math.random() < 0.8 ? "completed" : "failed";
+    const status = Math.random() < 0.8 ? 'completed' : 'failed';
     await db.collection(CH).add({
       userId,
       goalDays: 7,
       penaltyAmount: 0,
       status,
       startedAt: start,
-      completedAt: status === "completed" ? end : null,
-      failedAt: status === "failed" ? end : null,
+      completedAt: status === 'completed' ? end : null,
+      failedAt: status === 'failed' ? end : null,
       totalPenaltyPaid: 0,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -60,9 +58,9 @@ async function seedPosts(userId: string, name?: string, avatar?: string) {
   for (let i = 0; i < count; i++) {
     const postRef = await db.collection(POSTS).add({
       authorId: userId,
-      authorName: name || "ユーザー",
+      authorName: name || 'ユーザー',
       authorAvatar: avatar || null,
-      title: "",
+      title: '',
       content: faker.lorem.sentence({ min: 6, max: 18 }),
       imageUrl: null,
       likes: rand(0, 20),
@@ -75,7 +73,7 @@ async function seedPosts(userId: string, name?: string, avatar?: string) {
       await db.collection(CMTS).add({
         postId: postRef.id,
         authorId: userId,
-        authorName: name || "ユーザー",
+        authorName: name || 'ユーザー',
         authorAvatar: avatar || null,
         content: faker.lorem.sentence({ min: 4, max: 14 }),
         createdAt: Timestamp.now(),
@@ -92,7 +90,7 @@ async function seedFollows(ids: string[]) {
   for (const a of ids) {
     const others = faker.helpers.arrayElements(
       ids.filter((b) => b !== a),
-      rand(2, 5)
+      rand(2, 5),
     );
     for (const b of others) {
       const id = `${a}_${b}`;
@@ -115,11 +113,9 @@ async function seedTournaments(ids: string[]) {
       maxParticipants: 50,
       entryFee: 0,
       prizePool: 0,
-      status: "active",
+      status: 'active',
       startDate: Timestamp.now(),
-      endDate: Timestamp.fromDate(
-        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      ),
+      endDate: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
@@ -130,19 +126,19 @@ async function seedTournaments(ids: string[]) {
       await db.collection(PARTS).add({
         tournamentId: tRef.id,
         userId: uid,
-        userName: (u as any).displayName || "ユーザー",
-        userAvatar: (u as any).photoURL || null,
-        status: "joined",
+        userName: u.displayName || 'ユーザー',
+        userAvatar: u.photoURL || null,
+        status: 'joined',
         joinedAt: Timestamp.now(),
       });
       if (Math.random() < 0.6) {
         await db.collection(MSGS).add({
           tournamentId: tRef.id,
           authorId: uid,
-          authorName: (u as any).displayName || "ユーザー",
-          authorAvatar: (u as any).photoURL || null,
+          authorName: u.displayName || 'ユーザー',
+          authorAvatar: u.photoURL || null,
           text: faker.lorem.sentence(),
-          type: "text",
+          type: 'text',
           createdAt: Timestamp.now(),
         });
       }
@@ -162,11 +158,11 @@ async function main() {
   await Promise.all(ids.map((id) => seedChallenges(id, chPerUser)));
   for (const id of ids) {
     const p = profiles[id] || {};
-    await seedPosts(id, p.displayName || "ユーザー", p.photoURL || null);
+    await seedPosts(id, p.displayName || 'ユーザー', p.photoURL || null);
   }
   await seedFollows(ids);
   await seedTournaments(ids);
-  console.log("Related data seeding completed");
+  console.log('Related data seeding completed');
 }
 
 main()

@@ -26,7 +26,9 @@ async function main() {
   await once();
   while (true) {
     const sleep = msUntilTopOfHour();
-    console.log(`[hourly-batches] sleeping ${(sleep / 1000 / 60).toFixed(1)} min until top of hour`);
+    console.log(
+      `[hourly-batches] sleeping ${(sleep / 1000 / 60).toFixed(1)} min until top of hour`,
+    );
     await new Promise((r) => setTimeout(r, sleep));
     await once();
   }
@@ -36,4 +38,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-

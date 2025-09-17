@@ -7,11 +7,8 @@ export interface ValidationResult {
 
 // 未使用の詳細バリデーション（メール、パスワード、電話、郵便番号、数値/範囲/URL）は削除
 
-export const validateRequired = (
-  value: string,
-  fieldName: string
-): ValidationResult => {
-  if (!value || value.trim() === "") {
+export const validateRequired = (value: string, fieldName: string): ValidationResult => {
+  if (!value || value.trim() === '') {
     return { isValid: false, message: `${fieldName}を入力してください` };
   }
 
@@ -21,7 +18,7 @@ export const validateRequired = (
 export const validateMaxLength = (
   value: string,
   maxLength: number,
-  fieldName: string
+  fieldName: string,
 ): ValidationResult => {
   if (value.length > maxLength) {
     return {
@@ -32,4 +29,3 @@ export const validateMaxLength = (
 
   return { isValid: true };
 };
-

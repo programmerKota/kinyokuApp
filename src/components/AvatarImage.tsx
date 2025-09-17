@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, View, StyleSheet, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
+import { Image, View, StyleSheet } from 'react-native';
 
 interface AvatarImageProps {
   uri?: string;
   size: number;
-  style?: ViewStyle | any;
+  style?: ViewStyle;
   borderRadius?: number;
 }
 
@@ -17,17 +18,21 @@ const AvatarImage: React.FC<AvatarImageProps> = ({ uri, size, style, borderRadiu
   useEffect(() => {
     if (!uri || uri === prevUriRef.current) return;
     let cancelled = false;
-    // Preload next image, then swap
-    // On RN Web, Image.prefetch exists and returns a Promise
-    (Image as any)
-      .prefetch?.(uri)
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) {
-          setDisplayedUri(uri);
-          prevUriRef.current = uri;
-        }
-      });
+    const prefetch = Image.prefetch?.bind(Image);
+    if (prefetch) {
+      void prefetch(uri)
+        .catch(() => { })
+        .finally(() => {
+          if (!cancelled) {
+            setDisplayedUri(uri);
+            prevUriRef.current = uri;
+          }
+        });
+    } else {
+      // If prefetch is unavailable, swap immediately
+      setDisplayedUri(uri);
+      prevUriRef.current = uri;
+    }
     return () => {
       cancelled = true;
     };
@@ -62,4 +67,3 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(AvatarImage);
-

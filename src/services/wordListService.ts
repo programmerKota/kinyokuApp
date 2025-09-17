@@ -11,43 +11,31 @@ export type WordListData = {
 };
 
 // GitHubのrawファイルから用語リストを取得
-const GITHUB_RAW_BASE =
-  "https://raw.githubusercontent.com/MosasoM/inappropriate-words-ja/master";
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/MosasoM/inappropriate-words-ja/master';
 
 export async function fetchWordListFromGitHub(): Promise<WordListData> {
   try {
     if (__DEV__) {
-      console.log("GitHubから用語リストを取得中...");
+      console.log('GitHubから用語リストを取得中...');
     }
 
     // 複数のファイルを並行して取得
-    const [sexualData, offensiveData, sexualMaskData, sexualBopoData] =
-      await Promise.all([
-        fetch(`${GITHUB_RAW_BASE}/Sexual.txt`).then((res) => res.text()),
-        fetch(`${GITHUB_RAW_BASE}/Offensive.txt`).then((res) => res.text()),
-        fetch(`${GITHUB_RAW_BASE}/Sexual_with_mask.txt`).then((res) =>
-          res.text()
-        ),
-        fetch(`${GITHUB_RAW_BASE}/Sexual_with_bopo.txt`).then((res) =>
-          res.text()
-        ),
-      ]);
+    const [sexualData, offensiveData, sexualMaskData, sexualBopoData] = await Promise.all([
+      fetch(`${GITHUB_RAW_BASE}/Sexual.txt`).then((res) => res.text()),
+      fetch(`${GITHUB_RAW_BASE}/Offensive.txt`).then((res) => res.text()),
+      fetch(`${GITHUB_RAW_BASE}/Sexual_with_mask.txt`).then((res) => res.text()),
+      fetch(`${GITHUB_RAW_BASE}/Sexual_with_bopo.txt`).then((res) => res.text()),
+    ]);
 
     // テキストを配列に変換（改行で分割、空行を除去）
-    const sexualTerms = sexualData.split("\n").filter((line) => line.trim());
-    const offensiveTerms = offensiveData
-      .split("\n")
-      .filter((line) => line.trim());
-    const sexualWithMask = sexualMaskData
-      .split("\n")
-      .filter((line) => line.trim());
-    const sexualWithBopo = sexualBopoData
-      .split("\n")
-      .filter((line) => line.trim());
+    const sexualTerms = sexualData.split('\n').filter((line) => line.trim());
+    const offensiveTerms = offensiveData.split('\n').filter((line) => line.trim());
+    const sexualWithMask = sexualMaskData.split('\n').filter((line) => line.trim());
+    const sexualWithBopo = sexualBopoData.split('\n').filter((line) => line.trim());
 
     if (__DEV__) {
       console.log(
-        `取得完了: 性的用語 ${sexualTerms.length}件, 攻撃的用語 ${offensiveTerms.length}件`
+        `取得完了: 性的用語 ${sexualTerms.length}件, 攻撃的用語 ${offensiveTerms.length}件`,
       );
     }
 
@@ -60,7 +48,7 @@ export async function fetchWordListFromGitHub(): Promise<WordListData> {
       sexualWithBopo: sexualWithBopo,
     };
   } catch (error) {
-    console.warn("GitHub用語リスト取得エラー:", error);
+    console.warn('GitHub用語リスト取得エラー:', error);
     // フォールバック用のデフォルト用語リスト
     return getDefaultWordList();
   }
@@ -97,44 +85,40 @@ export async function getWordList(forceRefresh = false): Promise<WordListData> {
     lastFetchTime = now;
     return wordList;
   } catch (error) {
-    console.error("用語リスト取得に失敗:", error);
+    console.error('用語リスト取得に失敗:', error);
     // エラーの場合はキャッシュがあればそれを使用、なければデフォルト
     return cachedWordList || getDefaultWordList();
   }
 }
 
 // 特定のカテゴリの用語のみを取得
-export async function getWordListByCategory(
-  category: keyof WordListData
-): Promise<string[]> {
+export async function getWordListByCategory(category: keyof WordListData): Promise<string[]> {
   const wordList = await getWordList();
   return wordList[category] || [];
 }
 
 // 用語リストをローカルストレージに保存（オフライン対応）
-export async function saveWordListToLocal(
-  wordList: WordListData
-): Promise<void> {
+export async function saveWordListToLocal(wordList: WordListData): Promise<void> {
   try {
-    if (typeof window !== "undefined" && window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem(
-        "wordList",
+        'wordList',
         JSON.stringify({
           data: wordList,
           timestamp: Date.now(),
-        })
+        }),
       );
     }
   } catch (error) {
-    console.warn("ローカルストレージ保存エラー:", error);
+    console.warn('ローカルストレージ保存エラー:', error);
   }
 }
 
 // ローカルストレージから用語リストを読み込み
 export async function loadWordListFromLocal(): Promise<WordListData | null> {
   try {
-    if (typeof window !== "undefined" && window.localStorage) {
-      const stored = localStorage.getItem("wordList");
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('wordList');
       if (stored) {
         const { data, timestamp } = JSON.parse(stored);
         const now = Date.now();
@@ -146,7 +130,7 @@ export async function loadWordListFromLocal(): Promise<WordListData | null> {
       }
     }
   } catch (error) {
-    console.warn("ローカルストレージ読み込みエラー:", error);
+    console.warn('ローカルストレージ読み込みエラー:', error);
   }
   return null;
 }

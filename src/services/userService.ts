@@ -1,10 +1,10 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Application from "expo-application";
-import * as Device from "expo-device";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Application from 'expo-application';
+import * as Device from 'expo-device';
 
-const USER_ID_KEY = "user_id";
-const USER_NAME_KEY = "user_name";
-const USER_AVATAR_KEY = "user_avatar";
+const USER_ID_KEY = 'user_id';
+const USER_NAME_KEY = 'user_name';
+const USER_AVATAR_KEY = 'user_avatar';
 
 export interface UserProfile {
   id: string;
@@ -28,9 +28,8 @@ class UserService {
   // デバイス固有のユーザーIDを生成
   private generateDeviceId(): string {
     // デバイスIDとアプリケーションIDを組み合わせて一意なIDを生成
-    const deviceId =
-      Device.osInternalBuildId || Device.modelId || "unknown-device";
-    const appId = Application.applicationId || "unknown-app";
+    const deviceId = Device.osInternalBuildId || Device.modelId || 'unknown-device';
+    const appId = Application.applicationId || 'unknown-app';
     const timestamp = Date.now().toString(36);
 
     // ハッシュ化して短いIDを生成
@@ -59,7 +58,7 @@ class UserService {
       }
       return userId;
     } catch (error) {
-      console.error("ユーザーIDの取得に失敗しました:", error);
+      console.error('ユーザーIDの取得に失敗しました:', error);
       // フォールバック: メモリ内で生成
       return this.generateDeviceId();
     }
@@ -69,10 +68,10 @@ class UserService {
   async getUserName(): Promise<string> {
     try {
       const userName = await AsyncStorage.getItem(USER_NAME_KEY);
-      return userName || "ユーザー";
+      return userName || 'ユーザー';
     } catch (error) {
-      console.error("ユーザー名の取得に失敗しました:", error);
-      return "ユーザー";
+      console.error('ユーザー名の取得に失敗しました:', error);
+      return 'ユーザー';
     }
   }
 
@@ -84,7 +83,7 @@ class UserService {
         this.currentUser.name = name;
       }
     } catch (error) {
-      console.error("ユーザー名の設定に失敗しました:", error);
+      console.error('ユーザー名の設定に失敗しました:', error);
     }
   }
 
@@ -94,7 +93,7 @@ class UserService {
       const avatarUrl = await AsyncStorage.getItem(USER_AVATAR_KEY);
       return avatarUrl || undefined;
     } catch (error) {
-      console.error("アバターURLの取得に失敗しました:", error);
+      console.error('アバターURLの取得に失敗しました:', error);
       return undefined;
     }
   }
@@ -111,7 +110,7 @@ class UserService {
         this.currentUser.avatar = avatarUrl;
       }
     } catch (error) {
-      console.error("アバターURLの設定に失敗しました:", error);
+      console.error('アバターURLの設定に失敗しました:', error);
     }
   }
 
@@ -150,17 +149,12 @@ class UserService {
   // ユーザー情報をリセット（デバッグ用）
   async resetUser(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([
-        USER_ID_KEY,
-        USER_NAME_KEY,
-        USER_AVATAR_KEY,
-      ]);
+      await AsyncStorage.multiRemove([USER_ID_KEY, USER_NAME_KEY, USER_AVATAR_KEY]);
       this.currentUser = null;
     } catch (error) {
-      console.error("ユーザー情報のリセットに失敗しました:", error);
+      console.error('ユーザー情報のリセットに失敗しました:', error);
     }
   }
 }
 
 export default UserService;
-

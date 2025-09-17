@@ -5,24 +5,24 @@ export const spacing = {
   md: 12,
   lg: 16,
   xl: 20,
-  "2xl": 24,
-  "3xl": 32,
-  "4xl": 40,
-  "5xl": 48,
-  "6xl": 64,
-  "7xl": 80,
-  "8xl": 96,
+  '2xl': 24,
+  '3xl': 32,
+  '4xl': 40,
+  '5xl': 48,
+  '6xl': 64,
+  '7xl': 80,
+  '8xl': 96,
 } as const;
 
 // よく使用されるスペーシングのエイリアス
 export const spacingAliases = {
   // コンポーネント間のマージン
   componentMargin: spacing.lg,
-  sectionMargin: spacing["3xl"],
+  sectionMargin: spacing['3xl'],
 
   // パディング
   cardPadding: spacing.lg,
-  modalPadding: spacing["2xl"],
+  modalPadding: spacing['2xl'],
   screenPadding: spacing.xl,
 
   // アイコンサイズ
@@ -36,4 +36,3 @@ export const spacingAliases = {
 
 export type SpacingKey = keyof typeof spacing;
 export type SpacingAliasKey = keyof typeof spacingAliases;
-

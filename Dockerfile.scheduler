@@ -9,8 +9,8 @@ WORKDIR /workspace
 # Install crontab
 COPY cron/batch-crontab /etc/cron.d/batch-crontab
 RUN chmod 0644 /etc/cron.d/batch-crontab \
-    && crontab /etc/cron.d/batch-crontab
+    && crontab /etc/cron.d/batch-crontab || (echo "using /etc/cron.d" && true)
 
 # Keep cron in foreground
-CMD ["sh", "-lc", "cron -f"]
+CMD ["sh", "-lc", "cron && tail -f /var/log/cron.log || cron -f"]
 

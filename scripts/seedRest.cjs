@@ -41,7 +41,8 @@ function challengeWrite(id, userId, start, end, status) {
         penaltyAmount: { integerValue: '0' },
         status: { stringValue: status },
         startedAt: { timestampValue: start.toISOString() },
-        completedAt: status === 'completed' ? { timestampValue: end.toISOString() } : { nullValue: null },
+        completedAt:
+          status === 'completed' ? { timestampValue: end.toISOString() } : { nullValue: null },
         failedAt: status === 'failed' ? { timestampValue: end.toISOString() } : { nullValue: null },
         totalPenaltyPaid: { integerValue: '0' },
         createdAt: { timestampValue: nowIso() },

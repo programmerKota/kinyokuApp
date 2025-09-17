@@ -1,16 +1,15 @@
-import { initializeApp, applicationDefault, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { faker } from "@faker-js/faker";
+import { faker } from '@faker-js/faker';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 // エミュレータに接続（本番に触れない）
-process.env.FIRESTORE_EMULATOR_HOST =
-  process.env.FIRESTORE_EMULATOR_HOST || "localhost:8080";
+process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8080';
 
-initializeApp({ projectId: process.env.GCLOUD_PROJECT || "demo-project" });
+initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'demo-project' });
 const db = getFirestore();
 
-const USERS = "users";
-const CHALLENGES = "challenges";
+const USERS = 'users';
+const CHALLENGES = 'challenges';
 
 const randomDurationMs = () => {
   // 30分〜7日の範囲でランダム
@@ -33,14 +32,14 @@ async function createChallenges(userId: string, count: number) {
     const duration = randomDurationMs();
     const start = faker.date.recent({ days: 120 });
     const end = new Date(start.getTime() + duration);
-    const status = Math.random() < 0.8 ? "completed" : "failed";
+    const status = Math.random() < 0.8 ? 'completed' : 'failed';
     await db.collection(CHALLENGES).add({
       userId,
       status,
       createdAt: start,
       startedAt: start,
-      completedAt: status === "completed" ? end : null,
-      failedAt: status === "failed" ? end : null,
+      completedAt: status === 'completed' ? end : null,
+      failedAt: status === 'failed' ? end : null,
     });
   }
 }
@@ -56,7 +55,7 @@ async function main() {
     await createChallenges(userId, challengesPerUser);
   }
 
-  console.log("Seeding completed");
+  console.log('Seeding completed');
 }
 
 main().catch((e) => {

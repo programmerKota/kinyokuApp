@@ -6,34 +6,51 @@ export const formatDuration = (seconds: number): string => {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
 
-  return `${days}日 ${hours.toString().padStart(2, "0")}:${minutes
+  return `${days}日 ${hours.toString().padStart(2, '0')}:${minutes
     .toString()
-    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-// 共通: Date/Firestore.Timestamp/文字列などから Date に変換
-export const toDate = (input: any): Date => {
+export type DateLike =
+  | Date
+  | number
+  | string
+  | { toDate?: () => Date; getTime?: () => number }
+  | null
+  | undefined;
+
+// 共通: Date/Firestore.Timestamp/文字列などから Date に変換（安全版）
+export const toDate = (input: DateLike): Date => {
   if (!input) return new Date();
-  if (typeof input?.toDate === 'function') return input.toDate();
-  if (typeof input?.getTime === 'function') return input as Date;
+  if (input instanceof Date) return input;
+  const maybe = input as { toDate?: () => Date; getTime?: () => number };
+  if (typeof maybe.toDate === 'function') {
+    try {
+      return maybe.toDate();
+    } catch {
+      return new Date();
+    }
+  }
+  if (typeof maybe.getTime === 'function') return input as Date;
   if (typeof input === 'string' || typeof input === 'number') return new Date(input);
   return new Date();
 };
 
 // 共通: 日本語の日時表示（例: 2024/9/10 12:34）
 export const formatDateTimeJP = (date: Date): string => {
-  return date.toLocaleDateString('ja-JP', {
+  const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  } as any);
+  };
+  return date.toLocaleDateString('ja-JP', options);
 };
 
 // 共通: 相対時間表示
 // showSeconds=true の場合は「x秒前」まで表示、false の場合は 1分未満は「たった今」
-export const formatRelative = (value: any, opts: { showSeconds?: boolean } = {}): string => {
+export const formatRelative = (value: DateLike, opts: { showSeconds?: boolean } = {}): string => {
   const { showSeconds = true } = opts;
   const date = toDate(value);
   const now = new Date();

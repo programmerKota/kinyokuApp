@@ -1,32 +1,23 @@
-import {
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc,
-  query,
-  orderBy,
-  limit,
-} from "firebase/firestore";
-import { db } from "../config/firebase.config";
-import { COLLECTIONS } from "../config/firebase.config";
-import { RankingService, UserRanking } from "./rankingService";
+import { collection, getDocs, doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
+
+import type { UserRanking } from './rankingService';
+import { RankingService } from './rankingService';
+import { db, COLLECTIONS } from '../config/firebase.config';
 
 /**
  * ランキングバッチ処理サービス
  * 午後0時と午前0時にランキングを更新する
  */
 export class RankingBatchService {
-  private static readonly RANKING_CACHE_KEY = "cached_rankings";
-  private static readonly LAST_UPDATE_KEY = "last_ranking_update";
+  private static readonly RANKING_CACHE_KEY = 'cached_rankings';
+  private static readonly LAST_UPDATE_KEY = 'last_ranking_update';
 
   /**
    * ランキングを更新してキャッシュに保存
    */
   static async updateRankings(): Promise<void> {
     try {
-      console.log("ランキングバッチ処理開始");
+      console.log('ランキングバッチ処理開始');
 
       // 最新のランキングデータを取得
       const rankings = await RankingService.getUserRankings();
@@ -37,11 +28,9 @@ export class RankingBatchService {
       // 更新時刻を記録
       await this.updateLastUpdateTime();
 
-      console.log(
-        `ランキングバッチ処理完了: ${rankings.length}件のランキングを更新`
-      );
+      console.log(`ランキングバッチ処理完了: ${rankings.length}件のランキングを更新`);
     } catch (error) {
-      console.error("ランキングバッチ処理エラー:", error);
+      console.error('ランキングバッチ処理エラー:', error);
       throw error;
     }
   }
@@ -75,7 +64,7 @@ export class RankingBatchService {
       // ランク順でソート
       return rankings.sort((a, b) => a.rank - b.rank);
     } catch (error) {
-      console.error("キャッシュされたランキング取得エラー:", error);
+      console.error('キャッシュされたランキング取得エラー:', error);
       return [];
     }
   }
@@ -105,14 +94,14 @@ export class RankingBatchService {
             successRate: ranking.successRate,
             rank: ranking.rank,
             updatedAt: new Date(),
-          })
+          }),
         );
       });
 
       // 非トランザクションの並列実行
       await Promise.all(ops);
     } catch (error) {
-      console.error("ランキングキャッシュ保存エラー:", error);
+      console.error('ランキングキャッシュ保存エラー:', error);
       throw error;
     }
   }
@@ -122,11 +111,11 @@ export class RankingBatchService {
    */
   private static async updateLastUpdateTime(): Promise<void> {
     try {
-      await setDoc(doc(db, COLLECTIONS.SYSTEM, "ranking_update"), {
+      await setDoc(doc(db, COLLECTIONS.SYSTEM, 'ranking_update'), {
         lastUpdate: new Date(),
       });
     } catch (error) {
-      console.error("最終更新時刻記録エラー:", error);
+      console.error('最終更新時刻記録エラー:', error);
     }
   }
 
@@ -135,7 +124,7 @@ export class RankingBatchService {
    */
   static async getLastUpdateTime(): Promise<Date | null> {
     try {
-      const docRef = doc(db, COLLECTIONS.SYSTEM, "ranking_update");
+      const docRef = doc(db, COLLECTIONS.SYSTEM, 'ranking_update');
       const snap = await getDoc(docRef);
       if (!snap.exists()) return null;
       const data: any = snap.data();
@@ -145,7 +134,7 @@ export class RankingBatchService {
       if (value instanceof Date) return value;
       return null;
     } catch (error) {
-      console.error("最終更新時刻取得エラー:", error);
+      console.error('最終更新時刻取得エラー:', error);
       return null;
     }
   }
@@ -186,13 +175,12 @@ export class RankingBatchService {
       }
 
       const now = new Date();
-      const hoursSinceLastUpdate =
-        (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+      const hoursSinceLastUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
 
       // 12時間以上経過している場合は更新が必要
       return hoursSinceLastUpdate >= 12;
     } catch (error) {
-      console.error("ランキング更新チェックエラー:", error);
+      console.error('ランキング更新チェックエラー:', error);
       return true; // エラーの場合は更新を実行
     }
   }

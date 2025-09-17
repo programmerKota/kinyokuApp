@@ -1,5 +1,7 @@
-import { doc, onSnapshot, Unsubscribe } from "firebase/firestore";
-import { db } from "../config/firebase.config";
+import type { Unsubscribe } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
+
+import { db } from '../config/firebase.config';
 
 export interface UserProfileLite {
   displayName?: string;
@@ -42,12 +44,16 @@ export class ProfileCache {
 
     // start snapshot if not started
     if (!entry.unsub) {
-      entry.unsub = onSnapshot(doc(db, "users", userId), (snap) => {
+      entry.unsub = onSnapshot(doc(db, 'users', userId), (snap) => {
         const d = snap.data() as any | undefined;
         const next = d ? { displayName: d.displayName, photoURL: d.photoURL } : undefined;
         const prev = entry.data;
         // shallow equality check to avoid noisy emits
-        const changed = !prev || !next || prev.displayName !== next.displayName || prev.photoURL !== next.photoURL;
+        const changed =
+          !prev ||
+          !next ||
+          prev.displayName !== next.displayName ||
+          prev.photoURL !== next.photoURL;
         if (changed) {
           entry.data = next;
           entry.listeners.forEach((l) => l(entry.data));
@@ -76,7 +82,10 @@ export class ProfileCache {
     };
   }
 
-  subscribeMany(userIds: string[], onUpdate: (map: Map<string, UserProfileLite | undefined>) => void): Unsubscribe {
+  subscribeMany(
+    userIds: string[],
+    onUpdate: (map: Map<string, UserProfileLite | undefined>) => void,
+  ): Unsubscribe {
     const ids = Array.from(new Set(userIds));
     const map = new Map<string, UserProfileLite | undefined>();
     const unsubs: Unsubscribe[] = [];
@@ -108,7 +117,9 @@ export class ProfileCache {
     if (!e) return;
     if (e.refCount > 0) return; // in use again
     if (e.unsub) {
-      try { e.unsub(); } catch {}
+      try {
+        e.unsub();
+      } catch {}
     }
     this.entries.delete(userId);
   }

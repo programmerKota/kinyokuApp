@@ -1,22 +1,23 @@
-import { StyleSheet } from "react-native";
-import { colors, spacing, typography, shadows } from "../theme";
+import { StyleSheet } from 'react-native';
+
+import { colors, spacing, typography, shadows } from '../theme';
 
 export const uiStyles = StyleSheet.create({
   // Generic layout helpers
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   rowStart: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   rowBetween: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  
+
   // Generic text helpers
   textMuted: {
     color: colors.textSecondary,
@@ -24,10 +25,10 @@ export const uiStyles = StyleSheet.create({
   textSmall: {
     fontSize: typography.fontSize.sm,
   },
-  
+
   // Timestamp placed at right-top of a row
   timestampRight: {
-    marginLeft: "auto",
+    marginLeft: 'auto',
     color: colors.textSecondary,
     fontSize: typography.fontSize.sm,
   },
@@ -43,9 +44,9 @@ export const uiStyles = StyleSheet.create({
 
   // Header (simple title + optional right/left)
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     backgroundColor: colors.backgroundPrimary,
@@ -54,30 +55,30 @@ export const uiStyles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
-    fontSize: typography.fontSize["2xl"],
-    fontWeight: "700",
+    textAlign: 'center',
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: '700',
     color: colors.gray800,
   },
 
   // Tabs
   tabBar: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: colors.backgroundPrimary,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
     paddingHorizontal: spacing.xl,
-    justifyContent: "space-around",
+    justifyContent: 'space-around',
   },
   tab: {
     flex: 1,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
-    alignItems: "center",
+    alignItems: 'center',
   },
   tabText: {
     fontSize: typography.fontSize.base,
-    fontWeight: "500",
+    fontWeight: '500',
     color: colors.textSecondary,
   },
   tabActive: {
@@ -97,7 +98,7 @@ export const uiStyles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: typography.fontSize.lg,
-    fontWeight: "700",
+    fontWeight: '700',
     color: colors.gray800,
   },
   cardSubtitle: {
@@ -110,24 +111,24 @@ export const uiStyles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   badgeText: {
     fontSize: typography.fontSize.xs,
-    fontWeight: "700",
+    fontWeight: '700',
     color: colors.white,
   },
 
   // Avatar
   avatar: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: colors.gray100,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   avatarText: {
     color: colors.white,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });
 

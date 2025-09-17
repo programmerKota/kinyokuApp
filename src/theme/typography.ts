@@ -7,23 +7,23 @@ export const typography = {
     base: 16,
     lg: 18,
     xl: 20,
-    "2xl": 24,
-    "3xl": 30,
-    "4xl": 36,
-    "5xl": 48,
-    "6xl": 60,
-    "7xl": 72,
-    "8xl": 96,
+    '2xl': 24,
+    '3xl': 30,
+    '4xl': 36,
+    '5xl': 48,
+    '6xl': 60,
+    '7xl': 72,
+    '8xl': 96,
   },
 
   // Font weights
   fontWeight: {
-    light: "300",
-    normal: "400",
-    medium: "500",
-    semibold: "600",
-    bold: "700",
-    extrabold: "800",
+    light: '300',
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+    extrabold: '800',
   },
 
   // Line heights
@@ -50,28 +50,28 @@ export const typography = {
 export const textStyles = {
   // Headings
   h1: {
-    fontSize: typography.fontSize["4xl"],
+    fontSize: typography.fontSize['4xl'],
     fontWeight: typography.fontWeight.bold,
     lineHeight: typography.lineHeight.tight,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
   h2: {
-    fontSize: typography.fontSize["3xl"],
+    fontSize: typography.fontSize['3xl'],
     fontWeight: typography.fontWeight.bold,
     lineHeight: typography.lineHeight.tight,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
   h3: {
-    fontSize: typography.fontSize["2xl"],
+    fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.semibold,
     lineHeight: typography.lineHeight.snug,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
   h4: {
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.semibold,
     lineHeight: typography.lineHeight.snug,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
 
   // Body text
@@ -79,38 +79,38 @@ export const textStyles = {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.normal,
     lineHeight: typography.lineHeight.normal,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
   bodySmall: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
     lineHeight: typography.lineHeight.normal,
-    color: "textSecondary",
+    color: 'textSecondary',
   },
   bodyLarge: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.normal,
     lineHeight: typography.lineHeight.relaxed,
-    color: "textPrimary",
+    color: 'textPrimary',
   },
 
   // Labels
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: "textSecondary",
+    color: 'textSecondary',
   },
   labelSmall: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
-    color: "textTertiary",
+    color: 'textTertiary',
   },
 
   // Captions
   caption: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.normal,
-    color: "textTertiary",
+    color: 'textTertiary',
   },
 } as const;
 
@@ -119,4 +119,3 @@ export type FontWeightKey = keyof typeof typography.fontWeight;
 export type LineHeightKey = keyof typeof typography.lineHeight;
 export type LetterSpacingKey = keyof typeof typography.letterSpacing;
 export type TextStyleKey = keyof typeof textStyles;
-

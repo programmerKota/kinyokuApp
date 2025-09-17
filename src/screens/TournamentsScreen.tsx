@@ -1,71 +1,106 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    SafeAreaView,
-    StatusBar,
-    FlatList,
-    TouchableOpacity,
-    Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import UserService from '../services/userService';
-import { StackNavigationProp } from '@react-navigation/stack';
-import TournamentCard from '../components/TournamentCard';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import { Timestamp } from 'firebase/firestore';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList, TouchableOpacity, Alert } from 'react-native';
+
 import CreateTournamentModal from '../components/CreateTournamentModal';
-import { TournamentStackParamList } from '../navigation/TournamentStackNavigator';
-import { TournamentService, FirestoreTournament, handleFirestoreError, FirestoreUserService } from '../services/firestore';
+import MemoizedTournamentCard from '../components/MemoizedTournamentCard';
+import ConfirmDialog from '../components/ConfirmDialog';
+import VirtualizedList from '../components/VirtualizedList';
 import { useAuth } from '../contexts/AuthContext';
+import useTournamentParticipants from '../hooks/useTournamentParticipants';
+import useErrorHandler from '../hooks/useErrorHandler';
+import type { TournamentStackParamList } from '../navigation/TournamentStackNavigator';
+import {
+    TournamentService,
+    handleFirestoreError,
+    FirestoreUserService,
+} from '../services/firestore';
+import UserService from '../services/userService';
 import { colors, spacing, typography, shadows } from '../theme';
 import { navigateToUserDetail } from '../utils';
 
-type TournamentsScreenNavigationProp = StackNavigationProp<TournamentStackParamList, 'TournamentsList'>;
+type TournamentsScreenNavigationProp = StackNavigationProp<
+    TournamentStackParamList,
+    'TournamentsList'
+>;
 
 interface Tournament {
     id: string;
     name: string;
     description: string;
     participantCount: number;
-    status: 'active' | 'completed' | 'cancelled';
+    status: 'upcoming' | 'active' | 'completed' | 'cancelled';
     isJoined: boolean;
     ownerId: string;
     ownerName: string;
     ownerAvatar?: string;
+    recruitmentOpen?: boolean;
+    requestPending?: boolean;
 }
 
 const TournamentsScreen: React.FC = () => {
     const navigation = useNavigation<TournamentsScreenNavigationProp>();
     const { user } = useAuth();
+    const { handleError } = useErrorHandler();
+    const [participantsState, participantsActions] = useTournamentParticipants();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
-    // 各大会の参加者購読を管理
-    const participantsUnsubRef = useRef<Record<string, () => void>>({});
+    const [confirm, setConfirm] = useState<{ visible: boolean; title?: string; message?: string; onConfirm?: () => void; loading?: boolean }>({ visible: false });
 
-    // 大会一覧の購読
+    // トーナメント一覧の購読
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            // 未ログイン時にスピナーが出続けないよう抑止
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         const unsubscribe = TournamentService.subscribeToTournaments(async (firestoreTournaments) => {
             try {
                 const currentUserId = await FirestoreUserService.getCurrentUserId();
+
+                // 参加者情報のキャッシュを更新
+                const tournamentIds = firestoreTournaments.map(t => t.id);
+                await participantsActions.refreshParticipants(tournamentIds);
+
                 const convertedTournaments: Tournament[] = await Promise.all(
                     firestoreTournaments.map(async (tournament) => {
-                        const participants = await TournamentService.getTournamentParticipants(tournament.id);
-                        const isJoined = tournament.ownerId === currentUserId || participants.some(p => p.userId === currentUserId);
-                        const participantCount = participants.some(p => p.userId === tournament.ownerId) ? participants.length : participants.length + 1;
-                        // オーナー情報はFirestore優先。失敗時はローカルにフォールバック（自分がオーナーの場合）。
+                        const participants = participantsActions.getParticipants(tournament.id);
+                        const isJoined =
+                            tournament.ownerId === currentUserId ||
+                            participants.some((p) => p.userId === currentUserId);
+                        const participantCount = participants.some((p) => p.userId === tournament.ownerId)
+                            ? participants.length
+                            : participants.length + 1;
+                        // オーナー情報は Firestore を優先。なければローカルにフォールバック
                         let owner = await FirestoreUserService.getUserById(tournament.ownerId);
                         if (!owner && tournament.ownerId === currentUserId) {
-                            // 自分がオーナーならローカルのプロフィールを使用
+                            // 現ユーザーの情報をローカルから取得
                             const userService = UserService.getInstance();
                             owner = {
                                 displayName: user?.displayName || (await userService.getUserName()),
                                 photoURL: user?.avatarUrl || (await userService.getAvatarUrl()),
-                            } as any;
+                            };
                         }
+                        // 参加申請が pending かチェック
+                        let requestPending = false;
+                        try {
+                            const { getDocs, collection, query, where } = await import('firebase/firestore');
+                            const { db } = await import('../config/firebase.config');
+                            const qReq = query(
+                                collection(db, 'tournamentJoinRequests'),
+                                where('tournamentId', '==', tournament.id),
+                                where('userId', '==', currentUserId),
+                                where('status', '==', 'pending'),
+                            );
+                            const reqSnap = await getDocs(qReq);
+                            requestPending = !reqSnap.empty;
+                        } catch { }
+
                         return {
                             id: tournament.id,
                             name: tournament.name,
@@ -76,136 +111,173 @@ const TournamentsScreen: React.FC = () => {
                             ownerId: tournament.ownerId,
                             ownerName: owner?.displayName ?? 'ユーザー',
                             ownerAvatar: owner?.photoURL,
+                            recruitmentOpen: tournament.recruitmentOpen ?? true,
+                            requestPending,
                         };
-                    })
+                    }),
                 );
                 setTournaments(convertedTournaments);
-
-                // 既存の購読をクリーンアップして張り直す
-                Object.values(participantsUnsubRef.current).forEach(unsub => {
-                    try { unsub(); } catch { }
-                });
-                participantsUnsubRef.current = {};
-
-                // 各大会の参加者変更を購読し、isJoined/participantCount をリアルタイム反映
-                for (const t of firestoreTournaments) {
-                    const unsub = TournamentService.subscribeToParticipants(t.id, async (parts) => {
-                        const uid = await FirestoreUserService.getCurrentUserId();
-                        setTournaments(prev => prev.map(item => {
-                            if (item.id !== t.id) return item;
-                            const joined = t.ownerId === uid || parts.some(p => p.userId === uid);
-                            const count = parts.some(p => p.userId === t.ownerId) ? parts.length : parts.length + 1;
-                            if (item.isJoined === joined && item.participantCount === count) return item;
-                            return { ...item, isJoined: joined, participantCount: count };
-                        }));
-                    });
-                    participantsUnsubRef.current[t.id] = unsub;
-                }
             } catch (error) {
-                const firestoreError = handleFirestoreError(error);
-                Alert.alert('エラー', firestoreError.message);
+                handleError(error, {
+                    component: 'TournamentsScreen',
+                    action: 'loadTournaments',
+                }, {
+                    fallbackMessage: 'トーナメント一覧の取得に失敗しました',
+                });
             } finally {
                 setLoading(false);
             }
         });
         return () => {
             unsubscribe();
-            Object.values(participantsUnsubRef.current).forEach(unsub => {
-                try { unsub(); } catch { }
-            });
-            participantsUnsubRef.current = {};
         };
-    }, [user]);
+    }, [user, participantsActions, handleError]);
 
-    const handleJoinTournament = async (tournamentId: string) => {
+    const handleJoinTournament = useCallback(async (tournamentId: string) => {
         try {
-            await TournamentService.joinTournament(tournamentId);
-            // 楽観的更新で即時UI反映
-            setTournaments(prev => prev.map(t => {
-                if (t.id !== tournamentId) return t;
-                if (t.isJoined) return t;
-                return { ...t, isJoined: true, participantCount: t.participantCount + 1 };
-            }));
-            Alert.alert('参加完了', '大会に参加しました！');
+            const t = tournaments.find((x) => x.id === tournamentId);
+            if (t && t.ownerId === user?.uid) {
+                Alert.alert('トーナメント作成者', 'あなたが作成したトーナメントには参加できません。');
+                return;
+            }
+            if (t && t.recruitmentOpen === false) {
+                Alert.alert('募集停止中', '現在このトーナメントは募集停止中です。');
+                return;
+            }
+            // 参加申請
+            await TournamentService.requestJoin(tournamentId);
+            // UI のペンディング表示を更新
+            setTournaments((prev) =>
+                prev.map((t) => {
+                    if (t.id !== tournamentId) return t;
+                    if (t.isJoined) return t;
+                    return { ...t, requestPending: true };
+                }),
+            );
+            Alert.alert('申請完了', '参加申請を送信しました。主催者の承認をお待ちください。');
         } catch (error) {
-            console.error('大会への参加に失敗しました:', error);
-            const firestoreError = handleFirestoreError(error);
-            Alert.alert('エラー', firestoreError.message);
+            handleError(error, {
+                component: 'TournamentsScreen',
+                action: 'joinTournament',
+            }, {
+                fallbackMessage: 'トーナメントへの参加申請に失敗しました',
+            });
         }
-    };
+    }, [tournaments, user?.uid, handleError]);
 
-    const handleViewTournament = (idOrUserKey: string) => {
+    const handleViewTournament = useCallback((idOrUserKey: string) => {
         if (idOrUserKey.startsWith('user:')) {
             const ownerId = idOrUserKey.replace('user:', '');
-            const t = tournaments.find(t => t.ownerId === ownerId);
+            const t = tournaments.find((t) => t.ownerId === ownerId);
             navigateToUserDetail(navigation, ownerId, t?.ownerName, t?.ownerAvatar);
             return;
         }
         navigation.navigate('TournamentRoom', { tournamentId: idOrUserKey });
-    };
+    }, [tournaments, navigation]);
 
-    const handleCreateTournament = async (data: { name: string; description: string }) => {
+    const handleCreateTournament = useCallback(async (data: { name: string; description: string }) => {
         try {
             const now = new Date();
-            const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30日後
-
+            const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30日間
             const tournamentId = await TournamentService.createTournament({
                 name: data.name,
                 description: data.description,
                 ownerId: await FirestoreUserService.getCurrentUserId(),
-                maxParticipants: 0, // 上限廃止
-                entryFee: 0, // TODO: エントリーフィー機能を実装
-                prizePool: 0, // TODO: 賞金プール機能を実装
+                maxParticipants: 0, // 無制限
+                entryFee: 0, // TODO: エントリー料金対応
+                prizePool: 0, // TODO: 賞金対応
                 status: 'upcoming',
-                startDate: now,
-                endDate: endDate,
+                recruitmentOpen: true,
+                startDate: Timestamp.fromDate(now),
+                endDate: Timestamp.fromDate(endDate),
             });
 
-            // 作成者を参加者として追加（購読によりUIへ反映）
+            // 作成者を参加者へ追加して UI を更新
             await TournamentService.joinTournament(tournamentId);
-            Alert.alert('作成完了', '大会を作成しました！');
+            Alert.alert('作成完了', 'トーナメントを作成しました。');
         } catch (error) {
-            console.error('大会の作成に失敗しました:', error);
-            const firestoreError = handleFirestoreError(error);
-            Alert.alert('エラー', firestoreError.message);
+            handleError(error, {
+                component: 'TournamentsScreen',
+                action: 'createTournament',
+            }, {
+                fallbackMessage: 'トーナメントの作成に失敗しました',
+            });
         }
-    };
+    }, [handleError]);
 
-    const renderTournament = ({ item }: { item: Tournament }) => (
-        <TournamentCard
+    const handleToggleRecruitment = useCallback(async (id: string, open: boolean) => {
+        try {
+            await TournamentService.setRecruitmentOpen(id, open);
+            setTournaments((prev) => prev.map((t) => (t.id === id ? { ...t, recruitmentOpen: open } : t)));
+        } catch (error) {
+            handleError(error, {
+                component: 'TournamentsScreen',
+                action: 'toggleRecruitment',
+            }, {
+                fallbackMessage: '募集状態の切り替えに失敗しました',
+            });
+        }
+    }, [handleError]);
+
+    const handleDeleteTournament = useCallback((id: string) => {
+        setConfirm({
+            visible: true,
+            title: 'トーナメントを削除',
+            message: 'この操作は取り消せません。削除しますか？',
+            onConfirm: async () => {
+                setConfirm((s) => ({ ...s, loading: true }));
+                try {
+                    await TournamentService.deleteTournament(id);
+                    setTournaments((prev) => prev.filter((t) => t.id !== id));
+                } catch (error) {
+                    handleError(error, {
+                        component: 'TournamentsScreen',
+                        action: 'deleteTournament',
+                    }, {
+                        fallbackMessage: 'トーナメントの削除に失敗しました',
+                    });
+                } finally {
+                    setConfirm({ visible: false });
+                }
+            },
+        });
+    }, [handleError]);
+
+    const renderTournament = useCallback(({ item }: { item: Tournament }) => (
+        <MemoizedTournamentCard
             tournament={item}
             onJoin={handleJoinTournament}
             onView={handleViewTournament}
+            onToggleRecruitment={handleToggleRecruitment}
+            showDelete={user?.uid === item.ownerId}
+            onDelete={handleDeleteTournament}
         />
-    );
+    ), [handleJoinTournament, handleViewTournament, handleToggleRecruitment, handleDeleteTournament, user?.uid]);
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
 
             <View style={styles.header}>
-                <Text style={styles.title}>大会一覧</Text>
+                <Text style={styles.title}>トーナメント一覧</Text>
             </View>
 
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <Text style={styles.loadingText}>読み込み中...</Text>
-                </View>
-            ) : (
-                <FlatList
-                    data={tournaments}
-                    renderItem={renderTournament}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
-                    showsVerticalScrollIndicator={false}
-                />
-            )}
+            <VirtualizedList
+                data={tournaments}
+                renderItem={renderTournament}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.list}
+                loading={loading}
+                hasMore={false} // 今はページング未対応
+                emptyMessage="トーナメントがありません"
+                itemHeight={200} // カード高さの目安
+                maxToRenderPerBatch={5}
+                windowSize={10}
+                initialNumToRender={10}
+            />
 
-            {/* フローティングアクションボタン */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => setShowCreateModal(true)}
-            >
+            {/* 作成ボタン（アクションボタン） */}
+            <TouchableOpacity style={styles.fab} onPress={() => setShowCreateModal(true)}>
                 <Ionicons name="add" size={24} color={colors.white} />
             </TouchableOpacity>
 
@@ -213,6 +285,17 @@ const TournamentsScreen: React.FC = () => {
                 visible={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onCreate={handleCreateTournament}
+            />
+            <ConfirmDialog
+                visible={confirm.visible}
+                title={confirm.title || ''}
+                message={confirm.message}
+                confirmText="削除"
+                cancelText="キャンセル"
+
+                onConfirm={confirm.onConfirm || (() => setConfirm({ visible: false }))}
+                onCancel={() => setConfirm({ visible: false })}
+                loading={!!confirm.loading}
             />
         </SafeAreaView>
     );
@@ -232,7 +315,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: typography.fontSize['2xl'],
-        fontWeight: typography.fontWeight.bold as any,
+        fontWeight: typography.fontWeight.bold,
         color: colors.textPrimary,
         textAlign: 'center',
     },
@@ -252,15 +335,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
         paddingBottom: spacing.xl,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        fontSize: typography.fontSize.base,
-        color: colors.textSecondary,
     },
 });
 

@@ -1,17 +1,18 @@
-import { ViewStyle, TextStyle } from "react-native";
-import { colors, spacing, typography } from "../theme";
+import type { ViewStyle, TextStyle } from 'react-native';
+
+import { colors, spacing, typography } from '../theme';
 
 // よく使用されるスタイルパターンのユーティリティ関数
 
 // ボタンスタイルの共通パターン
 export const createButtonStyle = (
-  variant: "primary" | "secondary" | "danger" = "primary",
-  size: "small" | "medium" | "large" = "medium"
+  variant: 'primary' | 'secondary' | 'danger' = 'primary',
+  size: 'small' | 'medium' | 'large' = 'medium',
 ) => {
   const baseStyle: ViewStyle = {
     borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const variantStyles = {
@@ -19,7 +20,7 @@ export const createButtonStyle = (
       backgroundColor: colors.primary,
     },
     secondary: {
-      backgroundColor: "transparent",
+      backgroundColor: 'transparent',
       borderWidth: 1,
       borderColor: colors.borderPrimary,
     },
@@ -34,11 +35,11 @@ export const createButtonStyle = (
       paddingVertical: spacing.md,
     },
     medium: {
-      paddingHorizontal: spacing["2xl"],
+      paddingHorizontal: spacing['2xl'],
       paddingVertical: spacing.lg,
     },
     large: {
-      paddingHorizontal: spacing["3xl"],
+      paddingHorizontal: spacing['3xl'],
       paddingVertical: spacing.xl,
     },
   };
@@ -52,9 +53,9 @@ export const createButtonStyle = (
 
 // テキストスタイルの共通パターン
 export const createTextStyle = (
-  size: keyof typeof typography.fontSize = "base",
-  weight: keyof typeof typography.fontWeight = "normal",
-  color: keyof typeof colors = "textPrimary"
+  size: keyof typeof typography.fontSize = 'base',
+  weight: keyof typeof typography.fontWeight = 'normal',
+  color: keyof typeof colors = 'textPrimary',
 ): TextStyle => ({
   fontSize: typography.fontSize[size],
   fontWeight: typography.fontWeight[weight],

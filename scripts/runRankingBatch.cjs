@@ -56,7 +56,11 @@ async function main() {
     const avgSec = calcAverageTimeSeconds(list);
     if (!avgSec || !isFinite(avgSec)) continue;
     const ended = list.filter((x) => x.status === 'completed' || x.status === 'failed').length;
-    const successRate = list.length > 0 ? Math.round((list.filter((x) => x.status === 'completed').length / list.length) * 10000) / 100 : 0;
+    const successRate =
+      list.length > 0
+        ? Math.round((list.filter((x) => x.status === 'completed').length / list.length) * 10000) /
+          100
+        : 0;
 
     let name = 'ユーザー';
     let avatar = null;
@@ -99,17 +103,22 @@ async function main() {
       successRate: r.successRate,
       rank: r.rank,
       updatedAt: Timestamp.now(),
-    })
+    }),
   );
   await Promise.all(writeOps);
 
   // last update
-  await db.collection(COLLECTIONS.SYSTEM).doc('ranking_update').set({ lastUpdate: Timestamp.now() }, { merge: true });
+  await db
+    .collection(COLLECTIONS.SYSTEM)
+    .doc('ranking_update')
+    .set({ lastUpdate: Timestamp.now() }, { merge: true });
 
   console.log('[ranking-batch] finished. wrote', rankings.length, 'docs');
 }
 
-main().then(() => process.exit(0)).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

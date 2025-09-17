@@ -1,4 +1,4 @@
-import { TextStyle } from "react-native";
+import type { TextStyle } from 'react-native';
 
 /**
  * 投稿内容の位置調整用の定数
@@ -16,11 +16,11 @@ export const CONTENT_LEFT_MARGIN = {
  */
 export const getUserNameStyle = (baseStyle?: TextStyle): TextStyle => {
   return {
-    fontWeight: "600",
-    color: "#1a1a1a",
+    fontWeight: '600',
+    color: '#1a1a1a',
     marginRight: 8,
     flexShrink: 1,
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
     ...baseStyle,
   };
 };
@@ -31,14 +31,12 @@ export const getUserNameStyle = (baseStyle?: TextStyle): TextStyle => {
  */
 export const getUserNameContainerStyle = (): TextStyle => {
   return {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     flex: 1,
   };
 };
-
-
 
 /**
  * ユーザー名の表示用ヘッダーコンテナスタイル
@@ -50,9 +48,7 @@ export const getUserNameContainerStyle = (): TextStyle => {
  * 肩書表示用のスタイル
  * 名前の下に表示されるランクや肩書用
  */
-export const getTitleStyle = (
-  size: "small" | "medium" | "large" = "medium"
-): TextStyle => {
+export const getTitleStyle = (size: 'small' | 'medium' | 'large' = 'medium'): TextStyle => {
   const fontSizeMap = {
     small: 10,
     medium: 12,
@@ -61,8 +57,8 @@ export const getTitleStyle = (
 
   return {
     fontSize: fontSizeMap[size],
-    fontWeight: "500",
-    color: "#9E9E9E", // 肩書きの文字色は訓練兵に統一
+    fontWeight: '500',
+    color: '#9E9E9E', // 肩書きの文字色は訓練兵に統一
     marginTop: 4,
     lineHeight: 16,
   };
@@ -72,9 +68,7 @@ export const getTitleStyle = (
  * 投稿内容の位置調整用スタイル
  * 名前と同じ開始位置に合わせる
  */
-export const getContentStyle = (
-  size: "small" | "medium" | "large" = "medium"
-): TextStyle => {
+export const getContentStyle = (size: 'small' | 'medium' | 'large' = 'medium'): TextStyle => {
   const fontSizeMap = {
     small: 14,
     medium: 16,
@@ -83,7 +77,7 @@ export const getContentStyle = (
 
   return {
     fontSize: fontSizeMap[size],
-    color: "#1a1a1a",
+    color: '#1a1a1a',
     lineHeight: 20,
   };
 };
@@ -92,9 +86,7 @@ export const getContentStyle = (
  * ブロック開始位置（コンテナ左パディングを考慮）
  * 各コンテンツブロックのmarginLeftに適用して、名前と同じ開始位置に揃える
  */
-export const getBlockLeftMargin = (
-  size: "small" | "medium" | "large" = "medium"
-): number => {
+export const getBlockLeftMargin = (size: 'small' | 'medium' | 'large' = 'medium'): number => {
   const map = {
     // コンテナ内（padding内）で使うため、そのまま「アバター+余白」の値を返す
     small: CONTENT_LEFT_MARGIN.small,

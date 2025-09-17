@@ -1,17 +1,44 @@
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 import React from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
 import TimerScreen from './TimerScreen';
-import { colors, spacing } from '../theme';
 import HistoryButton from '../components/HistoryButton';
 import RankingButton from '../components/RankingButton';
+import { colors, spacing } from '../theme';
 
-const HomeScreen = ({ navigation }: { navigation: any }) => (
+type HomeNav = StackNavigationProp<RootStackParamList>;
+
+const HomeScreen = ({ navigation }: { navigation: HomeNav }) => (
   <SafeAreaView style={styles.container}>
     <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
     <TimerScreen />
     <View style={styles.buttonContainer}>
-      <HistoryButton onPress={() => navigation.navigate('History')} />
-      <RankingButton onPress={() => navigation.navigate('Ranking')} />
+      <View style={styles.quickBtn}>
+        <HistoryButton
+          onPress={() => {
+            void navigation.navigate('History');
+          }}
+        />
+      </View>
+      <View style={styles.quickBtn}>
+        <RankingButton
+          onPress={() => {
+            void navigation.navigate('Ranking');
+          }}
+          style={{ width: '100%' }}
+        />
+      </View>
+      <View style={styles.quickBtn}>
+        <RankingButton
+          title="商品"
+          onPress={() => {
+            // TODO: Products画面のナビゲーション型を追加
+            void (navigation as any).navigate('Products');
+          }}
+          style={{ width: '100%' }}
+        />
+      </View>
     </View>
   </SafeAreaView>
 );
@@ -23,10 +50,16 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
     paddingBottom: spacing.lg,
+  },
+  quickBtn: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'stretch',
+    paddingHorizontal: spacing.xs,
   },
 });
 
 export default HomeScreen;
-

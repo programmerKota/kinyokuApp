@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TextStyle } from 'react-native';
+import type { TextStyle } from 'react-native';
+import { Text } from 'react-native';
+
 import { formatRelative } from '../utils';
+import type { DateLike } from '../utils/date';
 
 interface RelativeTimeProps {
-  value: any; // Date | Firestore.Timestamp | string | number
+  value: DateLike; // Date | Firestore.Timestamp | string | number
   showSeconds?: boolean;
   updateIntervalMs?: number; // default depends on showSeconds
-  style?: TextStyle | any;
+  style?: TextStyle;
 }
 
 const RelativeTime: React.FC<RelativeTimeProps> = ({
@@ -28,4 +31,3 @@ const RelativeTime: React.FC<RelativeTimeProps> = ({
 };
 
 export default RelativeTime;
-

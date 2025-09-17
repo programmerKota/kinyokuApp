@@ -88,11 +88,16 @@ async function main() {
         rankEmoji: rank.emoji,
         rankUpdatedAt: Timestamp.now(),
       },
-      { merge: true }
+      { merge: true },
     );
     updated += 1;
   }
   console.log('[user-ranks] finished. updated', updated, 'users');
 }
 
-main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

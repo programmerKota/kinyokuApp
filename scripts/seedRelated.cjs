@@ -5,8 +5,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 let faker; // ESM-only; resolved via dynamic import in main()
 
-process.env.FIRESTORE_EMULATOR_HOST =
-  process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
+process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
 
 initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'demo-project' });
 const db = getFirestore();
@@ -94,7 +93,7 @@ async function seedFollows(ids) {
   for (const a of ids) {
     const others = faker.helpers.arrayElements(
       ids.filter((b) => b !== a),
-      rand(2, 5)
+      rand(2, 5),
     );
     for (const b of others) {
       const id = `${a}_${b}`;
@@ -174,7 +173,9 @@ async function main() {
   console.log('Related data seeding completed');
 }
 
-main().then(() => process.exit(0)).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

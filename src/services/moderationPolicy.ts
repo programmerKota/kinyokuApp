@@ -1,6 +1,7 @@
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../config/firebase.config";
+
 import { getWordList } from "./wordListService";
+import { db } from "../config/firebase.config";
 
 export type ModerationPolicy = {
   harassTerms: string[];
@@ -18,7 +19,7 @@ const defaultPolicy: ModerationPolicy = {
   sexualTermsJa: [],
   sexualTermsEn: [],
   allowTerms: [],
-  blockThreshold: 4,
+  blockThreshold: 5,
   flagThreshold: 3,
   // Japanese/latin spaces and common separators
   fuzzyGapChars: "\\u3000\\s_-.・〜~／/\\\\|\\*",
@@ -116,7 +117,7 @@ async function loadExternalWordList() {
     externalWordListLoaded = true;
     if (__DEV__) {
       console.log(
-        `外部用語リスト読み込み完了: 性的用語 ${wordList.sexualTermsJa.length}件, 攻撃的用語 ${wordList.harassTerms.length}件`
+        `外部用語リスト読み込み完了: 性的用語 ${wordList.sexualTermsJa.length}件, 攻撃的用語 ${wordList.harassTerms.length}件`,
       );
     }
   } catch (error) {

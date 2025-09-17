@@ -14,7 +14,7 @@ export interface Challenge {
   userId: string;
   goalDays: number;
   penaltyAmount: number;
-  status: "active" | "completed" | "failed" | "paused";
+  status: 'active' | 'completed' | 'failed' | 'paused';
   startedAt: Date;
   completedAt?: Date;
   failedAt?: Date;
@@ -32,7 +32,7 @@ export interface Tournament {
   maxParticipants: number;
   entryFee: number;
   prizePool: number;
-  status: "upcoming" | "active" | "completed" | "cancelled";
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
   startDate: Date;
   endDate: Date;
   createdAt: Date;
@@ -45,7 +45,7 @@ export interface TournamentParticipant {
   userId: string;
   userName: string;
   userAvatar?: string;
-  status: "joined" | "left" | "kicked" | "completed" | "failed";
+  status: 'joined' | 'left' | 'kicked' | 'completed' | 'failed';
   joinedAt: Date;
   leftAt?: Date;
   progressPercent?: number;
@@ -59,7 +59,7 @@ export interface TournamentMessage {
   authorName: string;
   authorAvatar?: string;
   text: string;
-  type: "text" | "system";
+  type: 'text' | 'system';
   createdAt: Date;
   moderation?: ModerationInfo;
 }
@@ -107,8 +107,8 @@ export interface Payment {
   id: string;
   userId: string;
   amount: number;
-  type: "penalty" | "entry_fee" | "prize";
-  status: "pending" | "completed" | "failed" | "refunded";
+  type: 'penalty' | 'entry_fee' | 'prize';
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
   transactionId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -128,4 +128,3 @@ export type TournamentStackParamList = {
   TournamentRoom: { tournamentId: string };
   CreateTournament: undefined;
 };
-

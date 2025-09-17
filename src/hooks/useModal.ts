@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 
 interface UseModalReturn {
   visible: boolean;
@@ -29,4 +29,3 @@ export const useModal = (initialVisible = false): UseModalReturn => {
     toggle,
   };
 };
-

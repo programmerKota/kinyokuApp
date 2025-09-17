@@ -52,6 +52,9 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Local emulator/cache artifacts
+data/cache/
+
 # debug
 npm-debug.*
 yarn-debug.*
@@ -66,3 +69,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Firebase emulator cache
+/data/cache/
+

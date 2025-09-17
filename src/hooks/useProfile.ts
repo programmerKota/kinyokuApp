@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import ProfileCache, { UserProfileLite } from '../services/profileCache';
+
+import type { UserProfileLite } from '../services/profileCache';
+import ProfileCache from '../services/profileCache';
 
 export const useProfile = (userId?: string) => {
   const [profile, setProfile] = useState<UserProfileLite | undefined>();
@@ -16,4 +18,3 @@ export const useProfile = (userId?: string) => {
 };
 
 export default useProfile;
-
