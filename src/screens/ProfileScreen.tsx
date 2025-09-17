@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   View,
@@ -185,14 +185,6 @@ const ProfileScreen: React.FC = () => {
                   }}
                 />
 
-                <ActionCard
-                  icon="shield-outline"
-                  title="AV女優名管理"
-                  description="不適切な投稿を防ぐためのAV女優名を管理"
-                  onPress={() => {
-                    void navigation.navigate('AvActressManagement');
-                  }}
-                />
               </Section>
             </View>
           </View>

@@ -1,93 +1,90 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+﻿import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { useProfile } from '../hooks/useProfile';
-import { colors, spacing } from '../theme';
+import { colors, spacing, typography } from '../theme';
 import type { CommunityComment } from '../types';
-import UserProfileWithRank from './UserProfileWithRank';
-import { uiStyles } from '../ui/styles';
-import { formatRelative } from '../utils';
-import type { DateLike } from '../utils/date';
-import { getContentStyle, CONTENT_LEFT_MARGIN, getBlockLeftMargin } from '../utils/nameUtils';
-
-// 共通の左マージン値は nameUtils.ts からインポート
+import RelativeTime from './RelativeTime';
+import AvatarImage from './AvatarImage';
 
 interface ReplyCardProps {
   reply: CommunityComment;
-  onPress: () => void;
+  onPress?: () => void;
   authorAverageDays?: number;
 }
 
-const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress, authorAverageDays = 0 }) => {
-  const formatDate = (date: DateLike) => formatRelative(date, { showSeconds: false });
-  const liveProfile = useProfile(reply.authorId);
-  const displayName = liveProfile?.displayName ?? reply.authorName;
-  const displayAvatar = liveProfile?.photoURL ?? reply.authorAvatar;
+const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
+  const Container = onPress ? TouchableOpacity : View;
+  const containerProps = onPress
+    ? { activeOpacity: 0.8, onPress }
+    : {};
 
   return (
-    <View style={styles.container}>
-      <View style={styles.replyContent}>
-        <View style={[uiStyles.rowStart, styles.header]}>
-          <UserProfileWithRank
-            userName={displayName}
-            userAvatar={displayAvatar}
-            averageDays={authorAverageDays}
-            onPress={onPress}
-            size="small"
-            showRank={false}
-            showTitle={true}
-            style={styles.userProfileContainer}
-          />
-          <Text style={uiStyles.timestampRight}>{formatDate(reply.createdAt)}</Text>
+    <Container style={styles.container} {...containerProps}>
+      <View style={styles.header}>
+        <View style={styles.avatarWrapper}>
+          {reply.authorAvatar ? (
+            <AvatarImage uri={reply.authorAvatar} size={32} />
+          ) : (
+            <View style={styles.avatarFallback}>
+              <Text style={styles.avatarFallbackText}>{reply.authorName.charAt(0)}</Text>
+            </View>
+          )}
         </View>
-
-        {reply.moderation?.status !== 'blocked' && (
-          <View style={styles.content}>
-            {reply.moderation?.status === 'flagged' || reply.moderation?.status === 'pending' ? (
-              <Text style={styles.pendingText}>審査中のため本文を非表示</Text>
-            ) : (
-              <Text style={[styles.text, getContentStyle('small')]}>{reply.content}</Text>
-            )}
-          </View>
-        )}
+        <View style={styles.headerText}>
+          <Text style={styles.author}>{reply.authorName}</Text>
+          <RelativeTime value={reply.createdAt} style={styles.timestamp} />
+        </View>
       </View>
-    </View>
+      <Text style={styles.content}>{reply.content}</Text>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderPrimary,
     backgroundColor: colors.white,
-    marginBottom: 0,
-  },
-  replyContent: {
-    padding: spacing.lg,
-    // 返信プロフィール（アバター+名前）の開始位置を「返信を書く」ボタンの開始位置と合わせる
-    // PostCard.replyButtonSpacer と同じ幅
-    marginLeft: CONTENT_LEFT_MARGIN.medium,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 0,
-    width: '100%',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
   },
-  userProfileContainer: {
-    flex: 1,
+  avatarWrapper: {
     marginRight: spacing.sm,
   },
-
-  content: {
-    marginBottom: spacing.sm,
-    // 返信本文の開始位置を「名前の開始位置」に合わせる
-    marginLeft: getBlockLeftMargin('small'),
+  avatarFallback: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  text: {
-    // 共通関数でスタイルを管理するため、基本スタイルのみ
+  avatarFallbackText: {
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
-  pendingText: {
+  headerText: {
+    flex: 1,
+  },
+  author: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  timestamp: {
+    fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
-    fontSize: 12,
+  },
+  content: {
+    marginLeft: spacing.lg + 32,
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    lineHeight: 20,
   },
 });
 

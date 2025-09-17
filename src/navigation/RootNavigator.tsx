@@ -14,7 +14,6 @@ import UserDetailScreen from '../screens/UserDetailScreen';
 import BlockedUsersScreen from '../screens/BlockedUsersScreen';
 import ProductsScreen from '../screens/ProductsScreen';
 import FeedbackScreen from '../screens/FeedbackScreen';
-import AvActressManagementScreen from '../screens/AvActressManagementScreen';
 import { colors } from '../theme';
 
 const Tab = createBottomTabNavigator();
@@ -26,7 +25,6 @@ export type RootStackParamList = {
   BlockedUsers: undefined;
   Feedback: undefined;
   Products: undefined;
-  AvActressManagement: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -89,7 +87,6 @@ const RootNavigator: React.FC = () => (
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <RootStack.Screen name="Products" component={ProductsScreen} />
       <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-      <RootStack.Screen name="AvActressManagement" component={AvActressManagementScreen} />
     </RootStack.Navigator>
   </NavigationContainer>
 );

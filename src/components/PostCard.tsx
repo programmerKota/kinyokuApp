@@ -7,7 +7,6 @@ import type { CommunityPost } from '../types';
 import RelativeTime from './RelativeTime';
 import UserProfileWithRank from './UserProfileWithRank';
 import { useProfile } from '../hooks/useProfile';
-import { getRankByDays } from '../services/rankService';
 import uiStyles from '../ui/styles';
 import { getContentStyle, CONTENT_LEFT_MARGIN, getBlockLeftMargin } from '../utils/nameUtils';
 
@@ -23,8 +22,6 @@ interface PostCardProps {
   showReplyButton?: boolean;
   authorAverageDays?: number;
 }
-
-// 名前やテキストのレイアウトは nameUtils.ts に記述
 
 const PostCard: React.FC<PostCardProps> = ({
   post,
@@ -51,12 +48,7 @@ const PostCard: React.FC<PostCardProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* 本文 */}
       <View style={styles.postContent}>
-        {/* フラグ/ブロック時の注意表示 */}
-        {post.moderation?.status === 'blocked' ? (
-          <Text style={styles.flaggedText}>この投稿はガイドライン違反のため表示できません</Text>
-        ) : null}
         <View style={[uiStyles.rowStart, styles.header]}>
           <UserProfileWithRank
             userName={displayName}
@@ -71,16 +63,10 @@ const PostCard: React.FC<PostCardProps> = ({
           <RelativeTime value={post.createdAt} style={uiStyles.timestampRight} />
         </View>
 
-        {post.moderation?.status !== 'blocked' && (
-          <View style={[styles.content, { marginLeft: getBlockLeftMargin('medium') }]}>
-            {post.moderation?.status === 'flagged' || post.moderation?.status === 'pending' ? (
-              <Text style={styles.pendingText}>審査中のため表示が制限されています</Text>
-            ) : (
-              <Text style={[styles.text, getContentStyle('medium')]}>{post.content}</Text>
-            )}
-            {post.imageUrl && <Image source={{ uri: post.imageUrl }} style={styles.postImage} />}
-          </View>
-        )}
+        <View style={[styles.content, { marginLeft: getBlockLeftMargin('medium') }]}>
+          <Text style={[styles.text, getContentStyle('medium')]}>{post.content}</Text>
+          {post.imageUrl && <Image source={{ uri: post.imageUrl }} style={styles.postImage} />}
+        </View>
 
         <View style={styles.footer}>
           <TouchableOpacity
@@ -106,7 +92,6 @@ const PostCard: React.FC<PostCardProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* 返信ボタン */}
         {showReplyButton && (
           <View style={styles.replyButtonContainer}>
             <View style={styles.replyButtonSpacer} />
@@ -143,7 +128,6 @@ const styles = StyleSheet.create({
   userProfileContainer: {
     flex: 1,
   },
-
   content: {
     marginBottom: spacing.sm,
   },
@@ -173,16 +157,6 @@ const styles = StyleSheet.create({
   },
   likedText: {
     color: colors.error,
-  },
-  flaggedText: {
-    color: colors.error,
-    fontSize: typography.fontSize.sm,
-    marginBottom: spacing.sm,
-    marginLeft: getBlockLeftMargin('medium'),
-  },
-  pendingText: {
-    color: colors.textSecondary,
-    fontSize: typography.fontSize.sm,
   },
   replyButton: {
     flexDirection: 'row',
@@ -216,8 +190,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(PostCard);
-
-
-
+export default PostCard;
 

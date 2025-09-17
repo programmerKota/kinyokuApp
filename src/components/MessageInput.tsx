@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
 import { useModerationGuard } from '../hooks/useModerationGuard';
 import { colors, spacing, typography } from '../theme';
@@ -50,14 +50,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
           />
         </TouchableOpacity>
       </View>
-      {/* 補助テキスト */}
-      {guard.helperText ? (
-        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
-          <Text style={{ color: colors.textSecondary, fontSize: typography.fontSize.sm }}>
-            {guard.helperText}
-          </Text>
-        </View>
-      ) : null}
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   View,
@@ -64,12 +64,12 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ visible, onClose, onSubmit, pos
           >
             <TouchableWithoutFeedback onPress={handleContentPress}>
               <View style={styles.modalContainer}>
-                {/* ヘッダー */}
+                {/* 繝倥ャ繝繝ｼ */}
                 <View style={[uiStyles.rowBetween, styles.header]}>
                   <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                     <Ionicons name="close" size={24} color={colors.textPrimary} />
                   </TouchableOpacity>
-                  <Text style={styles.headerTitle}>{postAuthorName}に返信</Text>
+                  <Text style={styles.headerTitle}>{postAuthorName}縺ｫ霑比ｿ｡</Text>
                   <TouchableOpacity
                     onPress={handleSubmit}
                     style={[
@@ -84,21 +84,16 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ visible, onClose, onSubmit, pos
                         !content.trim() && styles.replyButtonTextDisabled,
                       ]}
                     >
-                      返信
+                      霑比ｿ｡
                     </Text>
                   </TouchableOpacity>
                 </View>
-                {guard.helperText ? (
-                  <Text style={[styles.counter, { marginTop: spacing.sm }]}>
-                    {guard.helperText}
-                  </Text>
-                ) : null}
 
-                {/* メインコンテンツ */}
+                {/* 繝｡繧､繝ｳ繧ｳ繝ｳ繝・Φ繝・*/}
                 <View style={styles.content}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder={`${postAuthorName}に返信...`}
+                    placeholder={`${postAuthorName}縺ｫ霑比ｿ｡...`}
                     placeholderTextColor={colors.textSecondary}
                     value={content}
                     onChangeText={setContent}
@@ -107,7 +102,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({ visible, onClose, onSubmit, pos
                     autoFocus
                   />
 
-                  {/* 文字数カウンター */}
+                  {/* 譁・ｭ玲焚繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ */}
                   <View style={styles.counterContainer}>
                     <Text style={[styles.counter, content.length > 260 && styles.counterWarning]}>
                       {content.length}/280
@@ -203,3 +198,4 @@ const styles = StyleSheet.create({
 });
 
 export default ReplyModal;
+

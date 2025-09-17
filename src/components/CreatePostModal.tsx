@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   View,
@@ -31,7 +31,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
 
   const handleSubmit = () => {
     if (!content.trim() || !guard.canSend) {
-      Alert.alert('エラー', guard.helperText || '投稿内容を入力してください');
+      Alert.alert('エラー', '投稿内容を入力してください');
       return;
     }
 
@@ -39,7 +39,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
       content: content.trim(),
     });
 
-    // フォームをリセット
     setContent('');
     onClose();
   };
@@ -57,7 +56,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
       animationType="slide"
       transparent={false}
       onRequestClose={handleClose}
-      statusBarTranslucent={true}
+      statusBarTranslucent
     >
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
@@ -83,7 +82,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
               autoFocus
             />
 
-            {/* 文字数カウンターと投稿ボタン */}
             <View style={[uiStyles.rowBetween, styles.footer]}>
               <View style={styles.counterContainer}>
                 <Text style={[styles.counter, content.length > 260 && styles.counterWarning]}>
@@ -92,22 +90,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
               </View>
               <TouchableOpacity
                 onPress={handleSubmit}
-                style={[
-                  styles.postButton,
-                  (!content.trim() || !guard.canSend) && styles.postButtonDisabled,
-                ]}
-                disabled={!content.trim() || !guard.canSend}
+                style={[styles.postButton, !content.trim() && styles.postButtonDisabled]}
+                disabled={!content.trim()}
               >
-                <Text
-                  style={[styles.postButtonText, !content.trim() && styles.postButtonTextDisabled]}
-                >
+                <Text style={[styles.postButtonText, !content.trim() && styles.postButtonTextDisabled]}>
                   投稿
                 </Text>
               </TouchableOpacity>
             </View>
-            {guard.helperText ? (
-              <Text style={[styles.counter, { marginTop: 8 }]}>{guard.helperText}</Text>
-            ) : null}
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>

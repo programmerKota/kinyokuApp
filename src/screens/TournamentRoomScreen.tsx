@@ -398,7 +398,7 @@ const handleKick = async (p: Participant) => {
                   />
                   <View style={styles.requestActions}>
                     <Button title="承認" size="small" variant="primary" onPress={() => { void handleApprove(r.id); }} />
-                    <Button title="却下" size="small" variant="danger" onPress={() => { void handleReject(r.id); }} style={styles.requestReject} />
+                    <Button title="却下" size="small" variant="danger" onPress={() => { void handleReject(r.id); }} />
                   </View>
                 </View>
               ))}
@@ -566,3 +566,5 @@ const styles = StyleSheet.create({
 });
 
 export default TournamentRoomScreen;
+
+

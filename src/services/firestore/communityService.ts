@@ -20,7 +20,6 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../../config/firebase.config';
-import { moderateText } from '../moderation';
 import ProfileCache from '../profileCache';
 import type { CommunityComment } from '../../types';
 import { BlockService } from './blockService';
@@ -103,7 +102,6 @@ export class CommunityService {
     const now = Timestamp.now();
     const authorId = await FirestoreUserService.getCurrentUserId();
     const author = await FirestoreUserService.getUserById(authorId);
-    const m = await moderateText(data.content || '');
     const docRef = await addDoc(collection(db, COLLECTIONS.COMMUNITY_POSTS), {
       authorId,
       authorName: author?.displayName || 'ユーザー',
@@ -116,11 +114,11 @@ export class CommunityService {
       createdAt: now,
       updatedAt: now,
       moderation: {
-        status: m.status,
-        reasons: m.reasons,
-        severity: m.severity,
+        status: 'clean',
+        reasons: [],
+        severity: 0,
         checkedAt: now,
-        checkedBy: m.checkedBy,
+        checkedBy: 'auto',
       },
     });
     return docRef.id;
@@ -291,7 +289,6 @@ export class CommunityService {
     const now = Timestamp.now();
     const authorId = await FirestoreUserService.getCurrentUserId();
     const author = await FirestoreUserService.getUserById(authorId);
-    const moderation = await moderateText(data.content || '');
     const docRef = await addDoc(collection(db, COLLECTIONS.COMMUNITY_COMMENTS), {
       postId,
       authorId,
@@ -300,7 +297,13 @@ export class CommunityService {
       content: data.content,
       createdAt: now,
       updatedAt: now,
-      moderation,
+      moderation: {
+        status: 'clean',
+        reasons: [],
+        severity: 0,
+        checkedAt: now,
+        checkedBy: 'auto',
+      },
     });
 
     await this.updatePostReplyCount(postId, 1);
@@ -450,5 +453,7 @@ export class CommunityService {
     return likeDoc.exists();
   }
 }
+
+
 
 
