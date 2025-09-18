@@ -17,7 +17,6 @@ import {
 import { useModerationGuard } from '@shared/hooks/useModerationGuard';
 import { colors, spacing, typography } from '@shared/theme';
 import uiStyles from '@shared/ui/styles';
-import { getBlockLeftMargin } from '@shared/utils/nameUtils';
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -48,7 +47,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
     onClose();
   };
 
-  const leftPadding = spacing.lg + getBlockLeftMargin('medium');
 
   return (
     <RNModal
@@ -72,7 +70,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
         >
           <View style={styles.content}>
             <TextInput
-              style={[styles.textInput, { paddingLeft: leftPadding }]}
+              style={styles.textInput}
               placeholder="今何をしていますか？"
               placeholderTextColor={colors.textSecondary}
               value={content}

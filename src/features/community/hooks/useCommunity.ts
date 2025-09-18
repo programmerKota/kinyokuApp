@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@app/contexts/AuthContext';
-import { CommunityService, FollowService } from '@core/services/firestore';
+import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
 import type { CommunityPost } from '@project-types';
@@ -55,6 +55,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [cursor, setCursor] = useState<unknown | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
 
   // internal helpers
   const initializeLikedPosts = useCallback(
@@ -84,10 +85,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
     const normalized = normalizeCommunityPosts(list);
-    const counts = buildReplyCountMapFromPosts(normalized);
+    // ブロックしたユーザーの投稿を除外
+    const filtered = normalized.filter((p) => !blockedIds.has(p.authorId));
+    const counts = buildReplyCountMapFromPosts(filtered);
     setReplyCounts(counts);
-    return normalized;
-  }, []);
+    return filtered;
+  }, [blockedIds]);
 
   const mergePostsById = useCallback(
     (prev: CommunityPost[], next: CommunityPost[]): CommunityPost[] => {
@@ -218,6 +221,17 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     if (!user) return;
     const unsub = FollowService.subscribeToFollowingUserIds(user.uid, (ids: string[]) => {
       setFollowingUsers(new Set(ids));
+    });
+    return unsub;
+  }, [user]);
+
+  // subscribe blocked user ids to filter posts
+  useEffect(() => {
+    if (!user) return;
+    const unsub = BlockService.subscribeBlockedIds(user.uid, (ids: string[]) => {
+      setBlockedIds(new Set(ids));
+      // 既存の一覧からも即時除外
+      setPosts((prev) => prev.filter((p) => !ids.includes(p.authorId)));
     });
     return unsub;
   }, [user]);

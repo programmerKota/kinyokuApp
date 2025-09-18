@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl, TextInput } from 'react-native';
 
 import { useAuth } from '@app/contexts/AuthContext';
-import { ChallengeService, DiaryService } from '@core/services/firestore';
+import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
 import { useProfile } from '@shared/hooks/useProfile';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { colors, spacing, typography, shadows } from '@shared/theme';
@@ -26,6 +26,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [items, setItems] = useState<DayDiaryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [addText, setAddText] = useState<string>('');
 
@@ -43,6 +44,15 @@ const DiaryByDayScreen: React.FC = () => {
     })();
   }, [user?.uid]);
 
+  // subscribe blocked ids
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = BlockService.subscribeBlockedIds(user.uid, (ids) => {
+      setBlockedIds(new Set(ids));
+    });
+    return unsub;
+  }, [user?.uid]);
+
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
@@ -53,14 +63,14 @@ const DiaryByDayScreen: React.FC = () => {
           userId: (d as any).userId,
           content: d.content,
           createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
-        }));
+        })).filter((it) => !blockedIds.has(it.userId));
         setItems(mapped);
       } finally {
         setLoading(false);
       }
     };
     void fetch();
-  }, [day]);
+  }, [day, blockedIds]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -71,16 +81,14 @@ const DiaryByDayScreen: React.FC = () => {
         userId: (d as any).userId,
         content: d.content,
         createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
-      }));
+      })).filter((it) => !blockedIds.has(it.userId));
       setItems(mapped);
     } finally {
       setRefreshing(false);
     }
   };
 
-  const changeDay = (delta: number) => {
-    setDay((prev) => Math.max(1, prev + delta));
-  };
+  // day selection is controlled via card taps; chevron selector removed
 
   const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = ({ item }) => {
     const prof = useProfile(item.userId);
@@ -132,27 +140,16 @@ const DiaryByDayScreen: React.FC = () => {
           </View>
         }
         ListHeaderComponent={
-          <View>
-            <View style={styles.daySelector}>
-              <TouchableOpacity onPress={() => changeDay(-1)} style={styles.dayBtn}>
-                <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
-              </TouchableOpacity>
-              <Text style={styles.dayText}>{day}日目</Text>
-              <TouchableOpacity onPress={() => changeDay(1)} style={styles.dayBtn}>
-                <Ionicons name="chevron-forward" size={20} color={colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
-              {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
-                <DayCard
-                  key={d}
-                  day={d}
-                  selected={d === day}
-                  onPress={(sel) => { setDay(sel); }}
-                />
-              ))}
-            </ScrollView>
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
+            {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+              <DayCard
+                key={d}
+                day={d}
+                selected={d === day}
+                onPress={(sel) => { setDay(sel); }}
+              />
+            ))}
+          </ScrollView>
         }
         stickyHeaderIndices={[0]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
