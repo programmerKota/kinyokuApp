@@ -1,19 +1,33 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, limit, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  where,
+} from "firebase/firestore";
 
-import { db } from '@app/config/firebase.config';
-import { COLLECTIONS } from './constants';
-import type { FirestoreDiary } from './types';
-import { ChallengeService } from './challengeService';
+import { db } from "@app/config/firebase.config";
+import { COLLECTIONS } from "./constants";
+import type { FirestoreDiary } from "./types";
+import { ChallengeService } from "./challengeService";
 
 export class DiaryService {
   static async getUserDiaries(userId: string): Promise<FirestoreDiary[]> {
     const q = query(
       collection(db, COLLECTIONS.DIARIES),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as FirestoreDiary[];
+    return snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as any),
+    })) as FirestoreDiary[];
   }
 
   static async addDiary(userId: string, content: string): Promise<string> {
@@ -27,23 +41,28 @@ export class DiaryService {
     return ref.id;
   }
 
-  static async addDiaryForActiveChallenge(userId: string, content: string): Promise<string> {
-    const active = await ChallengeService.getActiveChallenge(userId);
-    if (!active) {
-      // fallback to simple add if no active challenge
-      return await this.addDiary(userId, content);
-    }
-    const startedAt = (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
-    const now = new Date();
-    const day = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
+  static async addDiaryForActiveChallenge(
+    userId: string,
+    content: string,
+    options?: { day?: number },
+  ): Promise<string> {
+    const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
+    let day: number | undefined = options?.day && options.day > 0 ? options.day : undefined;
 
-    // Optional: ensure one diary per (userId, challengeId, day)
-    // Not enforcing strictly; could add query+update here if needed.
+    if (active) {
+      const startedAt = (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
+      const now = new Date();
+      const computedDay = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
+      day = day ?? computedDay;
+    } else {
+      // No active challenge: still record with provided day (or 1)
+      day = day ?? 1;
+    }
 
     const ref = await addDoc(collection(db, COLLECTIONS.DIARIES), {
       userId,
       content,
-      challengeId: active.id,
+      challengeId: active?.id ?? null,
       day,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -51,15 +70,21 @@ export class DiaryService {
     return ref.id;
   }
 
-  static async getDiariesByDay(day: number, max: number = 100): Promise<FirestoreDiary[]> {
+  static async getDiariesByDay(
+    day: number,
+    max: number = 100,
+  ): Promise<FirestoreDiary[]> {
     const q = query(
       collection(db, COLLECTIONS.DIARIES),
-      where('day', '==', day),
-      orderBy('createdAt', 'desc'),
+      where("day", "==", day),
+      orderBy("createdAt", "desc"),
       limit(max),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as FirestoreDiary[];
+    return snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as any),
+    })) as FirestoreDiary[];
   }
 
   static async deleteDiary(id: string): Promise<void> {

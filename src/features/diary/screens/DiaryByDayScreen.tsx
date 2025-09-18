@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl, TextInput } from 'react-native';
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { ChallengeService, DiaryService } from '@core/services/firestore';
 import { useProfile } from '@shared/hooks/useProfile';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { colors, spacing, typography, shadows } from '@shared/theme';
+import Modal from '@shared/components/Modal';
 import { formatDateTimeJP } from '@shared/utils/date';
 import DayCard from '@features/diary/components/DayCard';
 
@@ -25,6 +26,8 @@ const DiaryByDayScreen: React.FC = () => {
   const [items, setItems] = useState<DayDiaryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [showAdd, setShowAdd] = useState<boolean>(false);
+  const [addText, setAddText] = useState<string>('');
 
   useEffect(() => {
     void (async () => {
@@ -41,7 +44,7 @@ const DiaryByDayScreen: React.FC = () => {
   }, [user?.uid]);
 
   useEffect(() => {
-    void (async () => {
+    const fetch = async () => {
       setLoading(true);
       try {
         const list = await DiaryService.getDiariesByDay(day, 200);
@@ -55,7 +58,8 @@ const DiaryByDayScreen: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    })();
+    };
+    void fetch();
   }, [day]);
 
   const onRefresh = async () => {
@@ -109,7 +113,7 @@ const DiaryByDayScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={22} color={colors.gray800} />
         </TouchableOpacity>
         <Text style={styles.title}>みんなの日記</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('DiaryAdd' as never)} style={styles.iconBtn}>
+        <TouchableOpacity onPress={() => { setAddText(''); setShowAdd(true); }} style={styles.iconBtn}>
           <Ionicons name="create-outline" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -140,7 +144,12 @@ const DiaryByDayScreen: React.FC = () => {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
               {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
-                <DayCard key={d} day={d} selected={d === day} onPress={() => setDay(d)} />
+                <DayCard
+                  key={d}
+                  day={d}
+                  selected={d === day}
+                  onPress={(sel) => { setDay(sel); }}
+                />
               ))}
             </ScrollView>
           </View>
@@ -149,9 +158,51 @@ const DiaryByDayScreen: React.FC = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       />
 
-      <TouchableOpacity style={[styles.fab, styles.cardShadow]} onPress={() => navigation.navigate('DiaryAdd' as never)}>
+      <TouchableOpacity style={[styles.fab, styles.cardShadow]} onPress={() => { setAddText(''); setShowAdd(true); }}>
         <Ionicons name="create-outline" size={22} color={colors.white} />
       </TouchableOpacity>
+
+      <Modal visible={showAdd} onClose={() => setShowAdd(false)} title={`${day}日目に追加`}>
+        <View>
+          <TextInput
+            placeholder="いまの気付きや変化を書きましょう"
+            placeholderTextColor={colors.textSecondary}
+            value={addText}
+            onChangeText={setAddText}
+            multiline
+            autoFocus
+            style={styles.modalInput}
+          />
+          <View style={styles.modalButtons}>
+            <TouchableOpacity onPress={() => setShowAdd(false)} style={styles.modalCancel}>
+              <Text style={styles.modalCancelText}>キャンセル</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async () => {
+                if (!user?.uid || !addText.trim()) return;
+                await DiaryService.addDiaryForActiveChallenge(user.uid, addText.trim(), { day });
+                setShowAdd(false);
+                setAddText('');
+                // refresh current day list
+                try {
+                  const list = await DiaryService.getDiariesByDay(day, 200);
+                  const mapped = list.map((d) => ({
+                    id: d.id,
+                    userId: (d as any).userId,
+                    content: d.content,
+                    createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
+                  }));
+                  setItems(mapped);
+                } catch {}
+              }}
+              style={[styles.modalSubmit, !addText.trim() && styles.modalSubmitDisabled]}
+              disabled={!addText.trim()}
+            >
+              <Text style={styles.modalSubmitText}>追加</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -178,6 +229,13 @@ const styles = StyleSheet.create({
   date: { fontSize: typography.fontSize.xs, color: colors.textSecondary, marginTop: spacing.xs },
   cardsRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, backgroundColor: colors.primary, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  modalInput: { minHeight: 140, borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, padding: spacing.md, color: colors.textPrimary, textAlignVertical: 'top', backgroundColor: colors.white },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: spacing.md, gap: spacing.md },
+  modalCancel: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  modalCancelText: { color: colors.textSecondary },
+  modalSubmit: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: 20 },
+  modalSubmitDisabled: { backgroundColor: colors.gray300 },
+  modalSubmitText: { color: colors.white, fontWeight: '600' },
 });
 
 export default DiaryByDayScreen;
