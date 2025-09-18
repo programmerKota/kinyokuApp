@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TournamentCard;
+export default React.memo(TournamentCard);
 
 
 

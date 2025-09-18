@@ -192,3 +192,5 @@ const styles = StyleSheet.create({
 });
 
 export default PostCard;
+// Prefer memoized version to reduce re-renders in long lists
+// export default React.memo(PostCard);

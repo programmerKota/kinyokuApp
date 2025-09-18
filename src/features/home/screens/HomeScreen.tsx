@@ -30,16 +30,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeNav }) => (
           style={{ width: '100%' }}
         />
       </View>
-      <View style={styles.quickBtn}>
-        <RankingButton
-          title="商品"
-          onPress={() => {
-            // TODO: Products画面のナビゲーション型を追加
-            void (navigation as any).navigate('Products');
-          }}
-          style={{ width: '100%' }}
-        />
-      </View>
+      {/* 商品ボタンは一旦非表示 */}
     </View>
   </SafeAreaView>
 );

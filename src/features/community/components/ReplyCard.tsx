@@ -87,4 +87,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplyCard;
+export default React.memo(
+  ReplyCard,
+  (a, b) => a.reply.id === b.reply.id && a.reply.content === b.reply.content,
+);

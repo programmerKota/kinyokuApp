@@ -23,50 +23,51 @@ export class RankingService {
    */
   static async getUserRankings(): Promise<UserRanking[]> {
     try {
-      // 全チャレンジを取得
-      const challengesSnap = await getDocs(collection(db, COLLECTIONS.CHALLENGES));
+      // 現在挑戦中（active）の継続時間でランキング
+      const challengesSnap = await getDocs(
+        query(collection(db, COLLECTIONS.CHALLENGES), where('status', '==', 'active')),
+      );
       if (challengesSnap.empty) return [];
 
-      const byUser = new Map<string, Challenge[]>();
+      const now = Date.now();
+      const latestActiveByUser = new Map<string, Challenge>();
+
       challengesSnap.docs.forEach((d) => {
         const data = d.data() as Record<string, unknown>;
         const userId = data.userId as string | undefined;
-        if (!userId) return;
+        const status = data.status as string | undefined;
+        if (!userId || status !== 'active') return;
         const normalized = {
           id: d.id,
           ...data,
           startedAt: toDate((data as any).startedAt),
-          completedAt: (data as any).completedAt ? toDate((data as any).completedAt) : null,
-          failedAt: (data as any).failedAt ? toDate((data as any).failedAt) : null,
+          completedAt: null,
+          failedAt: null,
         } as Challenge;
-        const arr = byUser.get(userId) || [];
-        arr.push(normalized);
-        byUser.set(userId, arr);
+        // 1ユーザーに1件想定。念のため最新 startedAt を採用。
+        const prev = latestActiveByUser.get(userId);
+        if (!prev || (prev.startedAt?.getTime?.() || 0) < (normalized.startedAt?.getTime?.() || 0)) {
+          latestActiveByUser.set(userId, normalized);
+        }
       });
 
       const rankings: UserRanking[] = [];
 
-      for (const [userId, userChallenges] of byUser.entries()) {
-        const averageTime = StatsService.calculateAverageTime(userChallenges);
-        if (averageTime === 0) continue;
+      for (const [userId, active] of latestActiveByUser.entries()) {
+        const start = active.startedAt?.getTime?.() || 0;
+        if (!start) continue;
+        const duration = Math.max(0, Math.floor((now - start) / 1000)); // 秒
 
         const userInfo = await FirestoreUserService.getUserById(userId);
-        const completedCount = userChallenges.filter(
-          (c: any) => c.status === 'completed' || c.status === 'failed',
-        ).length;
-        const successRate =
-          (userChallenges.filter((c: any) => c.status === 'completed').length /
-            userChallenges.length) *
-          100;
 
         rankings.push({
           id: userId,
           name: userInfo?.displayName || 'ユーザー',
           avatar: userInfo?.photoURL,
-          averageTime,
-          totalChallenges: userChallenges.length,
-          completedChallenges: completedCount,
-          successRate: Math.round(successRate * 100) / 100,
+          averageTime: duration, // フィールド名は互換のためそのまま
+          totalChallenges: 1,
+          completedChallenges: 0,
+          successRate: 0,
           rank: 0,
         });
       }

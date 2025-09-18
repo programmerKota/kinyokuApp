@@ -12,7 +12,6 @@ import HomeScreen from '@features/home/screens/HomeScreen';
 import ProfileScreen from '@features/profile/screens/ProfileScreen';
 import UserDetailScreen from '@features/profile/screens/UserDetailScreen';
 import BlockedUsersScreen from '@features/profile/screens/BlockedUsersScreen';
-import ProductsScreen from '@features/store/screens/ProductsScreen';
 import FeedbackScreen from '@features/feedback/screens/FeedbackScreen';
 import { colors } from '@shared/theme';
 
@@ -24,7 +23,6 @@ export type RootStackParamList = {
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
   BlockedUsers: undefined;
   Feedback: undefined;
-  Products: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -85,7 +83,6 @@ const RootNavigator: React.FC = () => (
       <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
       <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
-      <RootStack.Screen name="Products" component={ProductsScreen} />
       <RootStack.Screen name="Feedback" component={FeedbackScreen} />
     </RootStack.Navigator>
   </NavigationContainer>
