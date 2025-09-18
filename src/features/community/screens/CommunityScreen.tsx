@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 
 import Button from '@shared/components/Button';
+import ReplyInputBar from '@shared/components/ReplyInputBar';
 import KeyboardAwareScrollView from '@shared/components/KeyboardAwareScrollView';
 import ListFooterSpinner from '@shared/components/ListFooterSpinner';
 import { uiStyles } from '@shared/ui/styles';
@@ -106,7 +107,6 @@ const CommunityScreen: React.FC = () => {
         <PostList
           posts={posts}
           likedPosts={likedPosts}
-          replyCounts={replyCounts}
           showReplyButtons={showReplyButtons}
           authorAverageDays={userAverageDays}
           onLike={(id) => { void handleLike(id); }}
@@ -157,42 +157,13 @@ const CommunityScreen: React.FC = () => {
       </KeyboardAwareScrollView>
 
       {replyingTo && (
-        <View style={styles.replyInputContainer}>
-          <TextInput
-            style={styles.replyInput}
-            placeholder="返信を入力..."
-            placeholderTextColor={colors.textSecondary}
-            value={replyText}
-            onChangeText={setReplyText}
-            multiline
-            maxLength={280}
-            autoFocus
-          />
-          <View style={styles.replyInputActions}>
-            <TouchableOpacity onPress={handleReplyCancel} style={styles.replyCancelButton}>
-              <Text style={styles.replyCancelText}>キャンセル</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                void handleReplySubmit();
-              }}
-              style={[
-                styles.replySubmitButton,
-                !replyText.trim() && styles.replySubmitButtonDisabled,
-              ]}
-              disabled={!replyText.trim()}
-            >
-              <Text
-                style={[
-                  styles.replySubmitText,
-                  !replyText.trim() && styles.replySubmitTextDisabled,
-                ]}
-              >
-                返信
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ReplyInputBar
+          value={replyText}
+          onChangeText={setReplyText}
+          onCancel={handleReplyCancel}
+          onSubmit={() => { void handleReplySubmit(); }}
+          autoFocus
+        />
       )}
 
       <TouchableOpacity style={styles.fab} onPress={() => setShowCreateModal(true)}>

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
+import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
 import type { CommunityPost } from '@project-types';
 
 export type CommunityTab = 'all' | 'my' | 'following';
@@ -82,18 +83,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   }, []);
 
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
-    const normalized = list.map((p) => ({
-      ...p,
-      likes: Math.max(0, p.likes || 0),
-      comments: Math.max(0, p.comments || 0),
-    }));
-    // 返信はトークアイコン押下時に取得するため、
-    // 初期ロードでは Firestore から返信一覧を取得しない。
-    // 表示用の件数は投稿の冗長フィールド `comments` を利用する。
-    const counts = new Map<string, number>();
-    for (const p of normalized) {
-      counts.set(p.id, p.comments || 0);
-    }
+    const normalized = normalizeCommunityPosts(list);
+    const counts = buildReplyCountMapFromPosts(normalized);
     setReplyCounts(counts);
     return normalized;
   }, []);
@@ -259,11 +250,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       else next.delete(postId);
       return next;
     });
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId ? { ...p, likes: isLiked ? p.likes + 1 : Math.max(0, p.likes - 1) } : p,
-      ),
-    );
+    setPosts((prev) => toggleLikeInList(prev, postId, isLiked));
   }, []);
 
   const handleComment = useCallback((postId: string) => {
@@ -283,11 +270,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const handleReplySubmit = useCallback(async () => {
     if (!replyingTo || !replyText.trim()) return;
     await CommunityService.addReply(replyingTo, { content: replyText.trim() });
-    setReplyCounts((prev) => {
-      const next = new Map(prev);
-      next.set(replyingTo, (next.get(replyingTo) || 0) + 1);
-      return next;
-    });
+    setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
     setReplyingTo(null);
     setReplyText('');
   }, [replyText, replyingTo]);

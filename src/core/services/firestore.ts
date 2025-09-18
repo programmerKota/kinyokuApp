@@ -16,3 +16,4 @@ export { FollowService } from './firestore/followService';
 export { BlockService } from './firestore/blockService';
 export { CommunityService } from './firestore/communityService';
 export { TournamentService } from './firestore/tournamentService';
+export { PaymentFirestoreService } from './firestore/paymentService';

@@ -93,3 +93,14 @@ export interface FirestoreFollow {
   followeeId: string;
   createdAt: Timestamp;
 }
+
+export interface FirestorePayment {
+  id: string;
+  userId: string;
+  amount: number;
+  type: 'penalty' | 'entry_fee' | 'prize';
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  transactionId?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

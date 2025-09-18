@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@app/contexts/AuthContext';
-import { ChallengeService } from '@core/services/firestore';
+import { ChallengeService, PaymentFirestoreService } from '@core/services/firestore';
+import { PaymentService } from '@core/services/payments/paymentService';
 import { useModal } from '@shared/hooks';
 
 export type ChallengeStatus = 'active' | 'completed' | 'failed' | 'paused';
@@ -152,6 +153,24 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
       setIsLoading(true);
       try {
         const now = new Date();
+
+        // If failed and penalty > 0, request in-app purchase first
+        if (!isCompleted && currentSession.penaltyAmount > 0) {
+          const result = await PaymentService.payPenalty(currentSession.penaltyAmount);
+          // Record payment (best-effort)
+          try {
+            if (user?.uid) {
+              await PaymentFirestoreService.addPayment({
+                userId: user.uid,
+                amount: currentSession.penaltyAmount,
+                type: 'penalty',
+                status: 'completed',
+                transactionId: result.transactionId,
+              } as any);
+            }
+          } catch {}
+        }
+
         await ChallengeService.updateChallenge(currentSession.id, {
           status: (isCompleted ? 'completed' : 'failed') as 'completed' | 'failed',
           completedAt: isCompleted ? now : null,
@@ -162,7 +181,7 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
         setIsLoading(false);
       }
     },
-    [currentSession],
+    [currentSession, user?.uid],
   );
 
   const state: UseTimerState = useMemo(

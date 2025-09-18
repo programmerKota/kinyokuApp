@@ -15,6 +15,7 @@ import {
 
 import PostList from '@features/community/components/PostList';
 import ListFooterSpinner from '@shared/components/ListFooterSpinner';
+import ReplyInputBar from '@shared/components/ReplyInputBar';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { useAuth } from '@app/contexts/AuthContext';
 import { useProfile } from '@shared/hooks/useProfile';
@@ -22,6 +23,7 @@ import { CommunityService, FollowService, BlockService } from '@core/services/fi
 import type { FirestoreCommunityPost } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { colors, spacing, typography } from '@shared/theme';
+import { buildReplyCountMapFromPosts, normalizeCommunityPostsFirestore, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
 import { navigateToUserDetail } from '@shared/utils/navigation';
 
 type RootStackParamList = {
@@ -83,19 +85,12 @@ const UserDetailScreen: React.FC = () => {
 
       try {
         unsubscribe = CommunityService.subscribeToUserPosts(userId, async (list) => {
-          const normalized = list.map((post) => ({
-            ...post,
-            likes: Math.max(0, post.likes || 0),
-            comments: Math.max(0, post.comments || 0),
-          }));
+          const normalized = normalizeCommunityPostsFirestore(list);
 
           // 返信の取得はトークアイコン押下時に行うため、
           // ここでは Firestore から返信一覧を取得しない。
           // 表示用の件数は投稿の `comments` を利用する。
-          const counts = new Map<string, number>();
-          for (const post of normalized) {
-            counts.set(post.id, post.comments || 0);
-          }
+          const counts = buildReplyCountMapFromPosts(normalized);
 
           setReplyCounts(counts);
           setPostsData(normalized);
@@ -133,11 +128,7 @@ const UserDetailScreen: React.FC = () => {
         else s.delete(postId);
         return s;
       });
-      setPostsData((prev) =>
-        prev.map((p) =>
-          p.id === postId ? { ...p, likes: isLiked ? p.likes + 1 : Math.max(0, p.likes - 1) } : p,
-        ),
-      );
+      setPostsData((prev) => toggleLikeInList(prev, postId, isLiked));
     } catch (e) {
       console.warn('like toggle failed', e);
     }
@@ -161,11 +152,7 @@ const UserDetailScreen: React.FC = () => {
     if (!replyingTo || !replyText.trim()) return;
     try {
       await CommunityService.addReply(replyingTo, { content: replyText.trim() });
-      setReplyCounts((prev) => {
-        const m = new Map(prev);
-        m.set(replyingTo, (m.get(replyingTo) || 0) + 1);
-        return m;
-      });
+      setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
       setReplyingTo(null);
       setReplyText('');
     } catch (e) {
@@ -264,7 +251,6 @@ const UserDetailScreen: React.FC = () => {
       <PostList
         posts={postsData}
         likedPosts={likedPosts}
-        replyCounts={replyCounts}
         showReplyButtons={showReplyButtons}
         authorAverageDays={averageDays}
         onLike={(id) => { void handleLike(id); }}
@@ -282,40 +268,13 @@ const UserDetailScreen: React.FC = () => {
 
       {/* 霑比ｿ｡蜈･蜉帙ヵ繧｣繝ｼ繝ｫ繝・*/}
       {replyingTo && (
-        <View style={styles.replyInputContainer}>
-          <TextInput
-            style={styles.replyInput}
-            placeholder="返信を入力..."
-            placeholderTextColor={colors.textSecondary}
-            value={replyText}
-            onChangeText={setReplyText}
-            multiline
-            maxLength={280}
-            autoFocus
-          />
-          <View style={styles.replyInputActions}>
-            <TouchableOpacity onPress={handleReplyCancel} style={styles.replyCancelButton}>
-              <Text style={styles.replyCancelText}>キャンセル</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleReplySubmit}
-              style={[
-                styles.replySubmitButton,
-                !replyText.trim() && styles.replySubmitButtonDisabled,
-              ]}
-              disabled={!replyText.trim()}
-            >
-              <Text
-                style={[
-                  styles.replySubmitText,
-                  !replyText.trim() && styles.replySubmitTextDisabled,
-                ]}
-              >
-                返信
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ReplyInputBar
+          value={replyText}
+          onChangeText={setReplyText}
+          onCancel={handleReplyCancel}
+          onSubmit={handleReplySubmit}
+          autoFocus
+        />
       )}
     </SafeAreaView>
   );

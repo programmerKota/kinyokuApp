@@ -20,7 +20,6 @@ import InputField from '@shared/components/InputField';
 import Modal from '@shared/components/Modal';
 import { useAuth } from '@app/contexts/AuthContext';
 import { colors, spacing, typography, shadows } from '@shared/theme';
-import { openFeedbackEmail } from '@shared/utils/feedback';
 
 const ActionCard = ({
   icon,
