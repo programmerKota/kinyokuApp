@@ -14,7 +14,7 @@ const RankingButton: React.FC<RankingButtonProps> = ({ onPress, title = 'ラン�
   return (
     <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <Ionicons name={title === '商品' ? 'cart' : 'trophy'} size={20} color={colors.warning} />
+        <Ionicons name={'trophy'} size={20} color={colors.warning} />
       </View>
       <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
         {title}
