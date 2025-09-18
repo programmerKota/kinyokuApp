@@ -51,6 +51,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onV
       <View style={[uiStyles.rowBetween, styles.footer]}>
         <View style={[uiStyles.row, styles.leftInfo]}>
           <View style={[uiStyles.row, styles.ownerRow]}>
+            <Text style={styles.ownerLabel}>作成者:</Text>
             <TouchableOpacity
               style={styles.ownerAvatarWrap}
               onPress={() => onView(`user:${tournament.ownerId}`)}
@@ -68,7 +69,6 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onV
                 </View>
               )}
             </TouchableOpacity>
-            <Text style={styles.ownerText}>オーナー: {tournament.ownerName || 'ユーザー'}</Text>
           </View>
         </View>
 
@@ -198,10 +198,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: typography.fontSize.sm,
   },
-  ownerText: {
+  ownerLabel: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     fontWeight: '500',
+    marginRight: spacing.sm,
   },
   joinButton: {
     paddingHorizontal: spacing.lg,

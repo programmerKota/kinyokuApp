@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   quickBtn: {
     flex: 1,
-    minWidth: 0,
+    minWidth: 120,
     alignItems: 'stretch',
     paddingHorizontal: spacing.xs,
   },

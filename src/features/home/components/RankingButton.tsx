@@ -16,7 +16,12 @@ const RankingButton: React.FC<RankingButtonProps> = ({ onPress, title = 'ラン�
       <View style={styles.iconContainer}>
         <Ionicons name={'trophy'} size={20} color={colors.warning} />
       </View>
-      <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+      <Text
+        style={styles.text}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
         {title}
       </Text>
     </TouchableOpacity>
@@ -25,29 +30,33 @@ const RankingButton: React.FC<RankingButtonProps> = ({ onPress, title = 'ラン�
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.white,
     borderRadius: 12,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
+    minHeight: 76,
+    width: '100%',
     ...shadows.sm,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.warningLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
+    marginBottom: spacing.xs,
   },
   text: {
-    fontSize: typography.fontSize.base,
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
     color: colors.textPrimary,
-    flexShrink: 1,
+    textAlign: 'center',
+    lineHeight: typography.fontSize.sm * 1.35,
+    paddingHorizontal: spacing.sm,
   },
 });
 
