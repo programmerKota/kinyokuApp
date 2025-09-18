@@ -1,0 +1,18 @@
+﻿export const DISABLE_FIRESTORE = process.env.EXPO_PUBLIC_DISABLE_FIRESTORE === 'true';
+
+export const COLLECTIONS = {
+  USERS: 'users',
+  CHALLENGES: 'challenges',
+  TOURNAMENTS: 'tournaments',
+  TOURNAMENT_PARTICIPANTS: 'tournamentParticipants',
+  TOURNAMENT_JOIN_REQUESTS: 'tournamentJoinRequests',
+  TOURNAMENT_MESSAGES: 'tournamentMessages',
+  COMMUNITY_POSTS: 'communityPosts',
+  COMMUNITY_COMMENTS: 'communityComments',
+  COMMUNITY_LIKES: 'communityLikes',
+  PAYMENTS: 'payments',
+  FOLLOWS: 'follows',
+  BLOCKS: 'blocks',
+  RANKINGS: 'rankings',
+  SYSTEM: 'system',
+} as const;

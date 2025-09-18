@@ -4,6 +4,15 @@
     "strict": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@core/*": ["src/core/*"],
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@project-types": ["src/types/index.ts"],
+      "@project-types/*": ["src/types/*"]
+    }
   }
 }

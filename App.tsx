@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { AuthProvider } from './src/contexts/AuthContext';
-import RootNavigator from './src/navigation/RootNavigator';
+import { AuthProvider } from '@app/contexts/AuthContext';
+import RootNavigator from '@app/navigation/RootNavigator';
 
 const App = () => {
   return (
