@@ -89,7 +89,9 @@ const Button: React.FC<ButtonProps> = ({
           <Ionicons name={icon} size={getIconSize()} color={getIconColor()} />
         ) : null}
         {icon || loading ? <View style={styles.iconSpacing} /> : null}
-        <Text style={textStyleCombined}>{title}</Text>
+        <Text style={textStyleCombined} numberOfLines={1}>
+          {title}
+        </Text>
       </View>
     </TouchableOpacity>
   );

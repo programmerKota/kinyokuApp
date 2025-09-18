@@ -94,10 +94,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: spacing['2xl'],
     },
-    modalButton: {
-        flex: 1,
-        marginHorizontal: spacing.sm,
-    },
+  modalButton: {
+    flex: 1,
+    marginHorizontal: spacing.sm,
+    minWidth: 120,
+  },
     modalMessage: {
         fontSize: typography.fontSize.base,
         color: colors.textSecondary,

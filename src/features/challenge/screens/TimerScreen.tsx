@@ -53,6 +53,8 @@ const TimerScreen: React.FC = () => {
     if (!currentSession) return;
     const completed = isGoalAchieved;
     try {
+      // 先に閉じてから処理を実行して、不要な再表示/チラつきを防ぐ
+      hideStopModal();
       await stopChallenge(completed);
       if (completed) {
         // 成功時のメッセージは別途表示
@@ -68,7 +70,6 @@ const TimerScreen: React.FC = () => {
         fallbackMessage: 'チャレンジの停止に失敗しました',
       });
     }
-    hideStopModal();
   };
 
   const handleStartPress = () => {
