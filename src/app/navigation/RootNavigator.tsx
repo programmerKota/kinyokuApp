@@ -6,6 +6,7 @@ import React from 'react';
 
 import HistoryStackNavigator from './HistoryStackNavigator';
 import RankingStackNavigator from './RankingStackNavigator';
+import DiaryStackNavigator from './DiaryStackNavigator';
 import TournamentStackNavigator from './TournamentStackNavigator';
 import CommunityScreen from '@features/community/screens/CommunityScreen';
 import HomeScreen from '@features/home/screens/HomeScreen';
@@ -19,6 +20,7 @@ const Tab = createBottomTabNavigator();
 export type RootStackParamList = {
   MainTabs: undefined;
   History: undefined;
+  Diary: undefined;
   Ranking: undefined;
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
   BlockedUsers: undefined;
@@ -80,6 +82,7 @@ const RootNavigator: React.FC = () => (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="MainTabs" component={MainTabs} />
       <RootStack.Screen name="History" component={HistoryStackNavigator} />
+      <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
       <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
       <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />

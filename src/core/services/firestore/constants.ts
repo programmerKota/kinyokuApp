@@ -11,6 +11,7 @@ export const COLLECTIONS = {
   COMMUNITY_COMMENTS: 'communityComments',
   COMMUNITY_LIKES: 'communityLikes',
   PAYMENTS: 'payments',
+  DIARIES: 'diaries',
   FOLLOWS: 'follows',
   BLOCKS: 'blocks',
   RANKINGS: 'rankings',

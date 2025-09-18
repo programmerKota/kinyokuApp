@@ -6,6 +6,7 @@ import type { RootStackParamList } from '@app/navigation/RootNavigator';
 import TimerScreen from '@features/challenge/screens/TimerScreen';
 import HistoryButton from '@features/home/components/HistoryButton';
 import RankingButton from '@features/home/components/RankingButton';
+import DiaryButton from '@features/diary/components/DiaryButton';
 import { colors, spacing } from '@shared/theme';
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
@@ -19,6 +20,13 @@ const HomeScreen = ({ navigation }: { navigation: HomeNav }) => (
         <HistoryButton
           onPress={() => {
             void navigation.navigate('History');
+          }}
+        />
+      </View>
+      <View style={styles.quickBtn}>
+        <DiaryButton
+          onPress={() => {
+            void navigation.navigate('Diary');
           }}
         />
       </View>

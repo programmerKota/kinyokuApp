@@ -104,3 +104,13 @@ export interface FirestorePayment {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+export interface FirestoreDiary {
+  id: string;
+  userId: string;
+  content: string;
+  challengeId?: string;
+  day?: number; // 1-based
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

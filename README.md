@@ -48,3 +48,4 @@ GitHub Actions で typecheck と lint を実行します。将来的にテスト
 - ドメイン型集約と any 削減
 
 
+

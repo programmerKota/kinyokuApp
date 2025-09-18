@@ -120,6 +120,7 @@ export type RootTabParamList = {
   Tournaments: undefined;
   Community: undefined;
   History: undefined;
+  Diary: undefined;
   Profile: undefined;
 };
 
