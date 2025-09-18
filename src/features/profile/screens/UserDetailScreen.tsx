@@ -89,14 +89,12 @@ const UserDetailScreen: React.FC = () => {
             comments: Math.max(0, post.comments || 0),
           }));
 
+          // 返信の取得はトークアイコン押下時に行うため、
+          // ここでは Firestore から返信一覧を取得しない。
+          // 表示用の件数は投稿の `comments` を利用する。
           const counts = new Map<string, number>();
           for (const post of normalized) {
-            try {
-              const replies = await CommunityService.getPostReplies(post.id);
-              counts.set(post.id, replies.length);
-            } catch {
-              counts.set(post.id, 0);
-            }
+            counts.set(post.id, post.comments || 0);
           }
 
           setReplyCounts(counts);

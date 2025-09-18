@@ -11,7 +11,6 @@ import RepliesList from '@features/community/components/RepliesList';
 interface PostListProps {
     posts: CommunityPost[];
     likedPosts: Set<string>;
-    replyCounts: Map<string, number>;
     showReplyButtons: Set<string>;
     authorAverageDays?: Map<string, number> | number;
     onLike: (postId: string) => void | Promise<void>;
@@ -31,7 +30,6 @@ interface PostListProps {
 const PostList: React.FC<PostListProps> = ({
     posts,
     likedPosts,
-    replyCounts,
     showReplyButtons,
     authorAverageDays,
     onLike,
@@ -65,7 +63,7 @@ const PostList: React.FC<PostListProps> = ({
                         isLiked={likedPosts.has(item.id)}
                         showReplyButton={showReplyButtons.has(item.id)}
                         authorAverageDays={avgDays}
-                        commentsCount={replyCounts.get(item.id) || 0}
+                        commentsCount={item.comments || 0}
                     />
                     {showReplyButtons.has(item.id) && (
                         <RepliesList
@@ -76,7 +74,7 @@ const PostList: React.FC<PostListProps> = ({
                 </View>
             );
         },
-        [likedPosts, replyCounts, showReplyButtons, authorAverageDays, onLike, onComment, onReply, onUserPress],
+        [likedPosts, showReplyButtons, authorAverageDays, onLike, onComment, onReply, onUserPress],
     );
 
     return (

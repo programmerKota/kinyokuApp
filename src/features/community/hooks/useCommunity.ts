@@ -87,10 +87,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       likes: Math.max(0, p.likes || 0),
       comments: Math.max(0, p.comments || 0),
     }));
+    // 返信はトークアイコン押下時に取得するため、
+    // 初期ロードでは Firestore から返信一覧を取得しない。
+    // 表示用の件数は投稿の冗長フィールド `comments` を利用する。
     const counts = new Map<string, number>();
     for (const p of normalized) {
-      const replies = await CommunityService.getPostReplies(p.id).catch(() => [] as unknown[]);
-      counts.set(p.id, Array.isArray(replies) ? replies.length : 0);
+      counts.set(p.id, p.comments || 0);
     }
     setReplyCounts(counts);
     return normalized;
