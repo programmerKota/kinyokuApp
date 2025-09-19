@@ -1,7 +1,7 @@
 ﻿import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Alert, View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, FlatList } from 'react-native';
 
 import Button from '@shared/components/Button';
@@ -73,6 +73,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   // const [loading, setLoading] = useState(true);
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
+
+  // スクロール制御
+  const listRef = useRef<FlatList<Message>>(null);
+  const [initialScrolled, setInitialScrolled] = useState(false);
 
   // チャットの購読
   useEffect(() => {
@@ -231,14 +235,14 @@ const handleReject = async (requestId: string) => {
   }
 };
 
-const handleSendMessage = async (text: string) => {
-  if (!text.trim()) return;
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim()) return;
 
-  try {
-    // メッセージポートエラー対策のため、タイムアウトを設定
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('メッセージ送信がタイムアウトしました')), 10000);
-    });
+    try {
+      // メッセージポートエラー対策のため、タイムアウトを設定
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('メッセージ送信がタイムアウトしました')), 10000);
+      });
 
   const sendPromise = TournamentService.sendMessage(
     tournamentId,
@@ -246,6 +250,8 @@ const handleSendMessage = async (text: string) => {
   );
 
   await Promise.race([sendPromise, timeoutPromise]);
+  // 送信後に最下部へスクロール
+  setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 0);
 } catch (error) {
   console.error('メッセージの送信でエラーが発生しました:', error);
 
@@ -369,12 +375,21 @@ const handleKick = async (p: Participant) => {
       {activeTab === 'chat' ? (
         <KeyboardAwareScrollView style={styles.chatContainer}>
           <FlatList
-            data={messages}
+            data={[...messages].reverse()}
             renderItem={renderMessage}
             keyExtractor={(item) => item.id}
             style={styles.messagesList}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            ref={listRef}
+            inverted
+            onContentSizeChange={() => {
+              if (!initialScrolled) {
+                // With inverted list, initial offset is already bottom; keep guard just in case
+                listRef.current?.scrollToEnd({ animated: false });
+                setInitialScrolled(true);
+              }
+            }}
           />
 
           {(() => {
