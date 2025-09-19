@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Flat
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
+import { UserStatsService } from '@core/services/userStatsService';
 import { useProfile } from '@shared/hooks/useProfile';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { navigateToUserDetail } from '@shared/utils/navigation';
@@ -25,6 +26,7 @@ const DiaryByDayScreen: React.FC = () => {
   const navigation = useNavigation();
   const [day, setDay] = useState<number>(1);
   const [items, setItems] = useState<DayDiaryItem[]>([]);
+  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
@@ -73,6 +75,18 @@ const DiaryByDayScreen: React.FC = () => {
           createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
         })).filter((it) => !blockedIds.has(it.userId));
         setItems(mapped);
+        // prefetch averageDays for ranks
+        try {
+          const ids = Array.from(new Set(mapped.map((m) => m.userId)));
+          const next = new Map(userAverageDays);
+          for (const uid of ids) {
+            if (!next.has(uid)) {
+              const avg = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+              next.set(uid, avg);
+            }
+          }
+          setUserAverageDays(next);
+        } catch {}
       } finally {
         setLoading(false);
       }
@@ -107,6 +121,17 @@ const DiaryByDayScreen: React.FC = () => {
         createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
       })).filter((it) => !blockedIds.has(it.userId));
       setItems(mapped);
+      try {
+        const ids = Array.from(new Set(mapped.map((m) => m.userId)));
+        const next = new Map(userAverageDays);
+        for (const uid of ids) {
+          if (!next.has(uid)) {
+            const avg = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+            next.set(uid, avg);
+          }
+        }
+        setUserAverageDays(next);
+      } catch {}
     } finally {
       setRefreshing(false);
     }
@@ -116,12 +141,13 @@ const DiaryByDayScreen: React.FC = () => {
 
   const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = ({ item }) => {
     const prof = useProfile(item.userId);
+    const avgDays = userAverageDays.get(item.userId) ?? 0;
     return (
       <View style={[styles.card, styles.cardShadow]}>
         <UserProfileWithRank
           userName={prof?.displayName ?? 'ユーザー'}
           userAvatar={prof?.photoURL}
-          averageDays={0}
+          averageDays={avgDays}
           onPress={() => {
             navigateToUserDetail(
               navigation as any,

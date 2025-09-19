@@ -7,7 +7,6 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Saf
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { useAuth } from '@app/contexts/AuthContext';
 import { useProfile } from '@shared/hooks/useProfile';
-import { RankingBatchService } from '@core/services/rankingBatchService';
 import { RankingService } from '@core/services/rankingService';
 import type { UserRanking } from '@core/services/rankingService';
 import { navigateToUserDetail } from '@shared/utils/navigation';
@@ -28,8 +27,6 @@ const RankingScreen: React.FC = () => {
       // 現在の挑戦中データに基づくランキングを毎回取得
       const rankingsData: UserRanking[] = await RankingService.getUserRankings();
       setRankings(rankingsData);
-      // バックグラウンドでキャッシュも更新（失敗しても無視）
-      RankingBatchService.updateRankings().catch(() => {});
     } catch {
       // noop
     }

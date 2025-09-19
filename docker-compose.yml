@@ -29,18 +29,5 @@ services:
           cpus: '0.25'
           memory: 256m
 
-  batch-scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile.scheduler
-    container_name: batch-scheduler
-    working_dir: /workspace
-    volumes:
-      - ./:/workspace
-    environment:
-      - FIRESTORE_EMULATOR_HOST=firebase-emulators:8080
-      - GCLOUD_PROJECT=demo-project
-    depends_on:
-      - firebase-emulators
-    restart: unless-stopped
+  
 volumes: {}
