@@ -38,7 +38,8 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const liveProfile = useProfile(post.authorId);
   const displayName = liveProfile?.displayName ?? post.authorName;
-  const displayAvatar = liveProfile?.photoURL ?? post.authorAvatar;
+  // Avoid avatar flicker: prefer the avatar stored on the post itself; fallback to live profile
+  const displayAvatar = post.authorAvatar ?? liveProfile?.photoURL;
 
   const handleProfilePress = useCallback(() => {
     if (onUserPressId) {
@@ -191,6 +192,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostCard;
-// Prefer memoized version to reduce re-renders in long lists
-// export default React.memo(PostCard);
+export default React.memo(PostCard);

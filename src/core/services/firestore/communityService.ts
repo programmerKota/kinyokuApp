@@ -69,20 +69,20 @@ export class CommunityService {
 
   static async getRecentPostsPage(
     pageSize: number,
-    afterCreatedAt?: Timestamp,
-  ): Promise<{ items: FirestoreCommunityPost[]; nextCursor?: Timestamp }> {
+    after?: Timestamp | any, // accept DocumentSnapshot for robust pagination
+  ): Promise<{ items: FirestoreCommunityPost[]; nextCursor?: any }> {
     const coll = collection(db, COLLECTIONS.COMMUNITY_POSTS);
-    const qy = afterCreatedAt
-      ? query(coll, orderBy('createdAt', 'desc'), startAfter(afterCreatedAt), limit(pageSize))
-      : query(coll, orderBy('createdAt', 'desc'), limit(pageSize));
+    const base = query(coll, orderBy('createdAt', 'desc'));
+    const qy = after
+      ? // If a DocumentSnapshot is provided, use it directly for startAfter to avoid duplicates
+        (after?.id && after?.data
+          ? query(base, startAfter(after), limit(pageSize))
+          : query(base, startAfter(after as Timestamp), limit(pageSize)))
+      : query(base, limit(pageSize));
     const qs = await getDocs(qy);
-    const items = qs.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as any),
-    })) as FirestoreCommunityPost[];
-    const last = qs.docs[qs.docs.length - 1];
-    const nextCursor = last ? ((last.data() as any).createdAt as Timestamp) : undefined;
-    return { items, nextCursor };
+    const items = qs.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as FirestoreCommunityPost[];
+    const lastDoc = qs.docs[qs.docs.length - 1];
+    return { items, nextCursor: lastDoc };
   }
 
   static async getUserPosts(userId: string): Promise<FirestoreCommunityPost[]> {
@@ -141,7 +141,8 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          authorAvatar: prof?.photoURL ?? p.authorAvatar,
+          // Avoid flicker: prefer the avatar stored on post; fallback to live profile only if missing
+          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);
@@ -182,7 +183,7 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          authorAvatar: prof?.photoURL ?? p.authorAvatar,
+          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);
@@ -241,7 +242,7 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          authorAvatar: prof?.photoURL ?? p.authorAvatar,
+          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);
@@ -376,7 +377,8 @@ export class CommunityService {
         return {
           ...r,
           authorName: prof?.displayName ?? r.authorName,
-          authorAvatar: prof?.photoURL ?? r.authorAvatar,
+          // Prefer stored avatar on the comment; fallback to live profile only if missing
+          authorAvatar: (r as any).authorAvatar ?? prof?.photoURL ?? null,
         } as CommunityComment;
       });
       callback(merged);

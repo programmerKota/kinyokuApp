@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
@@ -57,32 +57,41 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+  // Guard: ensure initial fetch/subscribe runs once per tab (avoid StrictMode double-invoke)
+  const initRunRef = useRef<{ all: boolean; my: boolean; following: boolean }>({
+    all: false,
+    my: false,
+    following: false,
+  });
 
   // internal helpers
   const initializeLikedPosts = useCallback(
     async (list: CommunityPost[]) => {
       if (!user) return;
-      const liked = new Set<string>();
-      for (const post of list) {
-        const isLiked = await CommunityService.isPostLikedByUser(post.id, user.uid).catch(
-          () => false,
-        );
-        if (isLiked) liked.add(post.id);
+      // Check only posts whose like state is unknown
+      const toCheck = list.map((p) => p.id).filter((id) => !likedPosts.has(id));
+      if (toCheck.length === 0) return;
+      const next = new Set(likedPosts);
+      for (const id of toCheck) {
+        const isLiked = await CommunityService.isPostLikedByUser(id, user.uid).catch(() => false);
+        if (isLiked) next.add(id);
       }
-      setLikedPosts(liked);
+      setLikedPosts(next);
     },
-    [user],
+    [user, likedPosts],
   );
 
   const initializeUserAverageDays = useCallback(async (list: CommunityPost[]) => {
-    const map = new Map<string, number>();
+    const next = new Map(userAverageDays);
     const uniqueIds = new Set(list.map((p) => p.authorId));
-    for (const uid of uniqueIds) {
+    const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
+    if (missing.length === 0) return;
+    for (const uid of missing) {
       const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-      map.set(uid, avg);
+      next.set(uid, avg);
     }
-    setUserAverageDays(map);
-  }, []);
+    setUserAverageDays(next);
+  }, [userAverageDays]);
 
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
     const normalized = normalizeCommunityPosts(list);
@@ -117,27 +126,67 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [],
   );
 
+  // For pagination: append new page while keeping previous items and avoiding duplicates.
+  const appendUniqueById = useCallback(
+    (prev: CommunityPost[], next: CommunityPost[]): CommunityPost[] => {
+      if (prev.length === 0) return next;
+      const indexMap = new Map(prev.map((p, i) => [p.id, i] as const));
+      const out = prev.slice();
+      for (const n of next) {
+        const idx = indexMap.get(n.id);
+        if (idx === undefined) {
+          out.push(n);
+          indexMap.set(n.id, out.length - 1);
+        } else {
+          const p = out[idx];
+          if (
+            !(p &&
+              p.authorId === n.authorId &&
+              p.authorName === n.authorName &&
+              p.authorAvatar === n.authorAvatar &&
+              p.content === n.content &&
+              p.likes === n.likes &&
+              p.comments === n.comments &&
+              String(p.createdAt) === String(n.createdAt) &&
+              String(p.updatedAt) === String(n.updatedAt))
+          ) {
+            out[idx] = n;
+          }
+        }
+      }
+      return out;
+    },
+    [],
+  );
+
   // 初回ロード/タブ切替: all/following はページング取得、my は購読
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     const run = () => {
-      // タブ切替時に前タブの内容が残らないようクリア
-      setPosts([]);
-      setCursor(undefined);
-      setHasMore(true);
       switch (activeTab) {
         case 'all':
+          if (initRunRef.current.all) return;
+          // 初期表示用にクリア
+          setPosts([]);
+          setCursor(undefined);
+          setHasMore(true);
           (async () => {
-            const { items, nextCursor } = await CommunityService.getRecentPostsPage(20);
+            const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
             const normalized = await normalizePosts(items as CommunityPost[]);
             setPosts(normalized);
             setCursor(nextCursor);
             setHasMore(Boolean(nextCursor));
             void initializeLikedPosts(normalized);
             void initializeUserAverageDays(normalized);
+            initRunRef.current.all = true;
           })();
           break;
         case 'my':
+          if (initRunRef.current.my) return;
+          // 初期表示用にクリア
+          setPosts([]);
+          setCursor(undefined);
+          setHasMore(true);
           if (user) {
             unsubscribe = CommunityService.subscribeToUserPosts(
               user.uid,
@@ -150,11 +199,17 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                 })();
               },
             );
+            initRunRef.current.my = true;
           } else {
             setPosts([]);
           }
           break;
         case 'following':
+          if (initRunRef.current.following) return;
+          // 初期表示用にクリア
+          setPosts([]);
+          setCursor(undefined);
+          setHasMore(true);
           // フォロー一覧は、IDが取得できてから購読開始する。未取得時は空表示にする。
           if (user && followingUsers.size > 0) {
             unsubscribe = CommunityService.subscribeToFollowingPosts(
@@ -168,6 +223,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                 })();
               },
             );
+            initRunRef.current.following = true;
           } else {
             // ユーザー未ログイン、または followingUsers 未取得時は空にする
             setPosts([]);
@@ -183,8 +239,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     activeTab,
     user,
     followingUsers,
-    initializeLikedPosts,
-    initializeUserAverageDays,
     normalizePosts,
     mergePostsById,
   ]);
@@ -193,13 +247,13 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     if (activeTab !== 'all' || loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const { items, nextCursor } = await CommunityService.getRecentPostsPage(20, cursor as any);
+      const { items, nextCursor } = await CommunityService.getRecentPostsPage(100, cursor as any);
       if (items.length === 0) {
         setHasMore(false);
         return;
       }
       const normalized = await normalizePosts(items as CommunityPost[]);
-      setPosts((prev) => prev.concat(normalized));
+      setPosts((prev) => appendUniqueById(prev, normalized));
       setCursor(nextCursor);
       setHasMore(Boolean(nextCursor));
       void initializeLikedPosts(normalized);
