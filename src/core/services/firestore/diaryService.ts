@@ -15,6 +15,7 @@ import { db } from "@app/config/firebase.config";
 import { COLLECTIONS } from "./constants";
 import type { FirestoreDiary } from "./types";
 import { ChallengeService } from "./challengeService";
+import { FirestoreError } from "./errors";
 
 export class DiaryService {
   static async getUserDiaries(userId: string): Promise<FirestoreDiary[]> {
@@ -47,16 +48,24 @@ export class DiaryService {
     options?: { day?: number },
   ): Promise<string> {
     const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
-    let day: number | undefined = options?.day && options.day > 0 ? options.day : undefined;
+    if (!active) {
+      throw new FirestoreError(
+        "アクティブなチャレンジがありません。開始後に日記を追加できます。",
+        "no-active-challenge",
+      );
+    }
 
-    if (active) {
-      const startedAt = (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
-      const now = new Date();
-      const computedDay = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
-      day = day ?? computedDay;
-    } else {
-      // No active challenge: still record with provided day (or 1)
-      day = day ?? 1;
+    const startedAt = (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
+    const now = new Date();
+    const computedDay = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
+    let day: number = options?.day && options.day > 0 ? options.day : computedDay;
+
+    // Enforce: only allow posting for the current challenge day
+    if (day !== computedDay) {
+      throw new FirestoreError(
+        `現在のチャレンジ日数（${computedDay}日目）にのみ投稿できます。`,
+        "invalid-day",
+      );
     }
 
     const ref = await addDoc(collection(db, COLLECTIONS.DIARIES), {

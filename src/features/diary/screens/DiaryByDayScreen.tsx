@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl, TextInput, Alert } from 'react-native';
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
@@ -29,6 +29,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [addText, setAddText] = useState<string>('');
+  const [activeDay, setActiveDay] = useState<number | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -38,7 +39,12 @@ const DiaryByDayScreen: React.FC = () => {
           const startedAt = (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
           const now = new Date();
           const d = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
-          if (d > 0) setDay(d);
+          if (d > 0) {
+            setDay(d);
+            setActiveDay(d);
+          }
+        } else {
+          setActiveDay(null);
         }
       }
     })();
@@ -112,6 +118,8 @@ const DiaryByDayScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: DayDiaryItem }) => <DiaryItemRow item={item} />;
 
+  const canPostForSelectedDay = activeDay !== null && day === activeDay;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
@@ -121,8 +129,18 @@ const DiaryByDayScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={22} color={colors.gray800} />
         </TouchableOpacity>
         <Text style={styles.title}>みんなの日記</Text>
-        <TouchableOpacity onPress={() => { setAddText(''); setShowAdd(true); }} style={styles.iconBtn}>
-          <Ionicons name="create-outline" size={22} color={colors.primary} />
+        <TouchableOpacity
+          onPress={() => {
+            if (!canPostForSelectedDay) {
+              Alert.alert('投稿できません', '日記は現在のチャレンジ日（当日）のみ投稿できます。');
+              return;
+            }
+            setAddText('');
+            setShowAdd(true);
+          }}
+          style={styles.iconBtn}
+        >
+          <Ionicons name="create-outline" size={22} color={canPostForSelectedDay ? colors.primary : colors.gray400} />
         </TouchableOpacity>
       </View>
 
@@ -155,7 +173,17 @@ const DiaryByDayScreen: React.FC = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       />
 
-      <TouchableOpacity style={[styles.fab, styles.cardShadow]} onPress={() => { setAddText(''); setShowAdd(true); }}>
+      <TouchableOpacity
+        style={[styles.fab, styles.cardShadow, !canPostForSelectedDay && { backgroundColor: colors.gray300 }]}
+        onPress={() => {
+          if (!canPostForSelectedDay) {
+            Alert.alert('投稿できません', '日記は現在のチャレンジ日（当日）のみ投稿できます。');
+            return;
+          }
+          setAddText('');
+          setShowAdd(true);
+        }}
+      >
         <Ionicons name="create-outline" size={22} color={colors.white} />
       </TouchableOpacity>
 
@@ -177,7 +205,12 @@ const DiaryByDayScreen: React.FC = () => {
             <TouchableOpacity
               onPress={async () => {
                 if (!user?.uid || !addText.trim()) return;
-                await DiaryService.addDiaryForActiveChallenge(user.uid, addText.trim(), { day });
+                try {
+                  await DiaryService.addDiaryForActiveChallenge(user.uid, addText.trim(), { day });
+                } catch (e: any) {
+                  Alert.alert('投稿できません', e?.message || '条件を満たしていません。');
+                  return;
+                }
                 setShowAdd(false);
                 setAddText('');
                 // refresh current day list
@@ -192,8 +225,8 @@ const DiaryByDayScreen: React.FC = () => {
                   setItems(mapped);
                 } catch {}
               }}
-              style={[styles.modalSubmit, !addText.trim() && styles.modalSubmitDisabled]}
-              disabled={!addText.trim()}
+              style={[styles.modalSubmit, (!addText.trim() || !canPostForSelectedDay) && styles.modalSubmitDisabled]}
+              disabled={!addText.trim() || !canPostForSelectedDay}
             >
               <Text style={styles.modalSubmitText}>追加</Text>
             </TouchableOpacity>
