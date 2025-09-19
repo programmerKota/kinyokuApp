@@ -7,6 +7,7 @@ import { useAuth } from '@app/contexts/AuthContext';
 import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
 import { useProfile } from '@shared/hooks/useProfile';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
+import { navigateToUserDetail } from '@shared/utils/navigation';
 import { colors, spacing, typography, shadows } from '@shared/theme';
 import Modal from '@shared/components/Modal';
 import { formatDateTimeJP } from '@shared/utils/date';
@@ -121,7 +122,14 @@ const DiaryByDayScreen: React.FC = () => {
           userName={prof?.displayName ?? 'ユーザー'}
           userAvatar={prof?.photoURL}
           averageDays={0}
-          onPress={() => { }}
+          onPress={() => {
+            navigateToUserDetail(
+              navigation as any,
+              item.userId,
+              prof?.displayName ?? undefined,
+              prof?.photoURL ?? undefined,
+            );
+          }}
           size="medium"
           showRank={false}
           showTitle={true}
