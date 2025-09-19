@@ -23,6 +23,7 @@ import { CommunityService, FollowService, BlockService } from '@core/services/fi
 import type { FirestoreCommunityPost } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { colors, spacing, typography } from '@shared/theme';
+import { uiStyles } from '@shared/ui/styles';
 import { buildReplyCountMapFromPosts, normalizeCommunityPostsFirestore, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
 import { navigateToUserDetail } from '@shared/utils/navigation';
 
@@ -258,7 +259,7 @@ const UserDetailScreen: React.FC = () => {
         onReply={handleReply}
         onUserPress={(uid, uname) => handlePostPress({ authorId: uid, authorName: uname } as any)}
         listStyle={{ flex: 1 }}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: 40 }]}
+        contentContainerStyle={uiStyles.listContainer}
         onEndReached={() => {
           if (!hasMore || loadingMore || postsData.length === 0) return;
           // TODO: 繝壹・繧ｸ繝ｳ繧ｰ蜿門ｾ励ｒ螳溯｣・
