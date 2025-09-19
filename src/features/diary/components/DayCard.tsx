@@ -6,16 +6,18 @@ import { colors, spacing, typography, shadows } from '@shared/theme';
 interface DayCardProps {
   day: number;
   selected?: boolean;
+  posted?: boolean;
   onPress?: (day: number) => void;
 }
 
-const DayCard: React.FC<DayCardProps> = ({ day, selected = false, onPress }) => {
+const DayCard: React.FC<DayCardProps> = ({ day, selected = false, posted = false, onPress }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       style={[styles.card, selected && styles.selected]}
       onPress={() => onPress?.(day)}
     >
+      {posted && <Text style={styles.badge}>済</Text>}
       <Text style={[styles.title, selected && styles.titleSelected]}>{day}日目</Text>
     </TouchableOpacity>
   );
@@ -44,7 +46,19 @@ const styles = StyleSheet.create({
     color: colors.info,
     fontWeight: '700',
   },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    backgroundColor: colors.successLight,
+    color: colors.success,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    fontSize: typography.fontSize.xs,
+    zIndex: 1,
+    overflow: 'hidden',
+  },
 });
 
 export default DayCard;
-

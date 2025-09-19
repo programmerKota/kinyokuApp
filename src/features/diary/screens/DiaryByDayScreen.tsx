@@ -30,6 +30,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [addText, setAddText] = useState<string>('');
   const [activeDay, setActiveDay] = useState<number | null>(null);
+  const [alreadyPosted, setAlreadyPosted] = useState<boolean>(false);
 
   useEffect(() => {
     void (async () => {
@@ -78,6 +79,22 @@ const DiaryByDayScreen: React.FC = () => {
     void fetch();
   }, [day, blockedIds]);
 
+  // Check if user already posted for the selected day (only matters on active day)
+  useEffect(() => {
+    void (async () => {
+      if (!user?.uid || activeDay === null || day !== activeDay) {
+        setAlreadyPosted(false);
+        return;
+      }
+      try {
+        const exists = await DiaryService.hasDiaryForActiveChallengeDay(user.uid, day);
+        setAlreadyPosted(exists);
+      } catch {
+        setAlreadyPosted(false);
+      }
+    })();
+  }, [user?.uid, day, activeDay]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -118,7 +135,14 @@ const DiaryByDayScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: DayDiaryItem }) => <DiaryItemRow item={item} />;
 
-  const canPostForSelectedDay = activeDay !== null && day === activeDay;
+  const canPostForSelectedDay = activeDay !== null && day === activeDay && !alreadyPosted;
+  const postDisabledReason = activeDay === null
+    ? 'アクティブなチャレンジがありません'
+    : day !== activeDay
+      ? '日記は現在のチャレンジ日（当日）のみ投稿できます。'
+      : alreadyPosted
+        ? '本日は既に投稿済みです。明日また書きましょう。'
+        : '';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -132,7 +156,7 @@ const DiaryByDayScreen: React.FC = () => {
         <TouchableOpacity
           onPress={() => {
             if (!canPostForSelectedDay) {
-              Alert.alert('投稿できません', '日記は現在のチャレンジ日（当日）のみ投稿できます。');
+              Alert.alert('投稿できません', postDisabledReason);
               return;
             }
             setAddText('');
@@ -158,16 +182,25 @@ const DiaryByDayScreen: React.FC = () => {
           </View>
         }
         ListHeaderComponent={
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
-            {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
-              <DayCard
-                key={d}
-                day={d}
-                selected={d === day}
-                onPress={(sel) => { setDay(sel); }}
-              />
-            ))}
-          </ScrollView>
+          <View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
+              {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+                <DayCard
+                  key={d}
+                  day={d}
+                  selected={d === day}
+                  posted={activeDay !== null && d === activeDay && alreadyPosted}
+                  onPress={(sel) => { setDay(sel); }}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.helperText}>
+              {activeDay === null && 'チャレンジを開始すると日記を投稿できます'}
+              {activeDay !== null && day !== activeDay && '日記は当日分のみ投稿できます'}
+              {activeDay !== null && day === activeDay && alreadyPosted && '本日は投稿済みです。明日また書きましょう'}
+              {activeDay !== null && day === activeDay && !alreadyPosted && '今日の日記を投稿しましょう'}
+            </Text>
+          </View>
         }
         stickyHeaderIndices={[0]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
@@ -177,7 +210,7 @@ const DiaryByDayScreen: React.FC = () => {
         style={[styles.fab, styles.cardShadow, !canPostForSelectedDay && { backgroundColor: colors.gray300 }]}
         onPress={() => {
           if (!canPostForSelectedDay) {
-            Alert.alert('投稿できません', '日記は現在のチャレンジ日（当日）のみ投稿できます。');
+            Alert.alert('投稿できません', postDisabledReason);
             return;
           }
           setAddText('');
@@ -223,6 +256,7 @@ const DiaryByDayScreen: React.FC = () => {
                     createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
                   }));
                   setItems(mapped);
+                  if (activeDay !== null && day === activeDay) setAlreadyPosted(true);
                 } catch {}
               }}
               style={[styles.modalSubmit, (!addText.trim() || !canPostForSelectedDay) && styles.modalSubmitDisabled]}
@@ -266,6 +300,7 @@ const styles = StyleSheet.create({
   modalSubmit: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: 20 },
   modalSubmitDisabled: { backgroundColor: colors.gray300 },
   modalSubmitText: { color: colors.white, fontWeight: '600' },
+  helperText: { color: colors.textSecondary, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
 });
 
 export default DiaryByDayScreen;

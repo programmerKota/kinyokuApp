@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 
 admin.initializeApp();
+const db = admin.firestore();
 
 // Configure mail transport via environment variables or functions config (kept server-side)
 let transporter;
@@ -83,3 +84,74 @@ exports.sendFeedbackEmail = functions.firestore
       console.error('[functions] Failed to send feedback email', e);
     }
   });
+
+// Callable: Add diary for the current challenge day (server authoritative)
+exports.addDiaryForToday = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
+    }
+    const uid = context.auth.uid;
+    const content = (data && data.content ? String(data.content) : '').trim();
+    if (!content) {
+      throw new functions.https.HttpsError('invalid-argument', 'content は必須です');
+    }
+
+    // 1) Find active challenge
+    const chSnap = await db
+      .collection('challenges')
+      .where('userId', '==', uid)
+      .where('status', '==', 'active')
+      .limit(1)
+      .get();
+    if (chSnap.empty) {
+      // match client error code
+      throw new functions.https.HttpsError('failed-precondition', 'アクティブなチャレンジがありません', {
+        code: 'no-active-challenge',
+      });
+    }
+    const chDoc = chSnap.docs[0];
+    const challengeId = chDoc.id;
+    const chData = chDoc.data() || {};
+    const startedAt = (chData.startedAt && chData.startedAt.toDate) ? chData.startedAt.toDate() : new Date(chData.startedAt);
+    if (!startedAt || isNaN(startedAt.getTime())) {
+      throw new functions.https.HttpsError('failed-precondition', 'チャレンジ開始日時が不正です');
+    }
+
+    // 2) Compute today day index based on elapsed 24h windows
+    const now = new Date();
+    const computedDay = Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) + 1;
+    if (computedDay <= 0) {
+      throw new functions.https.HttpsError('failed-precondition', 'チャレンジ開始前です');
+    }
+
+    // 3) Enforce 1 entry per day per user/challenge
+    const dupSnap = await db
+      .collection('diaries')
+      .where('userId', '==', uid)
+      .where('challengeId', '==', challengeId)
+      .where('day', '==', computedDay)
+      .limit(1)
+      .get();
+    if (!dupSnap.empty) {
+      throw new functions.https.HttpsError('already-exists', 'この日は既に投稿済みです', {
+        code: 'already-exists',
+      });
+    }
+
+    // 4) Create diary
+    const ref = await db.collection('diaries').add({
+      userId: uid,
+      content,
+      challengeId,
+      day: computedDay,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { id: ref.id };
+  } catch (err) {
+    console.error('[functions] addDiaryForToday error:', err);
+    if (err instanceof functions.https.HttpsError) throw err;
+    throw new functions.https.HttpsError('internal', 'サーバーエラーが発生しました');
+  }
+});

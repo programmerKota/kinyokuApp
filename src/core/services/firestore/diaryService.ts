@@ -10,6 +10,8 @@ import {
   serverTimestamp,
   where,
 } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
+import { fbFunctions, enableFunctionsCalls, useEmulator } from "@app/config/firebase.config";
 
 import { db } from "@app/config/firebase.config";
 import { COLLECTIONS } from "./constants";
@@ -68,6 +70,43 @@ export class DiaryService {
       );
     }
 
+    // Enforce: 1 entry per day per user/challenge (client-side check)
+    const dupQ = query(
+      collection(db, COLLECTIONS.DIARIES),
+      where("userId", "==", userId),
+      where("challengeId", "==", active.id),
+      where("day", "==", day),
+      limit(1),
+    );
+    const dupSnap = await getDocs(dupQ);
+    if (!dupSnap.empty) {
+      throw new FirestoreError("この日は既に投稿済みです。", "already-exists");
+    }
+
+    // Try server-side callable first (authoritative path) if enabled
+    if (enableFunctionsCalls && !useEmulator) {
+      try {
+        const addCallable = httpsCallable(fbFunctions, "addDiaryForToday");
+        const res = (await addCallable({ content })) as unknown as { data?: { id: string } };
+        const id = (res && (res as any).data && (res as any).data.id) || undefined;
+        if (id) return id;
+        // fallthrough to direct write if no id returned
+      } catch (e: any) {
+        const code = e?.code || e?.details?.code;
+        const msg = e?.message || e?.details?.message;
+        // Map known server-side errors
+        if (code === "already-exists") throw new FirestoreError("この日は既に投稿済みです。", code);
+        if (code === "invalid-day") throw new FirestoreError("現在のチャレンジ日（当日）のみ投稿できます。", code);
+        if (code === "no-active-challenge" || code === "failed-precondition")
+          throw new FirestoreError("アクティブなチャレンジがありません。", "no-active-challenge");
+        // Otherwise, prefer failing closed only in prod
+        if (process.env.NODE_ENV === "production" && msg) {
+          throw new FirestoreError(msg, code);
+        }
+        // Dev: continue to client write
+      }
+    }
+
     const ref = await addDoc(collection(db, COLLECTIONS.DIARIES), {
       userId,
       content,
@@ -98,5 +137,22 @@ export class DiaryService {
 
   static async deleteDiary(id: string): Promise<void> {
     await deleteDoc(doc(db, COLLECTIONS.DIARIES, id));
+  }
+
+  static async hasDiaryForActiveChallengeDay(
+    userId: string,
+    day: number,
+  ): Promise<boolean> {
+    const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
+    if (!active) return false;
+    const qy = query(
+      collection(db, COLLECTIONS.DIARIES),
+      where("userId", "==", userId),
+      where("challengeId", "==", active.id),
+      where("day", "==", day),
+      limit(1),
+    );
+    const snap = await getDocs(qy);
+    return !snap.empty;
   }
 }

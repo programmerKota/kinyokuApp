@@ -5,6 +5,7 @@ import {
   connectFirestoreEmulator,
 } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { Platform } from "react-native";
 
 // Safe env accessors to avoid any-typed process.env on RN/Expo
@@ -46,6 +47,17 @@ export const db = initializeFirestore(app, {
   ignoreUndefinedProperties: true,
 });
 
+// Functions instance (with region)
+const functionsRegion = getEnv("EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION") || "us-central1";
+export const fbFunctions = getFunctions(app, functionsRegion);
+
+// Decide whether to use callable functions
+const enableFunctionsEnv = String(getEnv("EXPO_PUBLIC_ENABLE_FUNCTIONS") || "").toLowerCase();
+export const enableFunctionsCalls = enableFunctionsEnv
+  ? enableFunctionsEnv === "true"
+  : // default: enable in prod, disable on emulator/dev
+    String(process.env.NODE_ENV).toLowerCase() === "production";
+
 // Toggle emulator via env (support multiple var names) or auto-enable when demo config is used
 const getBool = (v?: string) => String(v || "").toLowerCase() === "true";
 const useEmulatorEnv =
@@ -59,7 +71,7 @@ const usingDemoConfig =
   firebaseConfig.appId === "demo-app-id";
 
 const isProd = String(process.env.NODE_ENV).toLowerCase() === "production";
-const useEmulator = useEmulatorEnv || (!isProd && usingDemoConfig);
+export const useEmulator = useEmulatorEnv || (!isProd && usingDemoConfig);
 
 if (useEmulator) {
   const sanitize = (value?: string) => {
@@ -80,9 +92,14 @@ if (useEmulator) {
     const auth = getAuth(app);
     connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
     connectStorageEmulator(getStorage(app), host, 9198);
+    try {
+      connectFunctionsEmulator(fbFunctions, host, 5001);
+    } catch (e) {
+      console.warn("[firebase] functions emulator connection failed:", e);
+    }
     // eslint-disable-next-line no-console
     console.log(
-      `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=9198`,
+      `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=9198 functions=5001`,
     );
   } catch (error) {
     console.warn("[firebase] emulator connection failed:", error);
