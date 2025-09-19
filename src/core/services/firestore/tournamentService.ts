@@ -19,6 +19,7 @@ import {
   updateDoc,
   where,
   writeBatch,
+  startAfter,
 } from 'firebase/firestore';
 
 import { db } from '@app/config/firebase.config';
@@ -334,6 +335,40 @@ export class TournamentService {
       unsub();
       if (profileUnsub) profileUnsub();
     };
+  }
+
+  // Fetch latest messages with pagination (older pages)
+  static async getRecentMessages(
+    tournamentId: string,
+    pageSize: number,
+    afterCreatedAt?: Timestamp,
+  ): Promise<{ items: FirestoreTournamentMessage[]; nextCursor?: Timestamp }> {
+    const coll = collection(db, COLLECTIONS.TOURNAMENT_MESSAGES);
+    const base = query(coll, where('tournamentId', '==', tournamentId), orderBy('createdAt', 'desc'));
+    const qy = afterCreatedAt ? query(base, startAfter(afterCreatedAt), limit(pageSize)) : query(base, limit(pageSize));
+    const qs = await getDocs(qy);
+    const items = qs.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as FirestoreTournamentMessage[];
+    const last = qs.docs[qs.docs.length - 1];
+    const nextCursor = last ? ((last.data() as any).createdAt as Timestamp) : undefined;
+    return { items, nextCursor };
+  }
+
+  // Subscribe only to new messages after a timestamp (ascending order)
+  static subscribeToNewMessages(
+    tournamentId: string,
+    afterCreatedAt: Timestamp,
+    callback: (messages: FirestoreTournamentMessage[]) => void,
+  ): Unsubscribe {
+    const qy = query(
+      collection(db, COLLECTIONS.TOURNAMENT_MESSAGES),
+      where('tournamentId', '==', tournamentId),
+      orderBy('createdAt', 'asc'),
+      startAfter(afterCreatedAt),
+    );
+    return onSnapshot(qy, (snapshot) => {
+      const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as any) })) as FirestoreTournamentMessage[];
+      callback(items);
+    });
   }
 
   static subscribeToTournaments(callback: (tournaments: FirestoreTournament[]) => void): Unsubscribe {

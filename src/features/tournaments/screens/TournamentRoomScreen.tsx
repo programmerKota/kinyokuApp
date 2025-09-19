@@ -78,29 +78,93 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
   const listRef = useRef<FlatList<Message>>(null);
   const [initialScrolled, setInitialScrolled] = useState(false);
 
-  // チャットの購読
+  // 初期100件 + 新着の随時取得
   useEffect(() => {
-    if (!user) return;
+    let unsubNew: undefined | (() => void);
+    let cancelled = false;
+    (async () => {
+      try {
+        // 最新から100件取得（desc）→ asc に並べ替えて状態に保存
+        const { items, nextCursor } = await TournamentService.getRecentMessages(
+          tournamentId,
+          100,
+        );
+        const latestDesc = items; // desc
+        const asc = [...latestDesc].reverse();
+        if (cancelled) return;
+        setMessages(
+          asc.map((msg) => ({
+            id: msg.id,
+            authorId: msg.authorId,
+            authorName: msg.authorName,
+            text: msg.text,
+            timestamp: toDate(msg.createdAt),
+            type: msg.type,
+            avatar: msg.authorAvatar,
+          })),
+        );
+        // 新着を購読（最新のcreatedAt以降）
+        const latestTs = latestDesc[0]?.createdAt as any;
+        if (latestTs) {
+          unsubNew = TournamentService.subscribeToNewMessages(
+            tournamentId,
+            latestTs,
+            (news) => {
+              if (!news || news.length === 0) return;
+              setMessages((prev) => {
+                const appended = news.map((msg) => ({
+                  id: msg.id,
+                  authorId: msg.authorId,
+                  authorName: msg.authorName,
+                  text: msg.text,
+                  timestamp: toDate(msg.createdAt),
+                  type: msg.type,
+                  avatar: msg.authorAvatar,
+                }));
+                return [...prev, ...appended];
+              });
+            },
+          );
+        }
+        // keep cursor for older loads
+        setOlderCursor(nextCursor as any);
+      } catch (e) {
+        console.warn('failed to init chat messages:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (unsubNew) unsubNew();
+    };
+  }, [tournamentId]);
 
-    const unsubscribe = TournamentService.subscribeToMessages(
-      tournamentId,
-      (firestoreMessages: FirestoreTournamentMessage[]) => {
-        const convertedMessages: Message[] = firestoreMessages.map((msg) => ({
-          id: msg.id,
-          authorId: msg.authorId,
-          authorName: msg.authorName,
-          text: msg.text,
-          timestamp: toDate(msg.createdAt),
-          type: msg.type,
-          avatar: msg.authorAvatar,
-        })).filter((m) => m.type !== 'text' || (m.text ?? '').trim().length > 0);
-        setMessages(convertedMessages);
-        // setLoading(false);
-      },
-    );
-
-    return unsubscribe;
-  }, [tournamentId, user]);
+  const [olderCursor, setOlderCursor] = useState<any | undefined>(undefined);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadOlder = async () => {
+    if (loadingMore || !olderCursor) return;
+    setLoadingMore(true);
+    try {
+      const { items, nextCursor } = await TournamentService.getRecentMessages(
+        tournamentId,
+        50,
+        olderCursor,
+      );
+      // items are older (desc). We want asc prepend
+      const olderAsc = [...items].reverse().map((msg) => ({
+        id: msg.id,
+        authorId: msg.authorId,
+        authorName: msg.authorName,
+        text: msg.text,
+        timestamp: toDate(msg.createdAt),
+        type: msg.type,
+        avatar: msg.authorAvatar,
+      }));
+      setMessages((prev) => [...olderAsc, ...prev]);
+      setOlderCursor(nextCursor as any);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   // 大会情報と参加者の購読
   useEffect(() => {
@@ -383,6 +447,11 @@ const handleKick = async (p: Participant) => {
             keyboardShouldPersistTaps="handled"
             ref={listRef}
             inverted
+            onEndReachedThreshold={0.2}
+            onEndReached={() => {
+              // inverted: end reached means top of history
+              void loadOlder();
+            }}
             onContentSizeChange={() => {
               if (!initialScrolled) {
                 // With inverted list, initial offset is already bottom; keep guard just in case
