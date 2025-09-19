@@ -218,7 +218,7 @@ const DiaryByDayScreen: React.FC = () => {
         ListHeaderComponent={
           <View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
-              {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+              {Array.from({ length: 365 }, (_, i) => i + 1).map((d) => (
                 <DayCard
                   key={d}
                   day={d}
