@@ -259,9 +259,7 @@ const TournamentsScreen: React.FC = () => {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
 
-            <View style={styles.header}>
-                <Text style={styles.title}>トーナメント一覧</Text>
-            </View>
+            {/* ヘッダー削除（リクエストにより非表示） */}
 
             <VirtualizedList
                 data={tournaments}
