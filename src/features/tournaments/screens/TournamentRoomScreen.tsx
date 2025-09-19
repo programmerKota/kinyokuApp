@@ -174,10 +174,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
             const averageDaysMap = new Map<string, number>();
             for (const participant of converted) {
               try {
-                const averageDays = await UserStatsService.getUserAverageDaysForRank(
+                const days = await UserStatsService.getUserCurrentDaysForRank(
                   participant.id,
                 );
-                averageDaysMap.set(participant.id, averageDays);
+                averageDaysMap.set(participant.id, days);
               } catch (error) {
                 console.error('ユーザーの平均日数取得に失敗', participant.id, error);
                 averageDaysMap.set(participant.id, 0);

@@ -77,7 +77,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const map = new Map<string, number>();
     const uniqueIds = new Set(list.map((p) => p.authorId));
     for (const uid of uniqueIds) {
-      const avg = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+      const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
       map.set(uid, avg);
     }
     setUserAverageDays(map);

@@ -48,4 +48,25 @@ GitHub Actions で typecheck と lint を実行します。将来的にテスト
 - ドメイン型集約と any 削減
 
 
+開発メモ: エミュレータ永続化
+
+- Docker Compose での起動は永続化済み（/data に export）。
+- ローカル CLI で起動する場合は、再起動でデータが消えないよう `--import/--export-on-exit` を付けてください。
+
+コマンド例
+
+```
+npm run emulators
+# もしくは直接
+firebase emulators:start --import ./data/firebase --export-on-exit --project demo-project --config firebase.json
+```
+
+Expo からエミュレータへ接続するための推奨設定（.env）
+
+```
+EXPO_PUBLIC_USE_EMULATOR=true
+EXPO_PUBLIC_EMULATOR_HOST=127.0.0.1   # 物理端末はPCのLAN IP
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-project
+```
+
 

@@ -33,20 +33,20 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
   }, [postId]);
 
   const initializeUserAverageDays = async (replies: CommunityComment[]) => {
-    const averageDaysMap = new Map<string, number>();
+        const averageDaysMap = new Map<string, number>();
 
     // 重複するユーザーIDを取得
     const uniqueUserIds = new Set(replies.map((reply) => reply.authorId));
 
-    for (const userId of uniqueUserIds) {
-      try {
-        const averageDays =
-          await UserStatsService.getUserAverageDaysForRank(userId);
-        averageDaysMap.set(userId, averageDays);
-      } catch {
-        averageDaysMap.set(userId, 0);
-      }
-    }
+        for (const userId of uniqueUserIds) {
+          try {
+        const days =
+          await UserStatsService.getUserCurrentDaysForRank(userId);
+        averageDaysMap.set(userId, days);
+          } catch {
+            averageDaysMap.set(userId, 0);
+          }
+        }
 
     setUserAverageDays(averageDaysMap);
   };

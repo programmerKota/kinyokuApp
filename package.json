@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "seed": "node scripts/seedDummyData.cjs",
     "seed:related": "node scripts/seedRelated.cjs",
-    "seed:all": "npm run -s seed && npm run -s seed:related",
+    "seed:diaries": "node scripts/seedDiaries.cjs",
+    "seed:all": "npm run -s seed && npm run -s seed:related && npm run -s seed:diaries",
     "seed:docker": "docker compose run --rm --no-deps -e GCLOUD_PROJECT=demo-project -e FIRESTORE_EMULATOR_HOST=firebase-emulators:8080 batch-scheduler node scripts/seedDummyData.cjs",
     "seed:related:docker": "docker compose run --rm --no-deps -e GCLOUD_PROJECT=demo-project -e FIRESTORE_EMULATOR_HOST=firebase-emulators:8080 batch-scheduler node scripts/seedRelated.cjs",
     "seed:tournament:docker": "docker compose run --rm --no-deps -e GCLOUD_PROJECT=demo-project -e FIRESTORE_EMULATOR_HOST=firebase-emulators:8080 -e TID=%TID% -e REQ=%REQ% -e JOIN=%JOIN% batch-scheduler node scripts/seedTournamentMembers.cjs",
@@ -21,8 +22,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "prepare": "husky",
-    "lint:unused": "ts-prune"
+    "lint:unused": "ts-prune",
+    "emulators": "firebase emulators:start --project demo-project --import ./data/firebase --export-on-exit --config firebase.json"
   },
+ 
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
     "@react-native-async-storage/async-storage": "^1.24.0",
@@ -76,6 +79,7 @@
     "tsx": "^4.20.5",
     "typescript": "~5.8.3"
   },
+  
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix",

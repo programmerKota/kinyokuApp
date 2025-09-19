@@ -154,6 +154,21 @@ export class UserStatsService {
     }
   }
 
+  // 現在のチャレンジ記録（日数）に基づく階級用のベース値を取得
+  static async getUserCurrentDaysForRank(userId: string): Promise<number> {
+    try {
+      const active = await ChallengeService.getActiveChallenge(userId);
+      if (!active) return 0;
+      const started = toDateSafe((active as any).startedAt) ?? new Date();
+      const now = new Date();
+      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      return Math.max(0, days);
+    } catch (e) {
+      console.error('現在のチャレンジ日数取得に失敗:', e);
+      return 0;
+    }
+  }
+
   static clearCache(): void {
     this.userStatsCache.clear();
     this.rankCache.clear();

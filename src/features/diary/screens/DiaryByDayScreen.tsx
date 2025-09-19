@@ -81,7 +81,7 @@ const DiaryByDayScreen: React.FC = () => {
           const next = new Map(userAverageDays);
           for (const uid of ids) {
             if (!next.has(uid)) {
-              const avg = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+              const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
               next.set(uid, avg);
             }
           }
@@ -126,7 +126,7 @@ const DiaryByDayScreen: React.FC = () => {
         const next = new Map(userAverageDays);
         for (const uid of ids) {
           if (!next.has(uid)) {
-            const avg = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+            const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
             next.set(uid, avg);
           }
         }

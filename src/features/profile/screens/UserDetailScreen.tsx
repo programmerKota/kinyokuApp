@@ -62,12 +62,28 @@ const UserDetailScreen: React.FC = () => {
     }, []),
   );
 
+  // Recompute rank on focus to keep consistency with post lists
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      (async () => {
+        try {
+          const days = await UserStatsService.getUserCurrentDaysForRank(userId);
+          if (mounted) setAverageDays(days);
+        } catch {}
+      })();
+      return () => {
+        mounted = false;
+      };
+    }, [userId]),
+  );
+
   useEffect(() => {
     setName((prev) => prev || 'User');
     if (!userId) {
       return;
     }
-    void UserStatsService.getUserAverageDaysForRank(userId).then(setAverageDays);
+    void UserStatsService.getUserCurrentDaysForRank(userId).then(setAverageDays);
   }, [userId]);
       useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -321,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     backgroundColor: colors.white,
   },
-  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   userProfileContainer: {
     flex: 1,
     marginRight: spacing.sm,
@@ -329,15 +345,15 @@ const styles = StyleSheet.create({
   followBtn: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xs,
-    minHeight: 32,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    minHeight: 28,
     borderColor: '#F87171',
     backgroundColor: colors.white,
   },
   followText: {
     color: '#F87171',
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.xs,
     fontWeight: '600',
   },
   follow: {
@@ -353,13 +369,13 @@ const styles = StyleSheet.create({
   blockBtn: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xs,
-    minHeight: 32,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    minHeight: 28,
   },
   blockText: {
     color: colors.textSecondary,
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.xs,
     fontWeight: '600',
   },
   block: {

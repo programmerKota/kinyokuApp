@@ -122,7 +122,11 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
           )}
         </View>
         {showTitle && (
-          <Text style={[styles.userTitle, getTitleStyle(size)]}>
+          <Text
+            style={[styles.userTitle, getTitleStyle(size)]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {getRankDisplayByDays(averageDays)}
           </Text>
         )}

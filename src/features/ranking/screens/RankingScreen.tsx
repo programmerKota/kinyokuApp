@@ -8,6 +8,7 @@ import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { useAuth } from '@app/contexts/AuthContext';
 import { useProfile } from '@shared/hooks/useProfile';
 import { RankingService } from '@core/services/rankingService';
+import { UserStatsService } from '@core/services/userStatsService';
 import type { UserRanking } from '@core/services/rankingService';
 import { navigateToUserDetail } from '@shared/utils/navigation';
 import type { TournamentStackParamList } from '@app/navigation/TournamentStackNavigator';
@@ -17,6 +18,7 @@ const RankingScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<TournamentStackParamList>>();
   const [rankings, setRankings] = useState<UserRanking[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [avgDaysMap, setAvgDaysMap] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     void fetchRankings();
@@ -27,6 +29,18 @@ const RankingScreen: React.FC = () => {
       // 現在の挑戦中データに基づくランキングを毎回取得
       const rankingsData: UserRanking[] = await RankingService.getUserRankings();
       setRankings(rankingsData);
+      // 肩書き表示は全画面で同一ロジック（UserStatsService）に統一
+      const uniqueIds = Array.from(new Set(rankingsData.map((r) => r.id)));
+      const next = new Map<string, number>();
+      for (const uid of uniqueIds) {
+        try {
+          const days = await UserStatsService.getUserCurrentDaysForRank(uid);
+          next.set(uid, days);
+        } catch {
+          next.set(uid, 0);
+        }
+      }
+      setAvgDaysMap(next);
     } catch {
       // noop
     }
@@ -99,7 +113,7 @@ const RankingScreen: React.FC = () => {
         <UserProfileWithRank
           userName={displayName}
           userAvatar={displayAvatar}
-          averageDays={item.averageTime / (24 * 60 * 60)}
+          averageDays={avgDaysMap.get(item.id) ?? 0}
           onPress={() => handleUserPress(item.id, displayName, displayAvatar)}
           size="medium"
           showRank={false}
