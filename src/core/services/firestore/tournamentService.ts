@@ -252,10 +252,27 @@ export class TournamentService {
     authorName?: string,
     authorAvatar?: string,
   ): Promise<string> {
+    // Guard: only participants (or owner) can send messages
+    const senderId = authorId || (await FirestoreUserService.getCurrentUserId());
+    const t = await this.getTournament(tournamentId);
+    if (!t) throw new FirestoreError('大会が見つかりません', 'not-found');
+    if (t.ownerId !== senderId) {
+      const qy = query(
+        collection(db, COLLECTIONS.TOURNAMENT_PARTICIPANTS),
+        where('tournamentId', '==', tournamentId),
+        where('userId', '==', senderId),
+        where('status', '==', 'joined'),
+        limit(1),
+      );
+      const partSnap = await getDocs(qy);
+      if (partSnap.empty) {
+        throw new FirestoreError('参加者のみメッセージを送信できます', 'permission-denied');
+      }
+    }
     const now = Timestamp.now();
     const docRef = await addDoc(collection(db, COLLECTIONS.TOURNAMENT_MESSAGES), {
       tournamentId,
-      authorId: authorId || (await FirestoreUserService.getCurrentUserId()),
+      authorId: senderId,
       authorName: authorName || (await FirestoreUserService.getCurrentUserName()),
       authorAvatar: authorAvatar || (await FirestoreUserService.getCurrentUserAvatar()),
       text: text ?? '',

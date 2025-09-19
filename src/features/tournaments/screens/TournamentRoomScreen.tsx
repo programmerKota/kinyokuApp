@@ -377,7 +377,21 @@ const handleKick = async (p: Participant) => {
             keyboardShouldPersistTaps="handled"
           />
 
-          <MessageInput onSend={handleSendMessage} />
+          {(() => {
+            const canSend = Boolean(
+              user && (
+                (tournament && tournament.ownerId === user.uid) ||
+                participants.some((p) => p.id === user.uid && p.status === 'joined')
+              ),
+            );
+            return canSend ? (
+              <MessageInput onSend={handleSendMessage} />
+            ) : (
+              <View style={{ padding: spacing.lg, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.borderPrimary }}>
+                <Text style={{ color: colors.textSecondary }}>参加者のみメッセージを送信できます</Text>
+              </View>
+            );
+          })()}
         </KeyboardAwareScrollView>
       ) : (
         <View style={styles.participantsList}>
