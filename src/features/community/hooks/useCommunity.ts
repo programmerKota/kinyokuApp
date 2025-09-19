@@ -51,6 +51,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [replyText, setReplyText] = useState('');
   const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(new Set());
   const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
+  const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
   const [cursor, setCursor] = useState<unknown | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -257,15 +258,28 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   );
 
   const handleLike = useCallback(async (postId: string) => {
-    const isLiked = await CommunityService.toggleLike(postId);
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (isLiked) next.add(postId);
-      else next.delete(postId);
-      return next;
-    });
-    setPosts((prev) => toggleLikeInList(prev, postId, isLiked));
-  }, []);
+    if (likingIds.has(postId)) return;
+    setLikingIds((prev) => new Set(prev).add(postId));
+    try {
+      const isLiked = await CommunityService.toggleLike(postId);
+      setLikedPosts((prev) => {
+        const next = new Set(prev);
+        if (isLiked) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
+      // 'all' タブは購読ではなくページング取得のため、件数は楽観更新で即時反映
+      if (activeTab === 'all') {
+        setPosts((prev) => toggleLikeInList(prev, postId, isLiked));
+      }
+    } finally {
+      setLikingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    }
+  }, [likingIds, activeTab]);
 
   const handleComment = useCallback((postId: string) => {
     setShowReplyButtons((prev) => {

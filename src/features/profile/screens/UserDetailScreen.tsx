@@ -24,7 +24,7 @@ import type { FirestoreCommunityPost } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { colors, spacing, typography } from '@shared/theme';
 import { uiStyles } from '@shared/ui/styles';
-import { buildReplyCountMapFromPosts, normalizeCommunityPostsFirestore, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
+import { buildReplyCountMapFromPosts, normalizeCommunityPostsFirestore, incrementCountMap } from '@shared/utils/community';
 import { navigateToUserDetail } from '@shared/utils/navigation';
 
 type RootStackParamList = {
@@ -52,6 +52,7 @@ const UserDetailScreen: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
   const [averageDays, setAverageDays] = useState(0);
+  const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
   // 逕ｻ髱｢繝輔か繝ｼ繧ｫ繧ｹ荳ｭ縺ｯ豈守ｧ貞・謠冗判縺励※逶ｸ蟇ｾ譎る俣繧呈峩譁ｰ
   const [nowTick, setNowTick] = useState(0);
 
@@ -137,6 +138,9 @@ const UserDetailScreen: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
+    // prevent rapid multi-taps and rely on snapshot to update counts
+    if (likingIds.has(postId)) return;
+    setLikingIds((prev) => new Set(prev).add(postId));
     try {
       const isLiked = await CommunityService.toggleLike(postId);
       setLikedPosts((prev) => {
@@ -145,9 +149,15 @@ const UserDetailScreen: React.FC = () => {
         else s.delete(postId);
         return s;
       });
-      setPostsData((prev) => toggleLikeInList(prev, postId, isLiked));
+      // Do not mutate counts optimistically to avoid double/triple updates.
     } catch (e) {
       console.warn('like toggle failed', e);
+    } finally {
+      setLikingIds((prev) => {
+        const s = new Set(prev);
+        s.delete(postId);
+        return s;
+      });
     }
   };
 
