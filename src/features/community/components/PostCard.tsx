@@ -9,7 +9,6 @@ import type { CommunityPost } from '@project-types';
 
 import RelativeTime from '@shared/components/RelativeTime';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
-import { useProfile } from '@shared/hooks/useProfile';
 
 interface PostCardProps {
   post: CommunityPost;
@@ -36,10 +35,9 @@ const PostCard: React.FC<PostCardProps> = ({
   authorAverageDays = 0,
   commentsCount,
 }) => {
-  const liveProfile = useProfile(post.authorId);
-  const displayName = liveProfile?.displayName ?? post.authorName;
-  // Avoid avatar flicker: prefer the avatar stored on the post itself; fallback to live profile
-  const displayAvatar = post.authorAvatar ?? liveProfile?.photoURL;
+  // Prefer static values carried on the post to avoid broad re-renders
+  const displayName = post.authorName;
+  const displayAvatar = post.authorAvatar;
 
   const handleProfilePress = useCallback(() => {
     if (onUserPressId) {
@@ -73,7 +71,9 @@ const PostCard: React.FC<PostCardProps> = ({
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={onLikeId ? () => onLikeId(postId ?? post.id) : undefined}
+            onPress={() => {
+              if (onLikeId) onLikeId(postId ?? post.id);
+            }}
           >
             <Ionicons
               name={isLiked ? 'heart' : 'heart-outline'}
@@ -192,4 +192,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(PostCard);
+// Allow only targeted updates (likes, comments, reply toggle)
+export default React.memo(
+  PostCard,
+  (prev, next) => {
+    const prevComments = (prev.commentsCount ?? prev.post.comments) || 0;
+    const nextComments = (next.commentsCount ?? next.post.comments) || 0;
+    return (
+      prev.post.id === next.post.id &&
+      prev.isLiked === next.isLiked &&
+      prev.post.likes === next.post.likes &&
+      prevComments === nextComments &&
+      (prev.showReplyButton ?? false) === (next.showReplyButton ?? false)
+    );
+  },
+);

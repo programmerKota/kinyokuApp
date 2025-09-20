@@ -105,10 +105,13 @@ const CommunityScreen: React.FC = () => {
 
       <KeyboardAwareScrollView>
         <PostList
+          key={`postlist-${activeTab}`}
           posts={posts}
           likedPosts={likedPosts}
           showReplyButtons={showReplyButtons}
+          replyCounts={replyCounts}
           authorAverageDays={userAverageDays}
+          hasMore={activeTab === 'all' ? hasMore : false}
           onLike={(id) => { void handleLike(id); }}
           onComment={handleComment}
           onReply={handleReply}

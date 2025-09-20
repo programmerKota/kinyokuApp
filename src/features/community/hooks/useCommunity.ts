@@ -64,6 +64,13 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     following: false,
   });
 
+  // Per-tab cache to avoid clearing list when switching tabs
+  const cacheRef = useRef<{
+    all?: { posts: CommunityPost[]; cursor?: unknown; hasMore: boolean };
+    my?: { posts: CommunityPost[] };
+    following?: { posts: CommunityPost[] };
+  }>({});
+
   // internal helpers
   const initializeLikedPosts = useCallback(
     async (list: CommunityPost[]) => {
@@ -165,8 +172,15 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const run = () => {
       switch (activeTab) {
         case 'all':
+          // キャッシュがあれば即復元
+          if (cacheRef.current.all?.posts?.length) {
+            setPosts(cacheRef.current.all.posts);
+            setCursor(cacheRef.current.all.cursor);
+            setHasMore(cacheRef.current.all.hasMore);
+            return;
+          }
           if (initRunRef.current.all) return;
-          // 初期表示用にクリア
+          // まだキャッシュがない初回は即時切替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -178,35 +192,47 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setHasMore(Boolean(nextCursor));
             void initializeLikedPosts(normalized);
             void initializeUserAverageDays(normalized);
+            cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
             initRunRef.current.all = true;
           })();
           break;
         case 'my':
+          // キャッシュがあれば即復元
+          if (cacheRef.current.my?.posts?.length) {
+            setPosts(cacheRef.current.my.posts);
+            setCursor(undefined);
+            setHasMore(true);
+            return;
+          }
           if (initRunRef.current.my) return;
-          // 初期表示用にクリア
+          // まだキャッシュがない初回は即時切替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
           if (user) {
-            unsubscribe = CommunityService.subscribeToUserPosts(
-              user.uid,
-              (list: CommunityPost[]) => {
-                void (async () => {
-                  const normalized = await normalizePosts(list);
-                  setPosts((prev) => mergePostsById(prev, normalized));
-                  void initializeLikedPosts(normalized);
-                  void initializeUserAverageDays(normalized);
-                })();
-              },
-            );
-            initRunRef.current.my = true;
+            (async () => {
+              const list = await CommunityService.getUserPosts(user.uid);
+              const normalized = await normalizePosts(list as CommunityPost[]);
+              setPosts(normalized);
+              void initializeLikedPosts(normalized);
+              void initializeUserAverageDays(normalized);
+              cacheRef.current.my = { posts: normalized };
+              initRunRef.current.my = true;
+            })();
           } else {
             setPosts([]);
           }
           break;
         case 'following':
+          // キャッシュがあれば即復元
+          if (cacheRef.current.following?.posts?.length) {
+            setPosts(cacheRef.current.following.posts);
+            setCursor(undefined);
+            setHasMore(true);
+            return;
+          }
           if (initRunRef.current.following) return;
-          // 初期表示用にクリア
+          // まだキャッシュがない初回は即時切替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -220,6 +246,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                   setPosts((prev) => mergePostsById(prev, normalized));
                   void initializeLikedPosts(normalized);
                   void initializeUserAverageDays(normalized);
+                  cacheRef.current.following = { posts: normalized };
                 })();
               },
             );
@@ -250,10 +277,15 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       const { items, nextCursor } = await CommunityService.getRecentPostsPage(100, cursor as any);
       if (items.length === 0) {
         setHasMore(false);
+        if (cacheRef.current.all) cacheRef.current.all.hasMore = false;
         return;
       }
       const normalized = await normalizePosts(items as CommunityPost[]);
-      setPosts((prev) => appendUniqueById(prev, normalized));
+      setPosts((prev) => {
+        const merged = appendUniqueById(prev, normalized);
+        cacheRef.current.all = { posts: merged, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        return merged;
+      });
       setCursor(nextCursor);
       setHasMore(Boolean(nextCursor));
       void initializeLikedPosts(normalized);
@@ -322,10 +354,19 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         else next.delete(postId);
         return next;
       });
-      // 'all' タブは購読ではなくページング取得のため、件数は楽観更新で即時反映
-      if (activeTab === 'all') {
-        setPosts((prev) => toggleLikeInList(prev, postId, isLiked));
-      }
+      // Targeted update: adjust only the liked post's count in local list
+      setPosts((prev) => {
+        const updated = toggleLikeInList(prev, postId, isLiked);
+        // Keep cache in sync for the active tab
+        if (activeTab === 'all' && cacheRef.current.all) {
+          cacheRef.current.all.posts = updated;
+        } else if (activeTab === 'my' && cacheRef.current.my) {
+          cacheRef.current.my.posts = updated;
+        } else if (activeTab === 'following' && cacheRef.current.following) {
+          cacheRef.current.following.posts = updated;
+        }
+        return updated;
+      });
     } finally {
       setLikingIds((prev) => {
         const next = new Set(prev);

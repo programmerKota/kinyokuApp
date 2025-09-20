@@ -18,7 +18,6 @@ import ListFooterSpinner from '@shared/components/ListFooterSpinner';
 import ReplyInputBar from '@shared/components/ReplyInputBar';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { useAuth } from '@app/contexts/AuthContext';
-import { useProfile } from '@shared/hooks/useProfile';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
 import type { FirestoreCommunityPost } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
@@ -40,7 +39,6 @@ const UserDetailScreen: React.FC = () => {
   const { user } = useAuth();
   const [name, setName] = useState<string>(userName || 'ユーザー');
   const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
-  const live = useProfile(userId);
   const [following, setFollowing] = useState<boolean>(false);
   const [postsData, setPostsData] = useState<FirestoreCommunityPost[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -138,7 +136,6 @@ const UserDetailScreen: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
-    // prevent rapid multi-taps and rely on snapshot to update counts
     if (likingIds.has(postId)) return;
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
@@ -149,7 +146,10 @@ const UserDetailScreen: React.FC = () => {
         else s.delete(postId);
         return s;
       });
-      // Do not mutate counts optimistically to avoid double/triple updates.
+      // Targeted update: only adjust the liked post's count in local list
+      setPostsData((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, likes: (p.likes || 0) + (isLiked ? 1 : -1) } : p)),
+      );
     } catch (e) {
       console.warn('like toggle failed', e);
     } finally {
@@ -240,8 +240,8 @@ const UserDetailScreen: React.FC = () => {
       <View>
         <View style={styles.profileTop}>
           <UserProfileWithRank
-            userName={live?.displayName ?? name}
-            userAvatar={live?.photoURL ?? avatar}
+            userName={name}
+            userAvatar={avatar}
             averageDays={averageDays}
             size="medium"
             showRank={false}
@@ -279,6 +279,8 @@ const UserDetailScreen: React.FC = () => {
         posts={postsData}
         likedPosts={likedPosts}
         showReplyButtons={showReplyButtons}
+        hasMore={false}
+        replyCounts={replyCounts}
         authorAverageDays={averageDays}
         onLike={(id) => { void handleLike(id); }}
         onComment={handleComment}

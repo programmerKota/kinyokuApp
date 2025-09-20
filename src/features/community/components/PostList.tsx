@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from 'react';
+﻿import React, { useCallback, useRef } from 'react';
 import { FlatList, View } from 'react-native';
 import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
 
@@ -12,6 +12,7 @@ interface PostListProps {
     posts: CommunityPost[];
     likedPosts: Set<string>;
     showReplyButtons: Set<string>;
+    replyCounts?: Map<string, number>;
     authorAverageDays?: Map<string, number> | number;
     onLike: (postId: string) => void | Promise<void>;
     onComment: (postId: string) => void;
@@ -22,6 +23,7 @@ interface PostListProps {
     onEndReached?: () => void;
     onEndReachedThreshold?: number;
     loadingMore?: boolean;
+    hasMore?: boolean;
     headerComponent?: React.ReactNode;
     refreshControl?: React.ReactElement<RefreshControlProps>;
     ListEmptyComponent?: React.ReactNode;
@@ -32,6 +34,7 @@ const PostList: React.FC<PostListProps> = ({
     likedPosts,
     showReplyButtons,
     authorAverageDays,
+    replyCounts,
     onLike,
     onComment,
     onReply,
@@ -41,16 +44,19 @@ const PostList: React.FC<PostListProps> = ({
     onEndReached,
     onEndReachedThreshold = 0.4,
     loadingMore = false,
+    hasMore = false,
     headerComponent,
     refreshControl,
     ListEmptyComponent,
 }) => {
+    const canLoadMoreRef = useRef(true);
     const renderItem = useCallback(
         ({ item }: { item: CommunityPost }) => {
             const avgDays =
                 typeof authorAverageDays === 'number'
                     ? authorAverageDays
                     : (authorAverageDays?.get?.(item.authorId) as number) || 0;
+            const comments = (replyCounts?.get(item.id) ?? item.comments ?? 0) as number;
             return (
                 <View>
                     <PostCard
@@ -63,7 +69,7 @@ const PostList: React.FC<PostListProps> = ({
                         isLiked={likedPosts.has(item.id)}
                         showReplyButton={showReplyButtons.has(item.id)}
                         authorAverageDays={avgDays}
-                        commentsCount={item.comments || 0}
+                        commentsCount={comments}
                     />
                     {showReplyButtons.has(item.id) && (
                         <RepliesList
@@ -74,11 +80,12 @@ const PostList: React.FC<PostListProps> = ({
                 </View>
             );
         },
-        [likedPosts, showReplyButtons, authorAverageDays, onLike, onComment, onReply, onUserPress],
+        [likedPosts, showReplyButtons, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress],
     );
 
     return (
         <FlatList
+            extraData={{ likedPosts, showReplyButtons, replyCounts, authorAverageDays, loadingMore, hasMore }}
             style={listStyle}
             data={posts}
             renderItem={renderItem}
@@ -86,8 +93,18 @@ const PostList: React.FC<PostListProps> = ({
             contentContainerStyle={contentContainerStyle}
             ListHeaderComponent={headerComponent as any}
             onEndReachedThreshold={onEndReached ? onEndReachedThreshold : undefined}
-            onEndReached={onEndReached}
-            ListFooterComponent={() => <ListFooterSpinner loading={!!loadingMore} />}
+            onMomentumScrollBegin={() => {
+                canLoadMoreRef.current = true;
+            }}
+            onEndReached={() => {
+                if (!onEndReached) return;
+                if (!hasMore) return;
+                if (loadingMore) return;
+                if (!canLoadMoreRef.current) return;
+                canLoadMoreRef.current = false;
+                onEndReached();
+            }}
+            ListFooterComponent={() => (hasMore || loadingMore ? <ListFooterSpinner loading /> : null)}
             refreshControl={refreshControl}
             ListEmptyComponent={ListEmptyComponent as any}
         />
