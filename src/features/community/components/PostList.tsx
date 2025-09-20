@@ -1,12 +1,17 @@
-﻿import React, { useCallback, useRef } from 'react';
-import { FlatList, View } from 'react-native';
+﻿import React, { useCallback } from 'react';
+import { FlatList, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
 
 import type { CommunityPost } from '@project-types';
 import ListFooterSpinner from '@shared/components/ListFooterSpinner';
+ 
 
 import PostCard from '@features/community/components/PostCard';
 import RepliesList from '@features/community/components/RepliesList';
+import { useReplyVisibility } from '@shared/state/replyVisibilityStore';
+import { colors, spacing, typography } from '@shared/theme';
+import { CONTENT_LEFT_MARGIN } from '@shared/utils/nameUtils';
 
 interface PostListProps {
     posts: CommunityPost[];
@@ -49,43 +54,27 @@ const PostList: React.FC<PostListProps> = ({
     refreshControl,
     ListEmptyComponent,
 }) => {
-    const canLoadMoreRef = useRef(true);
     const renderItem = useCallback(
         ({ item }: { item: CommunityPost }) => {
-            const avgDays =
-                typeof authorAverageDays === 'number'
-                    ? authorAverageDays
-                    : (authorAverageDays?.get?.(item.authorId) as number) || 0;
-            const comments = (replyCounts?.get(item.id) ?? item.comments ?? 0) as number;
             return (
-                <View>
-                    <PostCard
-                        post={item}
-                        postId={item.id}
-                        onLikeId={onLike}
-                        onCommentId={onComment}
-                        onReplyId={onReply}
-                        onUserPressId={(uid, uname) => onUserPress(uid, uname, item.authorAvatar)}
-                        isLiked={likedPosts.has(item.id)}
-                        showReplyButton={showReplyButtons.has(item.id)}
-                        authorAverageDays={avgDays}
-                        commentsCount={comments}
-                    />
-                    {showReplyButtons.has(item.id) && (
-                        <RepliesList
-                            postId={item.id}
-                            onUserPress={(uid, uname) => onUserPress(uid, uname)}
-                        />
-                    )}
-                </View>
+                <PostListRow
+                    item={item}
+                    likedPosts={likedPosts}
+                    authorAverageDays={authorAverageDays}
+                    replyCounts={replyCounts}
+                    onLike={onLike}
+                    onComment={onComment}
+                    onReply={onReply}
+                    onUserPress={onUserPress}
+                />
             );
         },
-        [likedPosts, showReplyButtons, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress],
+        [likedPosts, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress],
     );
 
     return (
         <FlatList
-            extraData={{ likedPosts, showReplyButtons, replyCounts, authorAverageDays, loadingMore, hasMore }}
+            extraData={{ likedPosts, replyCounts, authorAverageDays, loadingMore, hasMore }}
             style={listStyle}
             data={posts}
             renderItem={renderItem}
@@ -93,16 +82,10 @@ const PostList: React.FC<PostListProps> = ({
             contentContainerStyle={contentContainerStyle}
             ListHeaderComponent={headerComponent as any}
             onEndReachedThreshold={onEndReached ? onEndReachedThreshold : undefined}
-            onMomentumScrollBegin={() => {
-                canLoadMoreRef.current = true;
-            }}
             onEndReached={() => {
-                if (!onEndReached) return;
-                if (!hasMore) return;
-                if (loadingMore) return;
-                if (!canLoadMoreRef.current) return;
-                canLoadMoreRef.current = false;
-                onEndReached();
+                if (onEndReached && hasMore && !loadingMore) {
+                    onEndReached();
+                }
             }}
             ListFooterComponent={() => (hasMore || loadingMore ? <ListFooterSpinner loading /> : null)}
             refreshControl={refreshControl}
@@ -112,6 +95,87 @@ const PostList: React.FC<PostListProps> = ({
 };
 
 export default PostList;
+
+const PostListRow: React.FC<{
+    item: CommunityPost;
+    likedPosts: Set<string>;
+    authorAverageDays?: Map<string, number> | number;
+    replyCounts?: Map<string, number>;
+    onLike: (postId: string) => void | Promise<void>;
+    onComment: (postId: string) => void;
+    onReply: (postId: string) => void;
+    onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
+}> = ({ item, likedPosts, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress }) => {
+    const visible = useReplyVisibility(item.id, false);
+    const avgDays =
+        typeof authorAverageDays === 'number'
+            ? authorAverageDays
+            : ((authorAverageDays as Map<string, number>)?.get?.(item.authorId) as number) || 0;
+    const comments = (replyCounts?.get(item.id) ?? item.comments ?? 0) as number;
+    return (
+        <View>
+            <PostCard
+                post={item}
+                postId={item.id}
+                onLikeId={onLike}
+                onCommentId={onComment}
+                onReplyId={onReply}
+                onUserPressId={(uid, uname) => onUserPress(uid, uname, item.authorAvatar)}
+                initialIsLiked={likedPosts.has(item.id)}
+                authorAverageDays={avgDays}
+                commentsCount={comments}
+            />
+            {visible && (
+              <View style={rowStyles.replyButtonContainer}>
+                <View style={rowStyles.replyButtonSpacer} />
+                <TouchableOpacity style={rowStyles.replyButton} onPress={() => onReply(item.id)}>
+                  <View style={rowStyles.replyIconContainer}>
+                    <Ionicons name="add" size={16} color={colors.white} />
+                  </View>
+                  <Text style={rowStyles.replyText}>返信を書く</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {visible && (
+                <RepliesList postId={item.id} onUserPress={(uid, uname) => onUserPress(uid, uname)} />
+            )}
+        </View>
+    );
+};
+
+const rowStyles = StyleSheet.create({
+  replyButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  // Align with PostCard.postContent padding (spacing.lg) + content start (avatar+gap)
+  replyButtonSpacer: {
+    width: spacing.lg + CONTENT_LEFT_MARGIN.medium,
+  },
+  replyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: spacing.sm,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  replyIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.info,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  replyText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.info,
+    marginLeft: spacing.sm,
+    fontWeight: '500',
+  },
+});
 
 
 

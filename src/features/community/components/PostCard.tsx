@@ -1,14 +1,15 @@
-﻿import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback } from 'react';
+﻿import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
 import { colors, spacing, typography } from '@shared/theme';
 import uiStyles from '@shared/ui/styles';
-import { getContentStyle, CONTENT_LEFT_MARGIN, getBlockLeftMargin } from '@shared/utils/nameUtils';
+import { getContentStyle, getBlockLeftMargin } from '@shared/utils/nameUtils';
 import type { CommunityPost } from '@project-types';
 
 import RelativeTime from '@shared/components/RelativeTime';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
+import LikeBar from '@features/community/components/LikeBar';
+import CommentBar from '@features/community/components/CommentBar';
 
 interface PostCardProps {
   post: CommunityPost;
@@ -18,9 +19,8 @@ interface PostCardProps {
   onCommentId?: (postId: string) => void;
   onReplyId?: (postId: string) => void;
   onUserPressId?: (userId: string, userName: string) => void;
-  isLiked?: boolean;
-  showReplyButton?: boolean;
   authorAverageDays?: number;
+  initialIsLiked?: boolean;
 }
 
 const PostCard: React.FC<PostCardProps> = ({
@@ -30,10 +30,9 @@ const PostCard: React.FC<PostCardProps> = ({
   onCommentId,
   onReplyId,
   onUserPressId,
-  isLiked = false,
-  showReplyButton = false,
   authorAverageDays = 0,
   commentsCount,
+  initialIsLiked = false,
 }) => {
   // Prefer static values carried on the post to avoid broad re-renders
   const displayName = post.authorName;
@@ -69,45 +68,20 @@ const PostCard: React.FC<PostCardProps> = ({
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              if (onLikeId) onLikeId(postId ?? post.id);
-            }}
-          >
-            <Ionicons
-              name={isLiked ? 'heart' : 'heart-outline'}
-              size={18}
-              color={isLiked ? colors.error : colors.textSecondary}
-            />
-            <Text style={[styles.actionText, isLiked && styles.likedText]}>{post.likes}</Text>
-          </TouchableOpacity>
+          <LikeBar
+            postId={postId ?? post.id}
+            initialLikes={post.likes || 0}
+            initialIsLiked={initialIsLiked}
+            onToggle={onLikeId}
+          />
 
-          <TouchableOpacity
-            style={styles.actionButton}
+          <CommentBar
+            postId={postId ?? post.id}
+            initialCount={(commentsCount ?? post.comments) || 0}
             onPress={onCommentId ? () => onCommentId(postId ?? post.id) : undefined}
-          >
-            <Ionicons name="chatbubble-outline" size={18} color={colors.info} />
-            <Text style={[styles.actionText, { color: colors.info }]}>
-              {commentsCount ?? post.comments}
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
 
-        {showReplyButton && (
-          <View style={styles.replyButtonContainer}>
-            <View style={styles.replyButtonSpacer} />
-            <TouchableOpacity
-              style={styles.replyButton}
-              onPress={onReplyId ? () => onReplyId(postId ?? post.id) : undefined}
-            >
-              <View style={styles.replyIconContainer}>
-                <Ionicons name="add" size={16} color="white" />
-              </View>
-              <Text style={styles.replyText}>返信を書く</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -157,39 +131,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     fontWeight: '500',
   },
-  likedText: {
-    color: colors.error,
-  },
-  replyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-    paddingVertical: spacing.sm,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  replyText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.info,
-    marginLeft: spacing.sm,
-    fontWeight: '500',
-  },
-  replyButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  replyButtonSpacer: {
-    width: CONTENT_LEFT_MARGIN.medium,
-  },
-  replyIconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.info,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // like styles moved to LikeBar
 });
 
 // Allow only targeted updates (likes, comments, reply toggle)
@@ -198,12 +140,12 @@ export default React.memo(
   (prev, next) => {
     const prevComments = (prev.commentsCount ?? prev.post.comments) || 0;
     const nextComments = (next.commentsCount ?? next.post.comments) || 0;
+    // Ignore like-related props; LikeBar updates via external store
     return (
       prev.post.id === next.post.id &&
-      prev.isLiked === next.isLiked &&
-      prev.post.likes === next.post.likes &&
       prevComments === nextComments &&
-      (prev.showReplyButton ?? false) === (next.showReplyButton ?? false)
+      prev.authorAverageDays === next.authorAverageDays &&
+      prev.initialIsLiked === next.initialIsLiked
     );
   },
 );

@@ -84,6 +84,22 @@ const UserDetailScreen: React.FC = () => {
     }
     void UserStatsService.getUserCurrentDaysForRank(userId).then(setAverageDays);
   }, [userId]);
+
+  // Sync LikeStore when likedPosts resolves to avoid first-tap decrement
+  useEffect(() => {
+    (async () => {
+      try {
+        const { LikeStore } = await import('@shared/state/likeStore');
+        postsData.forEach((p) => {
+          const should = likedPosts.has(p.id);
+          const cur = LikeStore.get(p.id);
+          if (!cur || cur.isLiked !== should) {
+            LikeStore.set(p.id, { isLiked: should, likes: cur?.likes ?? (p.likes || 0) });
+          }
+        });
+      } catch {}
+    })();
+  }, [likedPosts, postsData]);
       useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let mounted = true;
@@ -140,16 +156,16 @@ const UserDetailScreen: React.FC = () => {
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
       const isLiked = await CommunityService.toggleLike(postId);
-      setLikedPosts((prev) => {
-        const s = new Set(prev);
-        if (isLiked) s.add(postId);
-        else s.delete(postId);
-        return s;
-      });
-      // Targeted update: only adjust the liked post's count in local list
-      setPostsData((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, likes: (p.likes || 0) + (isLiked ? 1 : -1) } : p)),
-      );
+      // Update minimal UI via LikeStore only
+      const { LikeStore } = await import('@shared/state/likeStore');
+      const current = LikeStore.get(postId);
+      let baseLikes = current?.likes;
+      if (baseLikes === undefined) {
+        const found = postsData.find((p) => p.id === postId);
+        baseLikes = found?.likes ?? 0;
+      }
+      const nextLikes = (baseLikes || 0) + (isLiked ? 1 : -1);
+      LikeStore.set(postId, { isLiked, likes: Math.max(0, nextLikes) });
     } catch (e) {
       console.warn('like toggle failed', e);
     } finally {
@@ -162,12 +178,10 @@ const UserDetailScreen: React.FC = () => {
   };
 
   const handleComment = (postId: string) => {
-    setShowReplyButtons((prev) => {
-      const s = new Set(prev);
-      if (s.has(postId)) s.delete(postId);
-      else s.add(postId);
-      return s;
-    });
+    try {
+      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      ReplyVisibilityStore.toggle(postId);
+    } catch {}
   };
 
   const handleReply = (postId: string) => {
@@ -180,6 +194,11 @@ const UserDetailScreen: React.FC = () => {
     try {
       await CommunityService.addReply(replyingTo, { content: replyText.trim() });
       setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
+      // Update minimal UI: just the bubble count for this post
+      try {
+        const { ReplyCountStore } = await import('@shared/state/replyStore');
+        ReplyCountStore.increment(replyingTo, 1);
+      } catch {}
       setReplyingTo(null);
       setReplyText('');
     } catch (e) {

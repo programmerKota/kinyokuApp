@@ -4,6 +4,7 @@ import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
+import { LikeStore } from '@shared/state/likeStore';
 import type { CommunityPost } from '@project-types';
 
 export type CommunityTab = 'all' | 'my' | 'following';
@@ -88,6 +89,19 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [user, likedPosts],
   );
 
+  // Sync LikeStore with resolved likedPosts so the first tap doesn't flip wrong
+  useEffect(() => {
+    try {
+      posts.forEach((p) => {
+        const shouldBeLiked = likedPosts.has(p.id);
+        const current = LikeStore.get(p.id);
+        if (!current || current.isLiked !== shouldBeLiked) {
+          LikeStore.set(p.id, { isLiked: shouldBeLiked, likes: current?.likes ?? (p.likes || 0) });
+        }
+      });
+    } catch {}
+  }, [likedPosts, posts]);
+
   const initializeUserAverageDays = useCallback(async (list: CommunityPost[]) => {
     const next = new Map(userAverageDays);
     const uniqueIds = new Set(list.map((p) => p.authorId));
@@ -106,6 +120,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const filtered = normalized.filter((p) => !blockedIds.has(p.authorId));
     const counts = buildReplyCountMapFromPosts(filtered);
     setReplyCounts(counts);
+    // Initialize per-post reply counters store for minimal UI updates
+    try {
+      const { ReplyCountStore } = await import('@shared/state/replyStore');
+      filtered.forEach((p) => ReplyCountStore.init(p.id, p.comments || 0));
+    } catch {}
     return filtered;
   }, [blockedIds]);
 
@@ -348,25 +367,15 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
       const isLiked = await CommunityService.toggleLike(postId);
-      setLikedPosts((prev) => {
-        const next = new Set(prev);
-        if (isLiked) next.add(postId);
-        else next.delete(postId);
-        return next;
-      });
-      // Targeted update: adjust only the liked post's count in local list
-      setPosts((prev) => {
-        const updated = toggleLikeInList(prev, postId, isLiked);
-        // Keep cache in sync for the active tab
-        if (activeTab === 'all' && cacheRef.current.all) {
-          cacheRef.current.all.posts = updated;
-        } else if (activeTab === 'my' && cacheRef.current.my) {
-          cacheRef.current.my.posts = updated;
-        } else if (activeTab === 'following' && cacheRef.current.following) {
-          cacheRef.current.following.posts = updated;
-        }
-        return updated;
-      });
+      // Update only LikeStore (UI updates only the like bar)
+      const current = LikeStore.get(postId);
+      let baseLikes = current?.likes;
+      if (baseLikes === undefined) {
+        const found = posts.find((p) => p.id === postId);
+        baseLikes = found?.likes ?? 0;
+      }
+      const nextLikes = (baseLikes || 0) + (isLiked ? 1 : -1);
+      LikeStore.set(postId, { isLiked, likes: Math.max(0, nextLikes) });
     } finally {
       setLikingIds((prev) => {
         const next = new Set(prev);
@@ -374,15 +383,14 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         return next;
       });
     }
-  }, [likingIds, activeTab]);
+  }, [likingIds, posts]);
 
   const handleComment = useCallback((postId: string) => {
-    setShowReplyButtons((prev) => {
-      const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
-      return next;
-    });
+    // Toggle minimal-UI reply visibility only; avoid list-wide re-render
+    try {
+      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      ReplyVisibilityStore.toggle(postId);
+    } catch {}
   }, []);
 
   const handleReply = useCallback((postId: string) => {
@@ -394,6 +402,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     if (!replyingTo || !replyText.trim()) return;
     await CommunityService.addReply(replyingTo, { content: replyText.trim() });
     setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
+    // Update only the counter for this post (bubble)
+    try {
+      const { ReplyCountStore } = await import('@shared/state/replyStore');
+      ReplyCountStore.increment(replyingTo, 1);
+    } catch {}
     setReplyingTo(null);
     setReplyText('');
   }, [replyText, replyingTo]);

@@ -24,8 +24,16 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
     const unsubscribe = CommunityService.subscribeToPostReplies(
       postId,
       (repliesList: CommunityComment[]) => {
-        setReplies(repliesList);
-        // 返信の作者の平均日数を取得
+        setReplies((prev) => {
+          // Avoid needless state updates when identical
+          if (
+            prev.length === repliesList.length &&
+            prev.every((r, i) => r.id === repliesList[i]?.id && r.content === repliesList[i]?.content)
+          ) {
+            return prev;
+          }
+          return repliesList;
+        });
         void initializeUserAverageDays(repliesList);
       },
     );
