@@ -134,6 +134,7 @@ export class CommunityService {
       : query(collection(db, COLLECTIONS.COMMUNITY_POSTS), orderBy('createdAt', 'desc'));
     let base: FirestoreCommunityPost[] = [];
     let unsubs: Unsubscribe | undefined;
+    let lastIdsKey: string | undefined;
 
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
       const merged = base.map((p) => {
@@ -154,8 +155,12 @@ export class CommunityService {
         ...(d.data() as any),
       })) as FirestoreCommunityPost[];
       const ids = base.map((p) => p.authorId);
-      if (unsubs) unsubs();
-      unsubs = ProfileCache.getInstance().subscribeMany(ids, (m) => emit(m));
+      const key = ids.slice().sort().join(',');
+      if (key !== lastIdsKey) {
+        if (unsubs) unsubs();
+        unsubs = ProfileCache.getInstance().subscribeMany(ids, (m) => emit(m));
+        lastIdsKey = key;
+      }
       emit();
     });
 
@@ -176,6 +181,8 @@ export class CommunityService {
     );
     let base: FirestoreCommunityPost[] = [];
     let profileUnsub: Unsubscribe | undefined;
+    let lastIdsKey: string | undefined;
+    let lastIdsKey: string | undefined;
 
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
       const merged = base.map((p) => {
@@ -195,8 +202,12 @@ export class CommunityService {
         ...(d.data() as any),
       })) as FirestoreCommunityPost[];
       const ids = base.map((p) => p.authorId);
-      if (profileUnsub) profileUnsub();
-      profileUnsub = ProfileCache.getInstance().subscribeMany(ids, (m) => emit(m));
+      const key = ids.slice().sort().join(',');
+      if (key !== lastIdsKey) {
+        if (profileUnsub) profileUnsub();
+        profileUnsub = ProfileCache.getInstance().subscribeMany(ids, (m) => emit(m));
+        lastIdsKey = key;
+      }
       emit();
     });
 
@@ -254,6 +265,11 @@ export class CommunityService {
         list.forEach((p) => ids.add(p.authorId));
       });
 
+      const key = Array.from(ids).sort().join(',');
+      if (key === lastIdsKey) {
+        emit();
+        return;
+      }
       if (profileUnsub) profileUnsub();
       if (ids.size === 0) {
         profileUnsub = undefined;
@@ -262,6 +278,7 @@ export class CommunityService {
       }
 
       profileUnsub = ProfileCache.getInstance().subscribeMany(Array.from(ids), (m) => emit(m));
+      lastIdsKey = key;
       emit();
     };
 
