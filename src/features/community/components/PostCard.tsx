@@ -38,7 +38,7 @@ const PostCard: React.FC<PostCardProps> = ({
   // Prefer live profile when available; fallback to post snapshot
   const live = useProfile(post.authorId);
   const displayName = live?.displayName ?? post.authorName;
-  const displayAvatar = post.authorAvatar ?? live?.photoURL;
+  const displayAvatar = live?.photoURL ?? post.authorAvatar;
 
   const handleProfilePress = useCallback(() => {
     if (onUserPressId) {

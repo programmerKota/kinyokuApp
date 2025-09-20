@@ -6,7 +6,8 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Flat
 import { useAuth } from '@app/contexts/AuthContext';
 import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
-import { useProfile } from '@shared/hooks/useProfile';
+import type { UserProfileLite } from '@core/services/profileCache';
+import ProfileCache from '@core/services/profileCache';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { navigateToUserDetail } from '@shared/utils/navigation';
 import { colors, spacing, typography, shadows } from '@shared/theme';
@@ -27,6 +28,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [day, setDay] = useState<number>(1);
   const [items, setItems] = useState<DayDiaryItem[]>([]);
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
+  const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
@@ -75,6 +77,25 @@ const DiaryByDayScreen: React.FC = () => {
           createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
         })).filter((it) => !blockedIds.has(it.userId));
         setItems(mapped);
+        // Batch-subscribe profiles for visible items and coalesce updates
+        try {
+          const ids = Array.from(new Set(mapped.map((m) => m.userId)));
+          if (ids.length > 0) {
+            if ((subscribeProfilesRef.current)) subscribeProfilesRef.current();
+            const pendingRef: { m?: Map<string, UserProfileLite | undefined> } = {};
+            let timer: any | undefined;
+            subscribeProfilesRef.current = ProfileCache.getInstance().subscribeMany(ids, (m) => {
+              pendingRef.m = m;
+              if (timer) return;
+              timer = setTimeout(() => {
+                setProfilesMap(new Map(pendingRef.m));
+                timer = undefined;
+              }, 16);
+            });
+          } else {
+            setProfilesMap(new Map());
+          }
+        } catch {}
         // prefetch averageDays for ranks
         try {
           const ids = Array.from(new Set(mapped.map((m) => m.userId)));
@@ -83,13 +104,7 @@ const DiaryByDayScreen: React.FC = () => {
           if (missing.length > 0) {
             const results = await Promise.all(
               missing.map(async (uid) => {
-                let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-                if (!days || days <= 0) {
-                  const active = await ChallengeService.getActiveChallenge(uid).catch(() => null);
-                  if (!active) {
-                    days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
-                  }
-                }
+                const days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
                 return { uid, days };
               }),
             );
@@ -103,6 +118,14 @@ const DiaryByDayScreen: React.FC = () => {
     };
     void fetch();
   }, [day, blockedIds]);
+
+  // Keep a ref to unsubscribe profile subscriptions when items change
+  const subscribeProfilesRef = React.useRef<(() => void) | undefined>(undefined);
+  useEffect(() => {
+    return () => {
+      if (subscribeProfilesRef.current) subscribeProfilesRef.current();
+    };
+  }, []);
 
   // Check if user already posted for the selected day (only matters on active day)
   useEffect(() => {
@@ -138,13 +161,7 @@ const DiaryByDayScreen: React.FC = () => {
         if (missing.length > 0) {
           const results = await Promise.all(
             missing.map(async (uid) => {
-              let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-              if (!days || days <= 0) {
-                const active = await ChallengeService.getActiveChallenge(uid).catch(() => null);
-                if (!active) {
-                  days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
-                }
-              }
+              const days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
               return { uid, days };
             }),
           );
@@ -160,7 +177,7 @@ const DiaryByDayScreen: React.FC = () => {
   // day selection is controlled via card taps; chevron selector removed
 
   const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = React.memo(({ item }) => {
-    const prof = useProfile(item.userId);
+    const prof = profilesMap.get(item.userId);
     const avgDays = userAverageDays.get(item.userId) ?? 0;
     return (
       <View style={[styles.card, styles.cardShadow]}>

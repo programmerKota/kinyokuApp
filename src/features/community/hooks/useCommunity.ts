@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
-import { ChallengeService } from '@core/services/firestore/challengeService';
 import { UserStatsService } from '@core/services/userStatsService';
 import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
 import { LikeStore } from '@shared/state/likeStore';
@@ -109,13 +108,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
     if (missing.length === 0) return;
     for (const uid of missing) {
-      let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-      if (!days || days <= 0) {
-        const active = await ChallengeService.getActiveChallenge(uid).catch(() => null);
-        if (!active) {
-          days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
-        }
-      }
+      const days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
       next.set(uid, Math.max(0, days));
     }
     setUserAverageDays(next);

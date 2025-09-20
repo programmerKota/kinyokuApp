@@ -142,8 +142,8 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          // Avoid flicker: prefer the avatar stored on post; fallback to live profile only if missing
-          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
+          // Prefer live profile avatar so updates propagate across screens
+          authorAvatar: prof?.photoURL ?? (p as any).authorAvatar ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);
@@ -189,7 +189,7 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
+          authorAvatar: prof?.photoURL ?? (p as any).authorAvatar ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);
@@ -253,7 +253,7 @@ export class CommunityService {
         return {
           ...p,
           authorName: prof?.displayName ?? p.authorName,
-          authorAvatar: (p as any).authorAvatar ?? prof?.photoURL ?? null,
+          authorAvatar: prof?.photoURL ?? (p as any).authorAvatar ?? null,
         } as FirestoreCommunityPost;
       });
       callback(merged);

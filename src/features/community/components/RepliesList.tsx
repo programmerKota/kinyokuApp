@@ -48,15 +48,7 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 
         for (const userId of uniqueUserIds) {
           try {
-            let days = await UserStatsService.getUserCurrentDaysForRank(userId);
-            if (!days || days <= 0) {
-              // Only fallback to average when not actively challenged
-              const { ChallengeService } = await import('@core/services/firestore/challengeService');
-              const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
-              if (!active) {
-                days = await UserStatsService.getUserAverageDaysForRank(userId);
-              }
-            }
+            const days = await UserStatsService.getUserCurrentDaysForRank(userId);
             averageDaysMap.set(userId, Math.max(0, days));
           } catch {
             averageDaysMap.set(userId, 0);
