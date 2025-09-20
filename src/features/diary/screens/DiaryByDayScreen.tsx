@@ -79,11 +79,21 @@ const DiaryByDayScreen: React.FC = () => {
         try {
           const ids = Array.from(new Set(mapped.map((m) => m.userId)));
           const next = new Map(userAverageDays);
-          for (const uid of ids) {
-            if (!next.has(uid)) {
-              const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-              next.set(uid, avg);
-            }
+          const missing = ids.filter((uid) => !next.has(uid));
+          if (missing.length > 0) {
+            const results = await Promise.all(
+              missing.map(async (uid) => {
+                let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
+                if (!days || days <= 0) {
+                  const active = await ChallengeService.getActiveChallenge(uid).catch(() => null);
+                  if (!active) {
+                    days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+                  }
+                }
+                return { uid, days };
+              }),
+            );
+            results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
           }
           setUserAverageDays(next);
         } catch {}
@@ -124,11 +134,21 @@ const DiaryByDayScreen: React.FC = () => {
       try {
         const ids = Array.from(new Set(mapped.map((m) => m.userId)));
         const next = new Map(userAverageDays);
-        for (const uid of ids) {
-          if (!next.has(uid)) {
-            const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-            next.set(uid, avg);
-          }
+        const missing = ids.filter((uid) => !next.has(uid));
+        if (missing.length > 0) {
+          const results = await Promise.all(
+            missing.map(async (uid) => {
+              let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
+              if (!days || days <= 0) {
+                const active = await ChallengeService.getActiveChallenge(uid).catch(() => null);
+                if (!active) {
+                  days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+                }
+              }
+              return { uid, days };
+            }),
+          );
+          results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
         }
         setUserAverageDays(next);
       } catch {}
@@ -139,7 +159,7 @@ const DiaryByDayScreen: React.FC = () => {
 
   // day selection is controlled via card taps; chevron selector removed
 
-  const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = ({ item }) => {
+  const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = React.memo(({ item }) => {
     const prof = useProfile(item.userId);
     const avgDays = userAverageDays.get(item.userId) ?? 0;
     return (
@@ -165,7 +185,7 @@ const DiaryByDayScreen: React.FC = () => {
         <Text style={styles.date}>{formatDateTimeJP((item.createdAt as any) as Date)}</Text>
       </View>
     );
-  };
+  }, (prev, next) => prev.item.id === next.item.id && prev.item.content === next.item.content && prev.item.createdAt === next.item.createdAt);
 
   const renderItem = ({ item }: { item: DayDiaryItem }) => <DiaryItemRow item={item} />;
 
