@@ -77,9 +77,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
   // スクロール制御
   const listRef = useRef<FlatList<Message>>(null);
   const [initialScrolled, setInitialScrolled] = useState(false);
-  const [listHeight, setListHeight] = useState(0);
-  const [contentHeight, setContentHeight] = useState(0);
-  const shouldInvert = contentHeight > listHeight + 1; // 画面を埋めたら下基準、それ未満は上から
+  // チャットは常に最新が最下部になるよう inverted を使用
 
   // 初期100件 + 新着の随時取得
   useEffect(() => {
@@ -92,11 +90,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
           tournamentId,
           100,
         );
-        const latestDesc = items; // desc
-        const asc = [...latestDesc].reverse();
+        const latestDesc = items; // already desc (newest first)
         if (cancelled) return;
         setMessages(
-          asc.map((msg) => ({
+          latestDesc.map((msg) => ({
             id: msg.id,
             authorId: msg.authorId,
             authorName: msg.authorName,
@@ -116,7 +113,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
               if (!news || news.length === 0) return;
               setMessages((prev) => {
                 const existing = new Set(prev.map((p) => p.id));
-                const appended = news.map((msg) => ({
+                // news is asc; convert to desc and put at start
+                const appended = [...news]
+                  .reverse()
+                  .map((msg) => ({
                   id: msg.id,
                   authorId: msg.authorId,
                   authorName: msg.authorName,
@@ -124,9 +124,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
                   timestamp: toDate(msg.createdAt),
                   type: msg.type,
                   avatar: msg.authorAvatar,
-                })).filter((m) => !existing.has(m.id));
+                }))
+                  .filter((m) => !existing.has(m.id));
                 if (appended.length === 0) return prev;
-                return [...prev, ...appended];
+                return [...appended, ...prev];
               });
             },
           );
@@ -154,8 +155,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
         50,
         olderCursor,
       );
-      // items are older (desc). We want asc prepend
-      const olderAsc = [...items].reverse().map((msg) => ({
+      // items are older (desc). Keep desc and append to tail
+      const olderDesc = items.map((msg) => ({
         id: msg.id,
         authorId: msg.authorId,
         authorName: msg.authorName,
@@ -164,7 +165,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
         type: msg.type,
         avatar: msg.authorAvatar,
       }));
-      setMessages((prev) => [...olderAsc, ...prev]);
+      setMessages((prev) => [...prev, ...olderDesc]);
       setOlderCursor(nextCursor as any);
     } finally {
       setLoadingMore(false);
@@ -318,8 +319,8 @@ const handleReject = async (requestId: string) => {
       type: 'text',
       avatar: user?.avatarUrl || undefined,
     };
-    setMessages((prev) => [...prev, optimistic]);
-    if (shouldInvert) setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 0);
+    // desc: newest first → 先頭に追加
+    setMessages((prev) => [optimistic, ...prev]);
 
     try {
       // メッセージポートエラー対策のため、タイムアウトを設定
@@ -332,9 +333,19 @@ const handleReject = async (requestId: string) => {
         text.trim(),
       );
 
-      const newId = await Promise.race([sendPromise, timeoutPromise]) as string;
-      // サーバIDに置き換え（重複防止のため）
-      setMessages((prev) => prev.map((m) => (m.id === localId ? { ...m, id: newId } : m)));
+      const newId = (await Promise.race([sendPromise, timeoutPromise])) as string;
+      // サーバIDに置き換え。既に同IDのサーバメッセージが来ていれば重複除去
+      setMessages((prev) => {
+        const mapped = prev.map((m) => (m.id === localId ? { ...m, id: newId } : m));
+        const seen = new Set<string>();
+        const dedup: Message[] = [];
+        for (const m of mapped) {
+          if (seen.has(m.id)) continue;
+          seen.add(m.id);
+          dedup.push(m);
+        }
+        return dedup;
+      });
     } catch (error) {
       // 失敗時は楽観的メッセージを除去
       setMessages((prev) => prev.filter((m) => m.id !== localId));
@@ -460,41 +471,25 @@ const handleKick = async (p: Participant) => {
       {activeTab === 'chat' ? (
         <KeyboardAwareScrollView style={styles.chatContainer}>
           <FlatList
-            data={[...messages].reverse()}
+            data={messages}
             renderItem={renderMessage}
             keyExtractor={(item) => item.id}
             style={styles.messagesList}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             ref={listRef}
-            inverted={shouldInvert}
+            inverted
             onEndReachedThreshold={0.2}
             onEndReached={() => {
-              if (shouldInvert) {
-                // inverted: end reached means top of history
-                void loadOlder();
-              }
+              // inverted: end reached means top of history
+              void loadOlder();
             }}
-            onScroll={({ nativeEvent }) => {
-              if (!shouldInvert) {
-                const y = nativeEvent.contentOffset.y;
-                if (y <= 24) {
-                  void loadOlder();
-                }
-              }
-            }}
-            scrollEventThrottle={16}
-            onContentSizeChange={(w, h) => {
-              setContentHeight(h);
-              if (!initialScrolled && shouldInvert) {
+            onContentSizeChange={() => {
+              if (!initialScrolled) {
                 listRef.current?.scrollToEnd({ animated: false });
                 setInitialScrolled(true);
               }
             }}
-            onLayout={({ nativeEvent }) => {
-              setListHeight(nativeEvent.layout.height);
-            }}
-            maintainVisibleContentPosition={!shouldInvert ? { minIndexForVisible: 1 } : undefined}
           />
 
           {(() => {

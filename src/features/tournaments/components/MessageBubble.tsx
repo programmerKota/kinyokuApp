@@ -222,4 +222,19 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MessageBubble;
+export default React.memo(
+  MessageBubble,
+  (prev, next) => {
+    const a = prev.message;
+    const b = next.message;
+    return (
+      prev.isOwn === next.isOwn &&
+      a.id === b.id &&
+      a.text === b.text &&
+      a.authorName === b.authorName &&
+      a.avatar === b.avatar &&
+      a.type === b.type &&
+      a.timestamp.getTime() === b.timestamp.getTime()
+    );
+  },
+);
