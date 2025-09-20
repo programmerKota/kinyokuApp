@@ -182,7 +182,6 @@ export class CommunityService {
     let base: FirestoreCommunityPost[] = [];
     let profileUnsub: Unsubscribe | undefined;
     let lastIdsKey: string | undefined;
-    let lastIdsKey: string | undefined;
 
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
       const merged = base.map((p) => {
@@ -233,6 +232,7 @@ export class CommunityService {
 
     const chunkData = new Map<number, FirestoreCommunityPost[]>();
     let profileUnsub: Unsubscribe | undefined;
+    let lastIdsKey: string | undefined;
 
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
       const combined = Array.from(chunkData.values()).flat();

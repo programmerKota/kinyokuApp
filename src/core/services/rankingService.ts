@@ -30,31 +30,26 @@ export class RankingService {
       if (challengesSnap.empty) return [];
 
       const now = Date.now();
-      const latestActiveByUser = new Map<string, Challenge>();
+      // Map: userId -> latest active challenge start time
+      const latestActiveByUser = new Map<string, Date | undefined>();
 
       challengesSnap.docs.forEach((d) => {
         const data = d.data() as Record<string, unknown>;
         const userId = data.userId as string | undefined;
         const status = data.status as string | undefined;
         if (!userId || status !== 'active') return;
-        const normalized = {
-          id: d.id,
-          ...data,
-          startedAt: toDate((data as any).startedAt),
-          completedAt: null,
-          failedAt: null,
-        } as Challenge;
+        const startedAt = toDate((data as any).startedAt);
         // 1ユーザーに1件想定。念のため最新 startedAt を採用。
         const prev = latestActiveByUser.get(userId);
-        if (!prev || (prev.startedAt?.getTime?.() || 0) < (normalized.startedAt?.getTime?.() || 0)) {
-          latestActiveByUser.set(userId, normalized);
+        if (!prev || (prev?.getTime?.() || 0) < (startedAt?.getTime?.() || 0)) {
+          latestActiveByUser.set(userId, startedAt);
         }
       });
 
       const rankings: UserRanking[] = [];
 
       for (const [userId, active] of latestActiveByUser.entries()) {
-        const start = active.startedAt?.getTime?.() || 0;
+        const start = active?.getTime?.() || 0;
         if (!start) continue;
         const duration = Math.max(0, Math.floor((now - start) / 1000)); // 秒
 
