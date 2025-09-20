@@ -8,6 +8,7 @@ import type { CommunityPost } from '@project-types';
 
 import RelativeTime from '@shared/components/RelativeTime';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
+import { useProfile } from '@shared/hooks/useProfile';
 import LikeBar from '@features/community/components/LikeBar';
 import CommentBar from '@features/community/components/CommentBar';
 
@@ -34,9 +35,10 @@ const PostCard: React.FC<PostCardProps> = ({
   commentsCount,
   initialIsLiked = false,
 }) => {
-  // Prefer static values carried on the post to avoid broad re-renders
-  const displayName = post.authorName;
-  const displayAvatar = post.authorAvatar;
+  // Prefer live profile when available; fallback to post snapshot
+  const live = useProfile(post.authorId);
+  const displayName = live?.displayName ?? post.authorName;
+  const displayAvatar = post.authorAvatar ?? live?.photoURL;
 
   const handleProfilePress = useCallback(() => {
     if (onUserPressId) {
