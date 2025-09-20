@@ -88,17 +88,13 @@ const UserDetailScreen: React.FC = () => {
     })();
   }, [userId]);
 
-  // Sync LikeStore when likedPosts resolves to avoid first-tap decrement
+  // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {
     (async () => {
       try {
         const { LikeStore } = await import('@shared/state/likeStore');
         postsData.forEach((p) => {
-          const should = likedPosts.has(p.id);
-          const cur = LikeStore.get(p.id);
-          if (!cur || cur.isLiked !== should) {
-            LikeStore.set(p.id, { isLiked: should, likes: cur?.likes ?? (p.likes || 0) });
-          }
+          LikeStore.setFromServer(p.id, { isLiked: likedPosts.has(p.id), likes: p.likes || 0 });
         });
       } catch {}
     })();
@@ -158,17 +154,7 @@ const UserDetailScreen: React.FC = () => {
     if (likingIds.has(postId)) return;
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
-      const isLiked = await CommunityService.toggleLike(postId);
-      // Update minimal UI via LikeStore only
-      const { LikeStore } = await import('@shared/state/likeStore');
-      const current = LikeStore.get(postId);
-      let baseLikes = current?.likes;
-      if (baseLikes === undefined) {
-        const found = postsData.find((p) => p.id === postId);
-        baseLikes = found?.likes ?? 0;
-      }
-      const nextLikes = (baseLikes || 0) + (isLiked ? 1 : -1);
-      LikeStore.set(postId, { isLiked, likes: Math.max(0, nextLikes) });
+      await CommunityService.toggleLike(postId);
     } catch (e) {
       console.warn('like toggle failed', e);
     } finally {

@@ -89,15 +89,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [user, likedPosts],
   );
 
-  // Sync LikeStore with resolved likedPosts so the first tap doesn't flip wrong
+  // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {
     try {
       posts.forEach((p) => {
-        const shouldBeLiked = likedPosts.has(p.id);
-        const current = LikeStore.get(p.id);
-        if (!current || current.isLiked !== shouldBeLiked) {
-          LikeStore.set(p.id, { isLiked: shouldBeLiked, likes: current?.likes ?? (p.likes || 0) });
-        }
+        LikeStore.setFromServer(p.id, { isLiked: likedPosts.has(p.id), likes: p.likes || 0 });
       });
     } catch {}
   }, [likedPosts, posts]);
@@ -366,16 +362,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     if (likingIds.has(postId)) return;
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
-      const isLiked = await CommunityService.toggleLike(postId);
-      // Update only LikeStore (UI updates only the like bar)
-      const current = LikeStore.get(postId);
-      let baseLikes = current?.likes;
-      if (baseLikes === undefined) {
-        const found = posts.find((p) => p.id === postId);
-        baseLikes = found?.likes ?? 0;
-      }
-      const nextLikes = (baseLikes || 0) + (isLiked ? 1 : -1);
-      LikeStore.set(postId, { isLiked, likes: Math.max(0, nextLikes) });
+      // Perform server toggle only; UI was updated optimistically.
+      await CommunityService.toggleLike(postId);
     } finally {
       setLikingIds((prev) => {
         const next = new Set(prev);

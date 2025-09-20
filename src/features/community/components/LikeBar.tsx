@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors, spacing, typography } from '@shared/theme';
-import { useLikeState } from '@shared/state/likeStore';
+import { useLikeState, LikeStore } from '@shared/state/likeStore';
 
 interface LikeBarProps {
   postId: string;
@@ -23,6 +23,12 @@ const LikeBar: React.FC<LikeBarProps> = ({ postId, initialLikes, initialIsLiked,
     if (!onToggle || busy) return;
     setBusy(true);
     try {
+      LikeStore.touch(postId);
+      // Optimistic update to avoid race with initialization/effects
+      const current = LikeStore.get(postId) || { isLiked, likes };
+      const nextIsLiked = !current.isLiked;
+      const nextLikes = Math.max(0, (current.likes || 0) + (nextIsLiked ? 1 : -1));
+      LikeStore.set(postId, { isLiked: nextIsLiked, likes: nextLikes });
       await onToggle(postId);
     } finally {
       setBusy(false);

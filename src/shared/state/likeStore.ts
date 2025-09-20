@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type LikeState = { isLiked: boolean; likes: number };
+export type LikeState = { isLiked: boolean; likes: number; locked?: boolean };
 
 const store = new Map<string, LikeState>();
 const subs = new Map<string, Set<() => void>>();
@@ -21,6 +21,18 @@ export const LikeStore = {
     store.set(postId, next);
     const s = subs.get(postId);
     if (s) s.forEach((fn) => fn());
+  },
+  setFromServer(postId: string, next: LikeState) {
+    const cur = store.get(postId);
+    if (!cur || !cur.locked) {
+      store.set(postId, { ...next, locked: cur?.locked });
+      const s = subs.get(postId);
+      if (s) s.forEach((fn) => fn());
+    }
+  },
+  touch(postId: string) {
+    const cur = store.get(postId) ?? { isLiked: false, likes: 0 };
+    store.set(postId, { ...cur, locked: true });
   },
   update(postId: string, updater: (prev: LikeState | undefined) => LikeState) {
     const next = updater(store.get(postId));
