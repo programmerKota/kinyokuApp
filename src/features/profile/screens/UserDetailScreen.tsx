@@ -17,6 +17,7 @@ import PostList from '@features/community/components/PostList';
 import ListFooterSpinner from '@shared/components/ListFooterSpinner';
 import ReplyInputBar from '@shared/components/ReplyInputBar';
 import UserProfileWithRank from '@shared/components/UserProfileWithRank';
+import { useProfile } from '@shared/hooks/useProfile';
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
 import type { FirestoreCommunityPost } from '@core/services/firestore';
@@ -37,6 +38,7 @@ const UserDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const { userId, userName, userAvatar } = route.params || ({} as any);
   const { user } = useAuth();
+  const live = useProfile(userId);
   const [name, setName] = useState<string>(userName || 'ユーザー');
   const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
   const [following, setFollowing] = useState<boolean>(false);
@@ -274,8 +276,8 @@ const UserDetailScreen: React.FC = () => {
       <View>
         <View style={styles.profileTop}>
           <UserProfileWithRank
-            userName={name}
-            userAvatar={avatar}
+            userName={live?.displayName ?? name}
+            userAvatar={live?.photoURL ?? avatar}
             averageDays={averageDays}
             size="medium"
             showRank={false}
