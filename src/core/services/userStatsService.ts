@@ -161,7 +161,8 @@ export class UserStatsService {
       if (!active) return 0;
       const started = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
-      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      // Rank calculation should align with UI timer: first 24h = 0日
+      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000));
       return Math.max(0, days);
     } catch (e) {
       console.error('現在のチャレンジ日数取得に失敗:', e);

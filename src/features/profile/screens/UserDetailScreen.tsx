@@ -69,7 +69,11 @@ const UserDetailScreen: React.FC = () => {
         try {
           let days = await UserStatsService.getUserCurrentDaysForRank(userId);
           if (!days || days <= 0) {
-            days = await UserStatsService.getUserAverageDaysForRank(userId);
+            const { ChallengeService } = await import('@core/services/firestore/challengeService');
+            const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
+            if (!active) {
+              days = await UserStatsService.getUserAverageDaysForRank(userId);
+            }
           }
           if (mounted) setAverageDays(days);
         } catch {}
@@ -86,7 +90,11 @@ const UserDetailScreen: React.FC = () => {
     (async () => {
       let days = await UserStatsService.getUserCurrentDaysForRank(userId).catch(() => 0);
       if (!days || days <= 0) {
-        days = await UserStatsService.getUserAverageDaysForRank(userId).catch(() => 0);
+        const { ChallengeService } = await import('@core/services/firestore/challengeService');
+        const active = await ChallengeService.getActiveChallenge(userId).catch(() => null);
+        if (!active) {
+          days = await UserStatsService.getUserAverageDaysForRank(userId).catch(() => 0);
+        }
       }
       setAverageDays(days);
     })();
