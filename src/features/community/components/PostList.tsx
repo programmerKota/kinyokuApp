@@ -147,6 +147,7 @@ const rowStyles = StyleSheet.create({
   replyButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.white,
   },
   // Align with PostCard.postContent padding (spacing.lg) + content start (avatar+gap)
   replyButtonSpacer: {
@@ -157,7 +158,7 @@ const rowStyles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     paddingHorizontal: 0,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },

@@ -80,11 +80,12 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    // Align reply avatar left edge to the end of the post avatar (60px from post content left padding).
-    // Desired left = 16 (post card padding) + 60 (avatar width)
-    // Actual left = RepliesList.paddingLeft + 16 (ReplyCard paddingHorizontal)
-    // => paddingLeft = 60 = CONTENT_LEFT_MARGIN.medium (68) - spacing.sm (8)
-    paddingLeft: CONTENT_LEFT_MARGIN.medium - spacing.sm,
+    // Align left start with PostCard content start.
+    // PostCard content start = postContent.paddingLeft (spacing.lg) + CONTENT_LEFT_MARGIN.medium.
+    // ReplyCard has paddingHorizontal: spacing.lg, so make
+    //   RepliesList.paddingLeft + spacing.lg = spacing.lg + CONTENT_LEFT_MARGIN.medium
+    // => RepliesList.paddingLeft = CONTENT_LEFT_MARGIN.medium
+    paddingLeft: CONTENT_LEFT_MARGIN.medium,
     paddingBottom: spacing.sm,
   },
 });

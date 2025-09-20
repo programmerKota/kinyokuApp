@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   text: {},
   postImage: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
     marginLeft: getBlockLeftMargin('medium'),
   },
   actionButton: {
