@@ -48,9 +48,11 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
 
         for (const userId of uniqueUserIds) {
           try {
-        const days =
-          await UserStatsService.getUserCurrentDaysForRank(userId);
-        averageDaysMap.set(userId, days);
+            let days = await UserStatsService.getUserCurrentDaysForRank(userId);
+            if (!days || days <= 0) {
+              days = await UserStatsService.getUserAverageDaysForRank(userId);
+            }
+            averageDaysMap.set(userId, days);
           } catch {
             averageDaysMap.set(userId, 0);
           }

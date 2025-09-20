@@ -108,8 +108,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
     if (missing.length === 0) return;
     for (const uid of missing) {
-      const avg = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-      next.set(uid, avg);
+      let days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
+      if (!days || days <= 0) {
+        // Fallback to cached/average-based rank days when no active challenge
+        days = await UserStatsService.getUserAverageDaysForRank(uid).catch(() => 0);
+      }
+      next.set(uid, days);
     }
     setUserAverageDays(next);
   }, [userAverageDays]);

@@ -67,7 +67,10 @@ const UserDetailScreen: React.FC = () => {
       let mounted = true;
       (async () => {
         try {
-          const days = await UserStatsService.getUserCurrentDaysForRank(userId);
+          let days = await UserStatsService.getUserCurrentDaysForRank(userId);
+          if (!days || days <= 0) {
+            days = await UserStatsService.getUserAverageDaysForRank(userId);
+          }
           if (mounted) setAverageDays(days);
         } catch {}
       })();
@@ -79,10 +82,14 @@ const UserDetailScreen: React.FC = () => {
 
   useEffect(() => {
     setName((prev) => prev || 'User');
-    if (!userId) {
-      return;
-    }
-    void UserStatsService.getUserCurrentDaysForRank(userId).then(setAverageDays);
+    if (!userId) return;
+    (async () => {
+      let days = await UserStatsService.getUserCurrentDaysForRank(userId).catch(() => 0);
+      if (!days || days <= 0) {
+        days = await UserStatsService.getUserAverageDaysForRank(userId).catch(() => 0);
+      }
+      setAverageDays(days);
+    })();
   }, [userId]);
 
   // Sync LikeStore when likedPosts resolves to avoid first-tap decrement
