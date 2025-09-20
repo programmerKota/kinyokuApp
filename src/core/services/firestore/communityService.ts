@@ -23,6 +23,7 @@ import { db } from '@app/config/firebase.config';
 import ProfileCache from '../profileCache';
 import type { CommunityComment } from '@project-types';
 import { BlockService } from './blockService';
+import { BlockStore } from '@shared/state/blockStore';
 import { COLLECTIONS, DISABLE_FIRESTORE } from './constants';
 import type { FirestoreCommunityPost } from './types';
 import { FirestoreUserService } from './userService';
@@ -384,8 +385,12 @@ export class CommunityService {
     );
     let base: CommunityComment[] = [];
     let unsubs: Unsubscribe | undefined;
-    let blockedIds: Set<string> = new Set();
+    let blockedIds: Set<string> = BlockStore.get();
     let unsubscribeBlocks: Unsubscribe | undefined;
+    const unsubLocal = BlockStore.subscribe(() => {
+      blockedIds = BlockStore.get();
+      emit();
+    });
 
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
       const filtered = base.filter((r) => !blockedIds.has(r.authorId));
@@ -428,6 +433,7 @@ export class CommunityService {
       repliesUnsub();
       if (unsubs) unsubs();
       if (unsubscribeBlocks) unsubscribeBlocks();
+      unsubLocal();
     };
   }
 

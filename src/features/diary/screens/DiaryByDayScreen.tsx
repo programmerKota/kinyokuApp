@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, FlatList, ScrollView, RefreshControl, TextInput, Alert } from 'react-native';
 
 import { useAuth } from '@app/contexts/AuthContext';
-import { ChallengeService, DiaryService, BlockService } from '@core/services/firestore';
+import { ChallengeService, DiaryService } from '@core/services/firestore';
+import { useBlockedIds } from '@shared/state/blockStore';
 import { UserStatsService } from '@core/services/userStatsService';
 import type { UserProfileLite } from '@core/services/profileCache';
 import ProfileCache from '@core/services/profileCache';
@@ -31,7 +32,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+  const blockedSet = useBlockedIds();
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [addText, setAddText] = useState<string>('');
   const [activeDay, setActiveDay] = useState<number | null>(null);
@@ -56,14 +57,7 @@ const DiaryByDayScreen: React.FC = () => {
     })();
   }, [user?.uid]);
 
-  // subscribe blocked ids
-  useEffect(() => {
-    if (!user?.uid) return;
-    const unsub = BlockService.subscribeBlockedIds(user.uid, (ids) => {
-      setBlockedIds(new Set(ids));
-    });
-    return unsub;
-  }, [user?.uid]);
+  // blockedSet subscription is global; no need for Firestore here
 
   useEffect(() => {
     const fetch = async () => {
@@ -75,7 +69,7 @@ const DiaryByDayScreen: React.FC = () => {
           userId: (d as any).userId,
           content: d.content,
           createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
-        })).filter((it) => !blockedIds.has(it.userId));
+        })).filter((it) => !blockedSet.has(it.userId));
         setItems(mapped);
         // Batch-subscribe profiles for visible items and coalesce updates
         try {
@@ -117,7 +111,7 @@ const DiaryByDayScreen: React.FC = () => {
       }
     };
     void fetch();
-  }, [day, blockedIds]);
+  }, [day, blockedSet]);
 
   // Keep a ref to unsubscribe profile subscriptions when items change
   const subscribeProfilesRef = React.useRef<(() => void) | undefined>(undefined);
@@ -152,7 +146,7 @@ const DiaryByDayScreen: React.FC = () => {
         userId: (d as any).userId,
         content: d.content,
         createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
-      })).filter((it) => !blockedIds.has(it.userId));
+      })).filter((it) => !blockedSet.has(it.userId));
       setItems(mapped);
       try {
         const ids = Array.from(new Set(mapped.map((m) => m.userId)));

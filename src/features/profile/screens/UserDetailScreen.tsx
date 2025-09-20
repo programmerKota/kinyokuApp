@@ -20,6 +20,7 @@ import UserProfileWithRank from '@shared/components/UserProfileWithRank';
 import { useProfile } from '@shared/hooks/useProfile';
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
+import { BlockStore } from '@shared/state/blockStore';
 import type { FirestoreCommunityPost } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { colors, spacing, typography } from '@shared/theme';
@@ -219,9 +220,13 @@ const UserDetailScreen: React.FC = () => {
   const onToggleBlock = async () => {
     try {
       if (blocked) {
+        // Optimistic
+        BlockStore.remove(userId);
         await BlockService.unblock(userId);
         setBlocked(false);
       } else {
+        // Optimistic
+        BlockStore.add(userId);
         await BlockService.block(userId);
         setBlocked(true);
       }

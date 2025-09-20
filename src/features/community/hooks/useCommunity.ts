@@ -4,6 +4,7 @@ import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
 import { UserStatsService } from '@core/services/userStatsService';
 import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
+import { useBlockedIds } from '@shared/state/blockStore';
 import { LikeStore } from '@shared/state/likeStore';
 import type { CommunityPost } from '@project-types';
 
@@ -57,7 +58,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [cursor, setCursor] = useState<unknown | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+  const blockedSet = useBlockedIds();
   // Guard: ensure initial fetch/subscribe runs once per tab (avoid StrictMode double-invoke)
   const initRunRef = useRef<{ all: boolean; my: boolean; following: boolean }>({
     all: false,
@@ -113,7 +114,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
     const normalized = normalizeCommunityPosts(list);
     // ブロックしたユーザーの投稿を除外
-    const filtered = normalized.filter((p) => !blockedIds.has(p.authorId));
+    const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
     const counts = buildReplyCountMapFromPosts(filtered);
     setReplyCounts(counts);
     // Initialize per-post reply counters store for minimal UI updates
@@ -122,7 +123,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       filtered.forEach((p) => ReplyCountStore.init(p.id, p.comments || 0));
     } catch {}
     return filtered;
-  }, [blockedIds]);
+  }, [blockedSet]);
 
   const mergePostsById = useCallback(
     (prev: CommunityPost[], next: CommunityPost[]): CommunityPost[] => {
@@ -327,16 +328,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     return unsub;
   }, [user]);
 
-  // subscribe blocked user ids to filter posts
+  // reflect block changes from global store immediately
   useEffect(() => {
-    if (!user) return;
-    const unsub = BlockService.subscribeBlockedIds(user.uid, (ids: string[]) => {
-      setBlockedIds(new Set(ids));
-      // 既存の一覧からも即時除外
-      setPosts((prev) => prev.filter((p) => !ids.includes(p.authorId)));
-    });
-    return unsub;
-  }, [user]);
+    setPosts((prev) => prev.filter((p) => !blockedSet.has(p.authorId)));
+  }, [blockedSet]);
 
   // actions
   const handleRefresh = useCallback(() => {

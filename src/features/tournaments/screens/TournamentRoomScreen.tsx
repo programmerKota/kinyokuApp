@@ -77,6 +77,9 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
   // スクロール制御
   const listRef = useRef<FlatList<Message>>(null);
   const [initialScrolled, setInitialScrolled] = useState(false);
+  const [listHeight, setListHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const shouldInvert = contentHeight > listHeight + 1; // 画面を埋めたら下基準、それ未満は上から
 
   // 初期100件 + 新着の随時取得
   useEffect(() => {
@@ -112,6 +115,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
             (news) => {
               if (!news || news.length === 0) return;
               setMessages((prev) => {
+                const existing = new Set(prev.map((p) => p.id));
                 const appended = news.map((msg) => ({
                   id: msg.id,
                   authorId: msg.authorId,
@@ -120,7 +124,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
                   timestamp: toDate(msg.createdAt),
                   type: msg.type,
                   avatar: msg.authorAvatar,
-                }));
+                })).filter((m) => !existing.has(m.id));
+                if (appended.length === 0) return prev;
                 return [...prev, ...appended];
               });
             },
@@ -302,21 +307,37 @@ const handleReject = async (requestId: string) => {
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
+    // 楽観的にメッセージを1件だけ即時追加（他のUIは触らない）
+    const localId = `local-${Date.now()}`;
+    const optimistic: Message = {
+      id: localId,
+      authorId: user?.uid || 'me',
+      authorName: user?.displayName || 'あなた',
+      text: text.trim(),
+      timestamp: new Date(),
+      type: 'text',
+      avatar: user?.avatarUrl || undefined,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    if (shouldInvert) setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 0);
+
     try {
       // メッセージポートエラー対策のため、タイムアウトを設定
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('メッセージ送信がタイムアウトしました')), 10000);
       });
 
-  const sendPromise = TournamentService.sendMessage(
-    tournamentId,
-    text.trim(),
-  );
+      const sendPromise = TournamentService.sendMessage(
+        tournamentId,
+        text.trim(),
+      );
 
-  await Promise.race([sendPromise, timeoutPromise]);
-  // 送信後に最下部へスクロール
-  setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 0);
-} catch (error) {
+      const newId = await Promise.race([sendPromise, timeoutPromise]) as string;
+      // サーバIDに置き換え（重複防止のため）
+      setMessages((prev) => prev.map((m) => (m.id === localId ? { ...m, id: newId } : m)));
+    } catch (error) {
+      // 失敗時は楽観的メッセージを除去
+      setMessages((prev) => prev.filter((m) => m.id !== localId));
   console.error('メッセージの送信でエラーが発生しました:', error);
 
   // メッセージポートエラーの場合の特別な処理
@@ -446,19 +467,34 @@ const handleKick = async (p: Participant) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             ref={listRef}
-            inverted
+            inverted={shouldInvert}
             onEndReachedThreshold={0.2}
             onEndReached={() => {
-              // inverted: end reached means top of history
-              void loadOlder();
+              if (shouldInvert) {
+                // inverted: end reached means top of history
+                void loadOlder();
+              }
             }}
-            onContentSizeChange={() => {
-              if (!initialScrolled) {
-                // With inverted list, initial offset is already bottom; keep guard just in case
+            onScroll={({ nativeEvent }) => {
+              if (!shouldInvert) {
+                const y = nativeEvent.contentOffset.y;
+                if (y <= 24) {
+                  void loadOlder();
+                }
+              }
+            }}
+            scrollEventThrottle={16}
+            onContentSizeChange={(w, h) => {
+              setContentHeight(h);
+              if (!initialScrolled && shouldInvert) {
                 listRef.current?.scrollToEnd({ animated: false });
                 setInitialScrolled(true);
               }
             }}
+            onLayout={({ nativeEvent }) => {
+              setListHeight(nativeEvent.layout.height);
+            }}
+            maintainVisibleContentPosition={!shouldInvert ? { minIndexForVisible: 1 } : undefined}
           />
 
           {(() => {

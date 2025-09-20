@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 import { FirestoreUserService, CommunityService, TournamentService } from '@core/services/firestore';
+import { BlockService } from '@core/services/firestore/blockService';
+import { BlockStore } from '@shared/state/blockStore';
 import UserService from '@core/services/userService';
 import type { User } from '@project-types';
 
@@ -63,6 +65,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     void loadUser();
   }, [loadUser]);
+
+  // Global subscription to blocked IDs; sync into BlockStore
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = BlockService.subscribeBlockedIds(user.uid, (ids) => {
+      BlockStore.setFromServer(ids);
+    });
+    return unsub;
+  }, [user?.uid]);
 
   const updateProfile = async (displayName: string, avatarUrl?: string) => {
     try {
