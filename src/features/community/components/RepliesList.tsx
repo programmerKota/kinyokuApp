@@ -12,9 +12,10 @@ import ReplyCard from "@features/community/components/ReplyCard";
 interface RepliesListProps {
   postId: string;
   onUserPress: (userId: string, userName: string) => void;
+  allowBlockedReplies?: boolean;
 }
 
-const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
+const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress, allowBlockedReplies = false }) => {
   const [replies, setReplies] = useState<CommunityComment[]>([]);
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
@@ -36,9 +37,10 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress }) => {
         });
         void initializeUserAverageDays(repliesList);
       },
+      { allowBlocked: allowBlockedReplies },
     );
     return unsubscribe;
-  }, [postId]);
+  }, [postId, allowBlockedReplies]);
 
   const initializeUserAverageDays = async (replies: CommunityComment[]) => {
         const averageDaysMap = new Map<string, number>();

@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { FlatList, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
@@ -19,6 +19,7 @@ interface PostListProps {
     showReplyButtons: Set<string>;
     replyCounts?: Map<string, number>;
     authorAverageDays?: Map<string, number> | number;
+    allowBlockedReplies?: boolean;
     onLike: (postId: string) => void | Promise<void>;
     onComment: (postId: string) => void;
     onReply: (postId: string) => void;
@@ -40,6 +41,7 @@ const PostList: React.FC<PostListProps> = ({
     showReplyButtons,
     authorAverageDays,
     replyCounts,
+    allowBlockedReplies = false,
     onLike,
     onComment,
     onReply,
@@ -62,6 +64,7 @@ const PostList: React.FC<PostListProps> = ({
                     likedPosts={likedPosts}
                     authorAverageDays={authorAverageDays}
                     replyCounts={replyCounts}
+                    allowBlockedReplies={allowBlockedReplies}
                     onLike={onLike}
                     onComment={onComment}
                     onReply={onReply}
@@ -69,7 +72,7 @@ const PostList: React.FC<PostListProps> = ({
                 />
             );
         },
-        [likedPosts, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress],
+        [likedPosts, authorAverageDays, replyCounts, allowBlockedReplies, onLike, onComment, onReply, onUserPress],
     );
 
     return (
@@ -100,12 +103,13 @@ const PostListRow: React.FC<{
     item: CommunityPost;
     likedPosts: Set<string>;
     authorAverageDays?: Map<string, number> | number;
+    allowBlockedReplies?: boolean;
     replyCounts?: Map<string, number>;
     onLike: (postId: string) => void | Promise<void>;
     onComment: (postId: string) => void;
     onReply: (postId: string) => void;
     onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
-}> = ({ item, likedPosts, authorAverageDays, replyCounts, onLike, onComment, onReply, onUserPress }) => {
+}> = ({ item, likedPosts, authorAverageDays, allowBlockedReplies = false, replyCounts, onLike, onComment, onReply, onUserPress }) => {
     const visible = useReplyVisibility(item.id, false);
     const avgDays =
         typeof authorAverageDays === 'number'
@@ -137,7 +141,11 @@ const PostListRow: React.FC<{
               </View>
             )}
             {visible && (
-                <RepliesList postId={item.id} onUserPress={(uid, uname) => onUserPress(uid, uname)} />
+                <RepliesList
+                  postId={item.id}
+                  onUserPress={(uid, uname) => onUserPress(uid, uname)}
+                  allowBlockedReplies={allowBlockedReplies}
+                />
             )}
         </View>
     );

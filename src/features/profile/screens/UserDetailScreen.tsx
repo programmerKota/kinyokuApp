@@ -1,4 +1,4 @@
-﻿import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import type { RouteProp } from '@react-navigation/native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useEffect, useState, useCallback } from 'react';
@@ -295,6 +295,7 @@ const UserDetailScreen: React.FC = () => {
         hasMore={false}
         replyCounts={replyCounts}
         authorAverageDays={averageDays}
+        allowBlockedReplies={true}
         onLike={(id) => { void handleLike(id); }}
         onComment={handleComment}
         onReply={handleReply}

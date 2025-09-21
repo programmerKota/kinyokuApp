@@ -1,4 +1,4 @@
-﻿import type { Unsubscribe } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import {
   addDoc,
   collection,
@@ -377,6 +377,7 @@ export class CommunityService {
   static subscribeToPostReplies(
     postId: string,
     callback: (replies: CommunityComment[]) => void,
+    options?: { allowBlocked?: boolean; includeAuthorIds?: string[] | Set<string> },
   ): Unsubscribe {
     const q = query(
       collection(db, COLLECTIONS.COMMUNITY_COMMENTS),
@@ -392,8 +393,19 @@ export class CommunityService {
       emit();
     });
 
+    const includeAuthorIds = options?.includeAuthorIds instanceof Set
+      ? options.includeAuthorIds
+      : options?.includeAuthorIds
+        ? new Set(options.includeAuthorIds)
+        : undefined;
+    const allowBlocked = options?.allowBlocked ?? false;
+
     const emit = (map?: Map<string, { displayName?: string; photoURL?: string } | undefined>) => {
-      const filtered = base.filter((r) => !blockedIds.has(r.authorId));
+      const filtered = base.filter((r) => {
+        if (allowBlocked) return true;
+        if (includeAuthorIds?.has(r.authorId)) return true;
+        return !blockedIds.has(r.authorId);
+      });
       const merged = filtered.map((r) => {
         const prof = map?.get(r.authorId);
         return {
