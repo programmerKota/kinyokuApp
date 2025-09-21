@@ -73,6 +73,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     following?: { posts: CommunityPost[] };
   }>({});
 
+  const createPostRequestSeqRef = useRef(0); // Guard to drop stale refresh responses during rapid posts
+
   // internal helpers
   const initializeLikedPosts = useCallback(
     async (list: CommunityPost[]) => {
@@ -113,7 +115,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
     const normalized = normalizeCommunityPosts(list);
-    // ブロックしたユーザーの投稿を除外
+    // ブロチE��したユーザーの投稿を除夁E
     const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
     const counts = buildReplyCountMapFromPosts(filtered);
     setReplyCounts(counts);
@@ -182,13 +184,13 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [],
   );
 
-  // 初回ロード/タブ切替: all/following はページング取得、my は購読
+  // 初回ローチEタブ�E替: all/following はペ�Eジング取得、my は購読
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     const run = () => {
       switch (activeTab) {
         case 'all':
-          // キャッシュがあれば即復元
+          // キャチE��ュがあれ�E即復允E
           if (cacheRef.current.all?.posts?.length) {
             setPosts(cacheRef.current.all.posts);
             setCursor(cacheRef.current.all.cursor);
@@ -196,7 +198,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.all) return;
-          // まだキャッシュがない初回は即時切替のため一旦クリア
+          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -213,7 +215,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           })();
           break;
         case 'my':
-          // キャッシュがあれば即復元
+          // キャチE��ュがあれ�E即復允E
           if (cacheRef.current.my?.posts?.length) {
             setPosts(cacheRef.current.my.posts);
             setCursor(undefined);
@@ -221,7 +223,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.my) return;
-          // まだキャッシュがない初回は即時切替のため一旦クリア
+          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -240,7 +242,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           }
           break;
         case 'following':
-          // キャッシュがあれば即復元
+          // キャチE��ュがあれ�E即復允E
           if (cacheRef.current.following?.posts?.length) {
             setPosts(cacheRef.current.following.posts);
             setCursor(undefined);
@@ -248,11 +250,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.following) return;
-          // まだキャッシュがない初回は即時切替のため一旦クリア
+          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
-          // フォロー一覧は、IDが取得できてから購読開始する。未取得時は空表示にする。
+          // フォロー一覧は、IDが取得できてから購読開始する。未取得時は空表示にする、E
           if (user && followingUsers.size > 0) {
             unsubscribe = CommunityService.subscribeToFollowingPosts(
               Array.from(followingUsers),
@@ -268,7 +270,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             );
             initRunRef.current.following = true;
           } else {
-            // ユーザー未ログイン、または followingUsers 未取得時は空にする
+            // ユーザー未ログイン、また�E followingUsers 未取得時は空にする
             setPosts([]);
           }
           break;
@@ -341,16 +343,61 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const handleCreatePost = useCallback(
     async (postData: { content: string }) => {
+      const requestId = (createPostRequestSeqRef.current += 1);
       await CommunityService.addPost(postData);
-      if (user) {
+
+      cacheRef.current.all = undefined;
+      cacheRef.current.my = undefined;
+      initRunRef.current.all = false;
+      initRunRef.current.my = false;
+
+      const refreshAll = async () => {
+        const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+        const normalized = await normalizePosts(items as CommunityPost[]);
+        if (createPostRequestSeqRef.current !== requestId) return;
+        setPosts(normalized);
+        setCursor(nextCursor);
+        setHasMore(Boolean(nextCursor));
+        void initializeLikedPosts(normalized);
+        void initializeUserAverageDays(normalized);
+        cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        initRunRef.current.all = true;
+      };
+
+      const refreshMy = async () => {
+        if (!user) return;
         const list = await CommunityService.getUserPosts(user.uid);
-        if (Array.isArray(list)) {
-          const normalized = await normalizePosts(list as CommunityPost[]);
-          setPosts((prev) => mergePostsById(prev, normalized));
-        }
+        if (!Array.isArray(list)) return;
+        const normalized = await normalizePosts(list as CommunityPost[]);
+        if (createPostRequestSeqRef.current !== requestId) return;
+        setPosts(normalized);
+        setCursor(undefined);
+        setHasMore(true);
+        void initializeLikedPosts(normalized);
+        void initializeUserAverageDays(normalized);
+        cacheRef.current.my = { posts: normalized };
+        initRunRef.current.my = true;
+      };
+
+      if (activeTab === 'my') {
+        await refreshMy();
+        return;
       }
+
+      if (activeTab === 'all') {
+        await refreshAll();
+        return;
+      }
+
+      // following tab: rely on live subscription but ensure caches refresh next visit to other tabs
     },
-    [user, normalizePosts, mergePostsById],
+    [
+      activeTab,
+      user,
+      initializeLikedPosts,
+      initializeUserAverageDays,
+      normalizePosts,
+    ],
   );
 
   const handleLike = useCallback(async (postId: string) => {
@@ -454,3 +501,4 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
+
