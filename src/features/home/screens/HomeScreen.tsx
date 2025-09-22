@@ -1,47 +1,100 @@
 import type { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { RootStackParamList } from '@app/navigation/RootNavigator';
 import TimerScreen from '@features/challenge/screens/TimerScreen';
 import HistoryButton from '@features/home/components/HistoryButton';
 import RankingButton from '@features/home/components/RankingButton';
+import ProfileSetupModal from '@features/home/components/ProfileSetupModal';
 import DiaryButton from '@features/diary/components/DiaryButton';
+import { useAuth } from '@app/contexts/AuthContext';
 import { colors, spacing } from '@shared/theme';
+
+const PROFILE_SETUP_SEEN_KEY = 'profile_setup_seen_v1';
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
 
-const HomeScreen = ({ navigation }: { navigation: HomeNav }) => (
-  <SafeAreaView style={styles.container}>
-    <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
-    <TimerScreen />
-    <View style={styles.buttonContainer}>
-      <View style={styles.quickBtn}>
-        <HistoryButton
-          onPress={() => {
-            void navigation.navigate('History');
-          }}
-        />
+type HomeScreenProps = {
+  navigation: HomeNav;
+};
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { user, updateProfile } = useAuth();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
+  const [persistingFlag, setPersistingFlag] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const seenFlag = await AsyncStorage.getItem(PROFILE_SETUP_SEEN_KEY);
+        if (!seenFlag && active) {
+          setProfileModalVisible(true);
+        }
+      } catch (error) {
+        console.warn('HomeScreen: failed to read profile setup flag', error);
+      } finally {
+        if (active) {
+          setCheckingFirstLaunch(false);
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const markFlagAsSeen = useCallback(async () => {
+    if (persistingFlag) return;
+    setPersistingFlag(true);
+    try {
+      await AsyncStorage.setItem(PROFILE_SETUP_SEEN_KEY, 'true');
+    } catch (error) {
+      console.warn('HomeScreen: failed to persist profile setup flag', error);
+    } finally {
+      setPersistingFlag(false);
+    }
+  }, [persistingFlag]);
+
+  const handleProfileSubmit = useCallback(    async (nextName: string, avatar?: string) => {      await updateProfile(nextName, avatar);      await markFlagAsSeen();      setProfileModalVisible(false);    },    [updateProfile, markFlagAsSeen],  );
+
+  const handleProfileSkip = useCallback(async () => {
+    setProfileModalVisible(false);
+    await markFlagAsSeen();
+  }, [markFlagAsSeen]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <TimerScreen />
+
+      <ProfileSetupModal
+        visible={profileModalVisible && !checkingFirstLaunch}
+        initialName={user?.displayName || ''}
+        onSubmit={handleProfileSubmit}        initialAvatar={user?.avatarUrl}
+        onSkip={handleProfileSkip}
+      />
+
+      <View style={styles.buttonContainer}>
+        <View style={styles.quickBtn}>
+          <HistoryButton onPress={() => navigation.navigate('History')} />
+        </View>
+        <View style={styles.quickBtn}>
+          <DiaryButton onPress={() => navigation.navigate('Diary')} />
+        </View>
+        <View style={styles.quickBtn}>
+          <RankingButton
+            onPress={() => navigation.navigate('Ranking')}
+            style={{ width: '100%' }}
+          />
+        </View>
       </View>
-      <View style={styles.quickBtn}>
-        <DiaryButton
-          onPress={() => {
-            void navigation.navigate('Diary');
-          }}
-        />
-      </View>
-      <View style={styles.quickBtn}>
-        <RankingButton
-          onPress={() => {
-            void navigation.navigate('Ranking');
-          }}
-          style={{ width: '100%' }}
-        />
-      </View>
-      {/* 商品ボタンは一旦非表示 */}
-    </View>
-  </SafeAreaView>
-);
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -63,3 +116,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
