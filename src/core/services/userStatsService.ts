@@ -154,17 +154,17 @@ export class UserStatsService {
     }
   }
 
-  // 現在のチャレンジの「経過日（1日目=1）」で階級を算出
-  // Diaryやランキングの表記と揃えるため、開始から24時間未満でも1日目とする
+  // 現在のチャレンジの「経過日（0日=開始当日）」で階級を算出
+  // 開始から24時間未満は0日（訓練兵）として扱う
   static async getUserCurrentDaysForRank(userId: string): Promise<number> {
     try {
       const active = await ChallengeService.getActiveChallenge(userId);
       if (!active) return 0;
       const started = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
-      // 1日目=1 となる 1-based 日数（開始直後でも1日目）
-      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-      return Math.max(1, days);
+      // 0-based 経過日数（開始直後は0日）
+      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000));
+      return Math.max(0, days);
     } catch (e) {
       console.error('現在のチャレンジ日数取得に失敗:', e);
       return 0;
