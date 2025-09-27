@@ -23,46 +23,7 @@ export interface Challenge {
   updatedAt: Date;
 }
 
-// 大会関連の型定義
-export interface Tournament {
-  id: string;
-  name: string;
-  description: string;
-  ownerId: string;
-  maxParticipants: number;
-  entryFee: number;
-  prizePool: number;
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
-  startDate: Date;
-  endDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TournamentParticipant {
-  id: string;
-  tournamentId: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  status: 'joined' | 'left' | 'kicked' | 'completed' | 'failed';
-  joinedAt: Date;
-  leftAt?: Date;
-  progressPercent?: number;
-  currentDay?: number;
-}
-
-export interface TournamentMessage {
-  id: string;
-  tournamentId: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
-  text: string;
-  type: 'text' | 'system';
-  createdAt: Date;
-  moderation?: ModerationInfo;
-}
+// 旧トーナメント系の型は未使用のため削除しました（Firestore層の型を使用）
 
 // コミュニティ関連の型定義
 export interface CommunityPost {
@@ -114,18 +75,4 @@ export interface Payment {
   updatedAt: Date;
 }
 
-// ナビゲーション関連の型定義
-export type RootTabParamList = {
-  Home: undefined;
-  Tournaments: undefined;
-  Community: undefined;
-  History: undefined;
-  Diary: undefined;
-  Profile: undefined;
-};
-
-export type TournamentStackParamList = {
-  TournamentsList: undefined;
-  TournamentRoom: { tournamentId: string };
-  CreateTournament: undefined;
-};
+// 旧ナビゲーション型は未使用のため削除しました（各Navigatorで定義）

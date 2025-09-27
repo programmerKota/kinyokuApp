@@ -91,7 +91,9 @@ if (useEmulator) {
     connectFirestoreEmulator(db, host, 8080);
     const auth = getAuth(app);
     connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
-    connectStorageEmulator(getStorage(app), host, 9198);
+    const storagePortEnv = getEnv("EXPO_PUBLIC_EMULATOR_STORAGE_PORT");
+    const storagePort = storagePortEnv ? Number(storagePortEnv) : 9199;
+    connectStorageEmulator(getStorage(app), host, storagePort);
     try {
       connectFunctionsEmulator(fbFunctions, host, 5001);
     } catch (e) {
@@ -99,7 +101,7 @@ if (useEmulator) {
     }
     // eslint-disable-next-line no-console
     console.log(
-      `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=9198 functions=5001`,
+      `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=${storagePort} functions=5001`,
     );
   } catch (error) {
     console.warn("[firebase] emulator connection failed:", error);

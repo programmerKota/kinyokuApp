@@ -2,12 +2,15 @@ import React from 'react';
 
 import { AuthProvider } from '@app/contexts/AuthContext';
 import RootNavigator from '@app/navigation/RootNavigator';
+import ErrorBoundary from '@shared/components/ErrorBoundary';
 
 const App = () => {
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

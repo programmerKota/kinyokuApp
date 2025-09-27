@@ -13,6 +13,11 @@ import { useAuth } from '@app/contexts/AuthContext';
 import { colors, spacing } from '@shared/theme';
 
 const PROFILE_SETUP_SEEN_KEY = 'profile_setup_seen_v1';
+const forceProfileModal = String(
+  // Allow forcing the profile setup modal to stay open (dev convenience)
+  (typeof process !== 'undefined' && (process as unknown as { env?: Record<string, string | undefined> }).env?.EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL) ||
+  ''
+).toLowerCase() === 'true';
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
 
@@ -27,6 +32,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [persistingFlag, setPersistingFlag] = useState(false);
 
   useEffect(() => {
+    if (forceProfileModal) {
+      setProfileModalVisible(true);
+      setCheckingFirstLaunch(false);
+      return;
+    }
     let active = true;
     (async () => {
       try {
@@ -59,9 +69,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   }, [persistingFlag]);
 
-  const handleProfileSubmit = useCallback(    async (nextName: string, avatar?: string) => {      await updateProfile(nextName, avatar);      await markFlagAsSeen();      setProfileModalVisible(false);    },    [updateProfile, markFlagAsSeen],  );
+  const handleProfileSubmit = useCallback(
+    async (nextName: string, avatar?: string) => {
+      await updateProfile(nextName, avatar);
+      if (!forceProfileModal) {
+        await markFlagAsSeen();
+        setProfileModalVisible(false);
+      }
+    },
+    [updateProfile, markFlagAsSeen]
+  );
 
   const handleProfileSkip = useCallback(async () => {
+    if (forceProfileModal) return; // keep open
     setProfileModalVisible(false);
     await markFlagAsSeen();
   }, [markFlagAsSeen]);
@@ -72,9 +92,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <TimerScreen />
 
       <ProfileSetupModal
-        visible={profileModalVisible && !checkingFirstLaunch}
+        visible={(forceProfileModal || profileModalVisible) && !checkingFirstLaunch}
         initialName={user?.displayName || ''}
-        onSubmit={handleProfileSubmit}        initialAvatar={user?.avatarUrl}
+        onSubmit={handleProfileSubmit}
+        initialAvatar={user?.avatarUrl}
         onSkip={handleProfileSkip}
       />
 

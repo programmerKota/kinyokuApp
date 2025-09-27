@@ -1,4 +1,4 @@
-module.exports = function (api) {
+﻿module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
@@ -6,6 +6,7 @@ module.exports = function (api) {
       [
         'module-resolver',
         {
+          root: ['./'],
           extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
           alias: {
             '@app': './src/app',
@@ -16,6 +17,6 @@ module.exports = function (api) {
           }
         }
       ]
-    ]
+    ],
   };
 };

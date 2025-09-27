@@ -6,16 +6,23 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.abstinence",
+      "infoPlist": {
+        "NSCameraUsageDescription": "プロフィール画像の撮影にカメラを使用します。",
+        "NSPhotoLibraryUsageDescription": "プロフィール画像・日記画像の選択にフォトライブラリを使用します。",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.example.abstinence",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -25,16 +32,33 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "packagerOpts": {
-      "host": "192.168.1.15"
-    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
     "extra": {
-      "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "${EXPO_PUBLIC_USE_FIREBASE_EMULATOR}",
-      "EXPO_PUBLIC_EMULATOR_HOST": "${EXPO_PUBLIC_EMULATOR_HOST}",
-      "EXPO_PUBLIC_EMULATOR_STORAGE_PORT": "${EXPO_PUBLIC_EMULATOR_STORAGE_PORT}",
+      "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "true",
+      "EXPO_PUBLIC_EMULATOR_HOST": "10.0.2.2",
+      "EXPO_PUBLIC_EMULATOR_STORAGE_PORT": "9199",
       "EXPO_PUBLIC_FORCE_LONG_POLLING": "${EXPO_PUBLIC_FORCE_LONG_POLLING}",
       "EXPO_PUBLIC_DISABLE_FIRESTORE": "${EXPO_PUBLIC_DISABLE_FIRESTORE}",
-      "EXPO_PUBLIC_FIREBASE_TIMEOUT": "30000"
+      "EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL": "true",
+      "EXPO_PUBLIC_FIREBASE_TIMEOUT": "30000",
+      "eas": {
+        "projectId": "3f92a554-fe34-4984-921b-a6d807c9730b"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3f92a554-fe34-4984-921b-a6d807c9730b"
     }
   }
 }

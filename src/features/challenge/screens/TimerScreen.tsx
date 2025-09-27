@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import TimerDisplay from '@features/challenge/components/TimerDisplay';
 import ChallengeModal from '@features/challenge/components/ChallengeModal';
@@ -7,7 +7,6 @@ import StopModal from '@features/challenge/components/StopModal';
 import useTimer from '@features/challenge/hooks/useTimer';
 import LoadingState from '@shared/components/LoadingState';
 import useErrorHandler from '@shared/hooks/useErrorHandler';
-import { colors, spacing, typography } from '@shared/theme';
 
 const TimerScreen: React.FC = () => {
   const [state, actions] = useTimer();
@@ -40,12 +39,11 @@ const TimerScreen: React.FC = () => {
       await startChallenge(goalDays, penaltyAmount);
       hideChallengeModal();
     } catch (error) {
-      handleError(error, {
-        component: 'TimerScreen',
-        action: 'startChallenge',
-      }, {
-        fallbackMessage: 'チャレンジの開始に失敗しました',
-      });
+      handleError(
+        error,
+        { component: 'TimerScreen', action: 'startChallenge' },
+        { fallbackMessage: 'Failed to start challenge.' },
+      );
     }
   };
 
@@ -53,22 +51,17 @@ const TimerScreen: React.FC = () => {
     if (!currentSession) return;
     const completed = isGoalAchieved;
     try {
-      // 先に閉じてから処理を実行して、不要な再表示/チラつきを防ぐ
       hideStopModal();
       await stopChallenge(completed);
       if (completed) {
-        // 成功時のメッセージは別途表示
-        console.log('チャレンジ完了');
-      } else {
-        // ここでは追加ダイアログを表示しない（要望により支払いフローは起動しない）
+        console.log('Challenge completed');
       }
     } catch (error) {
-      handleError(error, {
-        component: 'TimerScreen',
-        action: 'stopChallenge',
-      }, {
-        fallbackMessage: 'チャレンジの停止に失敗しました',
-      });
+      handleError(
+        error,
+        { component: 'TimerScreen', action: 'stopChallenge' },
+        { fallbackMessage: 'Failed to stop challenge.' },
+      );
     }
   };
 
@@ -81,7 +74,7 @@ const TimerScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.timerContainer}>
-        <LoadingState message="読み込み中..." variant="default" />
+        <LoadingState message="Loading..." variant="default" />
       </View>
     );
   }
@@ -127,3 +120,4 @@ const styles = StyleSheet.create({
 });
 
 export default TimerScreen;
+

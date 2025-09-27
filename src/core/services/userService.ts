@@ -25,30 +25,30 @@ class UserService {
     return UserService.instance;
   }
 
-  // デバイス固有のユーザーIDを生成
+  // 繝・ヰ繧､繧ｹ蝗ｺ譛峨・繝ｦ繝ｼ繧ｶ繝ｼID繧堤函謌・
   private generateDeviceId(): string {
-    // デバイスIDとアプリケーションIDを組み合わせて一意なIDを生成
+    // 繝・ヰ繧､繧ｹID縺ｨ繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳID繧堤ｵ・∩蜷医ｏ縺帙※荳諢上↑ID繧堤函謌・
     const deviceId = Device.osInternalBuildId || Device.modelId || 'unknown-device';
     const appId = Application.applicationId || 'unknown-app';
     const timestamp = Date.now().toString(36);
 
-    // ハッシュ化して短いIDを生成
+    // 繝上ャ繧ｷ繝･蛹悶＠縺ｦ遏ｭ縺ИD繧堤函謌・
     const combined = `${deviceId}-${appId}-${timestamp}`;
     return this.simpleHash(combined);
   }
 
-  // シンプルなハッシュ関数
+  // 繧ｷ繝ｳ繝励Ν縺ｪ繝上ャ繧ｷ繝･髢｢謨ｰ
   private simpleHash(str: string): string {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // 32bit整数に変換
+      hash = hash & hash; // 32bit謨ｴ謨ｰ縺ｫ螟画鋤
     }
     return Math.abs(hash).toString(36);
   }
 
-  // ユーザーIDを取得（初回は生成して保存）
+  // 繝ｦ繝ｼ繧ｶ繝ｼID繧貞叙蠕暦ｼ亥・蝗槭・逕滓・縺励※菫晏ｭ假ｼ・
   async getUserId(): Promise<string> {
     try {
       let userId = await AsyncStorage.getItem(USER_ID_KEY);
@@ -58,24 +58,24 @@ class UserService {
       }
       return userId;
     } catch (error) {
-      console.error('ユーザーIDの取得に失敗しました:', error);
-      // フォールバック: メモリ内で生成
+      console.error('繝ｦ繝ｼ繧ｶ繝ｼID縺ｮ蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆:', error);
+      // 繝輔か繝ｼ繝ｫ繝舌ャ繧ｯ: 繝｡繝｢繝ｪ蜀・〒逕滓・
       return this.generateDeviceId();
     }
   }
 
-  // ユーザー名を取得
+  // 繝ｦ繝ｼ繧ｶ繝ｼ蜷阪ｒ蜿門ｾ・
   async getUserName(): Promise<string> {
     try {
       const userName = await AsyncStorage.getItem(USER_NAME_KEY);
-      return userName || 'ユーザー';
+      return userName || '繝ｦ繝ｼ繧ｶ繝ｼ';
     } catch (error) {
-      console.error('ユーザー名の取得に失敗しました:', error);
-      return 'ユーザー';
+      console.error('繝ｦ繝ｼ繧ｶ繝ｼ蜷阪・蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆:', error);
+      return '繝ｦ繝ｼ繧ｶ繝ｼ';
     }
   }
 
-  // ユーザー名を設定
+  // 繝ｦ繝ｼ繧ｶ繝ｼ蜷阪ｒ險ｭ螳・
   async setUserName(name: string): Promise<void> {
     try {
       await AsyncStorage.setItem(USER_NAME_KEY, name);
@@ -83,22 +83,22 @@ class UserService {
         this.currentUser.name = name;
       }
     } catch (error) {
-      console.error('ユーザー名の設定に失敗しました:', error);
+      console.error('繝ｦ繝ｼ繧ｶ繝ｼ蜷阪・險ｭ螳壹↓螟ｱ謨励＠縺ｾ縺励◆:', error);
     }
   }
 
-  // アバターURLを取得
+  // 繧｢繝舌ち繝ｼURL繧貞叙蠕・
   async getAvatarUrl(): Promise<string | undefined> {
     try {
       const avatarUrl = await AsyncStorage.getItem(USER_AVATAR_KEY);
       return avatarUrl || undefined;
     } catch (error) {
-      console.error('アバターURLの取得に失敗しました:', error);
+      console.error('繧｢繝舌ち繝ｼURL縺ｮ蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆:', error);
       return undefined;
     }
   }
 
-  // アバターURLを設定
+  // 繧｢繝舌ち繝ｼURL繧定ｨｭ螳・
   async setAvatarUrl(avatarUrl: string | undefined): Promise<void> {
     try {
       if (avatarUrl) {
@@ -110,11 +110,11 @@ class UserService {
         this.currentUser.avatar = avatarUrl;
       }
     } catch (error) {
-      console.error('アバターURLの設定に失敗しました:', error);
+      console.error('繧｢繝舌ち繝ｼURL縺ｮ險ｭ螳壹↓螟ｱ謨励＠縺ｾ縺励◆:', error);
     }
   }
 
-  // 現在のユーザープロフィールを取得
+  // 迴ｾ蝨ｨ縺ｮ繝ｦ繝ｼ繧ｶ繝ｼ繝励Ο繝輔ぅ繝ｼ繝ｫ繧貞叙蠕・
   async getCurrentUser(): Promise<UserProfile> {
     if (this.currentUser) {
       return this.currentUser;
@@ -135,24 +135,24 @@ class UserService {
     return this.currentUser;
   }
 
-  // ユーザープロフィールを更新
+  // 繝ｦ繝ｼ繧ｶ繝ｼ繝励Ο繝輔ぅ繝ｼ繝ｫ繧呈峩譁ｰ
   async updateProfile(name: string, avatar?: string): Promise<void> {
     await Promise.all([this.setUserName(name), this.setAvatarUrl(avatar)]);
 
-    // メモリ内のユーザー情報も更新
+    // 繝｡繝｢繝ｪ蜀・・繝ｦ繝ｼ繧ｶ繝ｼ諠・ｱ繧よ峩譁ｰ
     if (this.currentUser) {
       this.currentUser.name = name;
       this.currentUser.avatar = avatar;
     }
   }
 
-  // ユーザー情報をリセット（デバッグ用）
+  // 繝ｦ繝ｼ繧ｶ繝ｼ諠・ｱ繧偵Μ繧ｻ繝・ヨ・医ョ繝舌ャ繧ｰ逕ｨ・・
   async resetUser(): Promise<void> {
     try {
       await AsyncStorage.multiRemove([USER_ID_KEY, USER_NAME_KEY, USER_AVATAR_KEY]);
       this.currentUser = null;
     } catch (error) {
-      console.error('ユーザー情報のリセットに失敗しました:', error);
+      console.error('繝ｦ繝ｼ繧ｶ繝ｼ諠・ｱ縺ｮ繝ｪ繧ｻ繝・ヨ縺ｫ螟ｱ謨励＠縺ｾ縺励◆:', error);
     }
   }
 }

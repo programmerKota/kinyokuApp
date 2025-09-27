@@ -32,30 +32,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userProfile = await userService.getCurrentUser();
       const now = new Date();
-
-      const userData = {
+      const userData: User = {
         uid: userProfile.id,
         displayName: userProfile.name,
         avatarUrl: userProfile.avatar,
         avatarVersion: 0,
         createdAt: now,
         updatedAt: now,
-      };
-
-      console.log('AuthContext: ユーザー情報を読み込みました', { userData });
+      } as unknown as User;
+      console.log('AuthContext: loaded', { userData });
       setUser(userData);
     } catch (error) {
-      console.error('ユーザー情報の読み込みに失敗しました:', error);
-      // フォールバック: デフォルトユーザー
-      const fallbackUser = {
+      console.error('AuthContext: load failed', error);
+      const fallbackUser: User = {
         uid: 'fallback-user',
-        displayName: 'ユーザー',
+        displayName: 'User',
         avatarUrl: undefined,
         avatarVersion: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
-      console.log('AuthContext: フォールバックユーザーを使用', { fallbackUser });
+      } as unknown as User;
+      console.log('AuthContext: fallbackUser', fallbackUser);
       setUser(fallbackUser);
     } finally {
       setLoading(false);
@@ -66,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     void loadUser();
   }, [loadUser]);
 
-  // Global subscription to blocked IDs; sync into BlockStore
   useEffect(() => {
     if (!user?.uid) return;
     const unsub = BlockService.subscribeBlockedIds(user.uid, (ids) => {
@@ -77,9 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (displayName: string, avatarUrl?: string) => {
     try {
-      // 1) まずローカルを更新（UIを即時反映）
       await userService.updateProfile(displayName, avatarUrl);
-
       if (user) {
         setUser({
           ...user,
@@ -87,27 +81,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatarUrl,
           avatarVersion: avatarUrl ? user.avatarVersion + 1 : user.avatarVersion,
           updatedAt: new Date(),
-        });
+        } as User);
       }
-
-      // 2) Firestoreはベストエフォート（ローカル専用モードでは完全スキップ）
       try {
-        if (process.env.EXPO_PUBLIC_DISABLE_FIRESTORE === 'true') {
-          return;
+        if (process.env.EXPO_PUBLIC_DISABLE_FIRESTORE !== 'true') {
+          const uid = user?.uid || (await userService.getUserId());
+          await FirestoreUserService.setUserProfile(uid, { displayName, photoURL: avatarUrl });
+          void Promise.allSettled([
+            CommunityService.reflectUserProfile(uid, displayName, avatarUrl),
+            TournamentService.reflectUserProfile(uid, displayName, avatarUrl),
+          ]);
         }
-        const uid = user?.uid || (await userService.getUserId());
-        await FirestoreUserService.setUserProfile(uid, { displayName, photoURL: avatarUrl });
-        // プロフィール更新を投稿/返信/大会の冗長フィールドへ反映（非同期）
-        void Promise.allSettled([
-          CommunityService.reflectUserProfile(uid, displayName, avatarUrl),
-          TournamentService.reflectUserProfile(uid, displayName, avatarUrl),
-        ]).catch(() => { });
       } catch (e) {
-        console.warn('Firestoreへのプロフィール反映に失敗しました（オフラインかも）:', e);
+        console.warn('Firestore reflect failed', e);
       }
     } catch (error) {
-      console.error('プロフィールの更新に失敗しました:', error);
-      throw error; // ここはユーザー名のローカル更新自体に失敗した場合のみエラーを伝播
+      console.error('AuthContext: updateProfile failed', error);
+      throw error;
     }
   };
 
@@ -116,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await loadUser();
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     updateProfile,
@@ -125,3 +115,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

@@ -1,10 +1,25 @@
 import { Platform } from 'react-native';
-import Purchases from 'react-native-purchases';
 
 import { resolveProductId } from './products';
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_RC_API_KEY;
 const DEV_MODE = process.env.EXPO_PUBLIC_PAYMENTS_DEV_MODE === 'true';
+
+// Lazily load native module so Expo Go can run without it
+let PurchasesModule: any | null = null;
+async function getPurchases() {
+  if (PurchasesModule) return PurchasesModule;
+  // Only attempt to load when we actually need native IAP
+  try {
+    const mod = await import('react-native-purchases');
+    PurchasesModule = mod?.default ?? mod;
+    return PurchasesModule;
+  } catch (e) {
+    // In dev fallback, allow running without the native module
+    if (DEV_MODE) return null;
+    throw e;
+  }
+}
 
 let configured = false;
 
@@ -13,6 +28,11 @@ async function ensureConfigured(): Promise<void> {
   if (!RC_API_KEY) {
     if (DEV_MODE) return; // allow dev fallback without configuration
     throw new Error('RC_API_KEY_NOT_SET');
+  }
+  const Purchases = await getPurchases();
+  if (!Purchases) {
+    // Should not happen when RC_API_KEY is set in non-dev mode
+    throw new Error('PURCHASES_MODULE_NOT_AVAILABLE');
   }
   await Purchases.configure({ apiKey: RC_API_KEY });
   configured = true;
@@ -41,6 +61,10 @@ export class PaymentService {
     await ensureConfigured();
 
     // Fetch product and purchase it
+    const Purchases = await getPurchases();
+    if (!Purchases) {
+      throw new Error('PURCHASES_MODULE_NOT_AVAILABLE');
+    }
     const products = await Purchases.getProducts([productId] as any);
     if (!products || products.length === 0) {
       throw new Error('PRODUCT_NOT_AVAILABLE');
