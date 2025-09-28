@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '@app/contexts/AuthContext';
 import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
@@ -115,7 +115,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const normalizePosts = useCallback(async (list: CommunityPost[]) => {
     const normalized = normalizeCommunityPosts(list);
-    // ブロチE��したユーザーの投稿を除夁E
+    // 繝悶Ο繝・け縺励◆繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ謚慕ｨｿ繧帝勁螟・
     const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
     const counts = buildReplyCountMapFromPosts(filtered);
     setReplyCounts(counts);
@@ -184,13 +184,13 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [],
   );
 
-  // 初回ローチEタブ�E替: all/following はペ�Eジング取得、my は購読
+  // 蛻晏屓繝ｭ繝ｼ繝・繧ｿ繝門・譖ｿ: all/following 縺ｯ繝壹・繧ｸ繝ｳ繧ｰ蜿門ｾ励［y 縺ｯ雉ｼ隱ｭ
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     const run = () => {
       switch (activeTab) {
         case 'all':
-          // キャチE��ュがあれ�E即復允E
+          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.all?.posts?.length) {
             setPosts(cacheRef.current.all.posts);
             setCursor(cacheRef.current.all.cursor);
@@ -198,7 +198,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.all) return;
-          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
+          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -215,18 +215,18 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           })();
           break;
         case 'my':
-          // キャチE��ュがあれ�E即復允E
+          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.my?.posts?.length) {
             setPosts(cacheRef.current.my.posts);
             setCursor(undefined);
-            setHasMore(true);
+            setHasMore(false);
             return;
           }
           if (initRunRef.current.my) return;
-          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
+          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
           setPosts([]);
           setCursor(undefined);
-          setHasMore(true);
+          setHasMore(false);
           if (user) {
             (async () => {
               const list = await CommunityService.getUserPosts(user.uid);
@@ -242,19 +242,20 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           }
           break;
         case 'following':
-          // キャチE��ュがあれ�E即復允E
+          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.following?.posts?.length) {
             setPosts(cacheRef.current.following.posts);
             setCursor(undefined);
-            setHasMore(true);
+            setHasMore(false);
             return;
           }
           if (initRunRef.current.following) return;
-          // まだキャチE��ュがなぁE�E回�E即時�E替のため一旦クリア
+          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
-          // フォロー一覧は、IDが取得できてから購読開始する。未取得時は空表示にする、E
+          setCursor(undefined);
+          setHasMore(false);
           if (user && followingUsers.size > 0) {
             unsubscribe = CommunityService.subscribeToFollowingPosts(
               Array.from(followingUsers),
@@ -270,7 +271,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             );
             initRunRef.current.following = true;
           } else {
-            // ユーザー未ログイン、また�E followingUsers 未取得時は空にする
             setPosts([]);
           }
           break;
@@ -372,7 +372,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         if (createPostRequestSeqRef.current !== requestId) return;
         setPosts(normalized);
         setCursor(undefined);
-        setHasMore(true);
+        setHasMore(false);
         void initializeLikedPosts(normalized);
         void initializeUserAverageDays(normalized);
         cacheRef.current.my = { posts: normalized };
@@ -501,4 +501,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
+
+
+
+
+
+
 
