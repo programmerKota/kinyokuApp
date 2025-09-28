@@ -1,4 +1,4 @@
-Ôªøimport { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 import { db } from '@app/config/firebase.config';
 import type { FirestoreUser } from './types';
@@ -45,7 +45,7 @@ export class FirestoreUserService {
       if (!snap.exists()) return null;
       const data = snap.data() as Partial<FirestoreUser>;
       return {
-        displayName: data.displayName ?? '„É¶„Éº„Ç∂„Éº',
+        displayName: data.displayName ?? 'ÉÜÅ[ÉUÅ[',
         photoURL: data.photoURL,
       };
     } catch (e) {
@@ -76,3 +76,4 @@ export class FirestoreUserService {
     );
   }
 }
+

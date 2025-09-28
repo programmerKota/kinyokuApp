@@ -7,7 +7,7 @@ import type { RootStackParamList } from '@app/navigation/RootNavigator';
 import TimerScreen from '@features/challenge/screens/TimerScreen';
 import HistoryButton from '@features/home/components/HistoryButton';
 import RankingButton from '@features/home/components/RankingButton';
-import ProfileSetupModal from '@features/home/components/ProfileSetupModal';
+import ProfileSetupModal from '@features/home/components/ProfileSetupModalCard';
 import DiaryButton from '@features/diary/components/DiaryButton';
 import { useAuth } from '@app/contexts/AuthContext';
 import { colors, spacing } from '@shared/theme';
