@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { FlatList, View, TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
 
@@ -52,7 +52,7 @@ const PostList: React.FC<PostListProps> = ({
   hasMore = false,
   headerComponent,
   refreshControl,
-  ListEmptyComponent,
+  ListEmptyComponent: emptyComponent,
 }) => {
   const renderItem = useCallback(
     ({ item }: { item: CommunityPost }) => (
@@ -86,7 +86,17 @@ const PostList: React.FC<PostListProps> = ({
       }}
       ListFooterComponent={() => (loadingMore && hasMore ? <ListFooterSpinner loading /> : null)}
       refreshControl={refreshControl}
-      ListEmptyComponent={ListEmptyComponent as any}
+      ListEmptyComponent={() => {
+        const isRefreshing = (refreshControl as any)?.props?.refreshing;
+        if (isRefreshing && (posts?.length ?? 0) === 0) {
+          return (
+            <View style={stylesEmpty.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.info} />
+            </View>
+          );
+        }
+        return emptyComponent as any;
+      }}
     />
   );
 };
@@ -182,3 +192,11 @@ const rowStyles = StyleSheet.create({
   },
 });
 
+const stylesEmpty = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing['5xl'],
+  },
+});

@@ -24,6 +24,15 @@ export const ReplyVisibilityStore = {
   toggle(id: string) {
     ReplyVisibilityStore.set(id, !ReplyVisibilityStore.get(id));
   },
+  clearAll() {
+    if (vis.size === 0) return;
+    const ids = Array.from(vis.keys());
+    for (const id of ids) {
+      vis.set(id, false);
+      const s = subs.get(id);
+      if (s) s.forEach((fn) => fn());
+    }
+  },
 };
 
 export const useReplyVisibility = (id: string, initial = false) => {
@@ -36,4 +45,3 @@ export const useReplyVisibility = (id: string, initial = false) => {
   const get = () => ReplyVisibilityStore.get(id);
   return useSyncExternalStore(subscribe, get, get);
 };
-

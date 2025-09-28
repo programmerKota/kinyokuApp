@@ -202,16 +202,21 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
+          setRefreshing(true);
           (async () => {
-            const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
-            const normalized = await normalizePosts(items as CommunityPost[]);
-            setPosts(normalized);
-            setCursor(nextCursor);
-            setHasMore(Boolean(nextCursor));
-            void initializeLikedPosts(normalized);
-            void initializeUserAverageDays(normalized);
-            cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
-            initRunRef.current.all = true;
+            try {
+              const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+              const normalized = await normalizePosts(items as CommunityPost[]);
+              setPosts(normalized);
+              setCursor(nextCursor);
+              setHasMore(Boolean(nextCursor));
+              void initializeLikedPosts(normalized);
+              void initializeUserAverageDays(normalized);
+              cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+              initRunRef.current.all = true;
+            } finally {
+              setRefreshing(false);
+            }
           })();
           break;
         case 'my':
@@ -228,14 +233,19 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           setCursor(undefined);
           setHasMore(false);
           if (user) {
+            setRefreshing(true);
             (async () => {
-              const list = await CommunityService.getUserPosts(user.uid);
-              const normalized = await normalizePosts(list as CommunityPost[]);
-              setPosts(normalized);
-              void initializeLikedPosts(normalized);
-              void initializeUserAverageDays(normalized);
-              cacheRef.current.my = { posts: normalized };
-              initRunRef.current.my = true;
+              try {
+                const list = await CommunityService.getUserPosts(user.uid);
+                const normalized = await normalizePosts(list as CommunityPost[]);
+                setPosts(normalized);
+                void initializeLikedPosts(normalized);
+                void initializeUserAverageDays(normalized);
+                cacheRef.current.my = { posts: normalized };
+                initRunRef.current.my = true;
+              } finally {
+                setRefreshing(false);
+              }
             })();
           } else {
             setPosts([]);
@@ -257,6 +267,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           setCursor(undefined);
           setHasMore(false);
           if (user && followingUsers.size > 0) {
+            setRefreshing(true);
+            let first = true;
             unsubscribe = CommunityService.subscribeToFollowingPosts(
               Array.from(followingUsers),
               (list: CommunityPost[]) => {
@@ -266,12 +278,17 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                   void initializeLikedPosts(normalized);
                   void initializeUserAverageDays(normalized);
                   cacheRef.current.following = { posts: normalized };
+                  if (first) {
+                    setRefreshing(false);
+                    first = false;
+                  }
                 })();
               },
             );
             initRunRef.current.following = true;
           } else {
             setPosts([]);
+            setRefreshing(false);
           }
           break;
       }
@@ -336,10 +353,57 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   }, [blockedSet]);
 
   // actions
-  const handleRefresh = useCallback(() => {
+    const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    setRefreshing(false);
-  }, []);
+    try {
+      if (activeTab === 'all') {
+        const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+        const normalized = await normalizePosts(items as CommunityPost[]);
+        setPosts(normalized);
+        setCursor(nextCursor);
+        setHasMore(Boolean(nextCursor));
+        void initializeLikedPosts(normalized);
+        void initializeUserAverageDays(normalized);
+        cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        initRunRef.current.all = true;
+      } else if (activeTab === 'my') {
+        if (!user) return;
+        const list = await CommunityService.getUserPosts(user.uid);
+        const normalized = await normalizePosts(list as CommunityPost[]);
+        setPosts(normalized);
+        setCursor(undefined);
+        setHasMore(false);
+        void initializeLikedPosts(normalized);
+        void initializeUserAverageDays(normalized);
+        cacheRef.current.my = { posts: normalized };
+        initRunRef.current.my = true;
+      } else if (activeTab === 'following') {
+        if (!user || followingUsers.size === 0) {
+          setPosts([]);
+          setHasMore(false);
+        } else {
+          await new Promise<void>((resolve) => {
+            const unsub = CommunityService.subscribeToFollowingPosts(
+              Array.from(followingUsers),
+              async (list) => {
+                const normalized = await normalizePosts(list as CommunityPost[]);
+                setPosts(normalized);
+                setCursor(undefined);
+                setHasMore(false);
+                void initializeLikedPosts(normalized);
+                void initializeUserAverageDays(normalized);
+                cacheRef.current.following = { posts: normalized };
+                try { unsub(); } catch {}
+                resolve();
+              },
+            );
+          });
+        }
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [activeTab, user, followingUsers, normalizePosts, initializeLikedPosts, initializeUserAverageDays]);
 
   const handleCreatePost = useCallback(
     async (postData: { content: string }) => {
@@ -447,6 +511,24 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   }, []);
 
   const handleTabPress = useCallback((tab: CommunityTab) => {
+    // タブ切替時に返信表示の開閉状態をリセット
+    try {
+      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      ReplyVisibilityStore.clearAll?.();
+    } catch {}
+    // どのタブでも再入時はキャッシュ/初期化をリセットして再取得させる
+    if (tab === 'all') {
+      cacheRef.current.all = undefined;
+      initRunRef.current.all = false;
+    } else if (tab === 'my') {
+      cacheRef.current.my = undefined;
+      initRunRef.current.my = false;
+    } else if (tab === 'following') {
+      cacheRef.current.following = undefined;
+      initRunRef.current.following = false;
+    }
+    // likedPosts をクリアしてサーバー確認を強制
+    setLikedPosts(new Set());
     setActiveTab(tab);
   }, []);
 
@@ -501,6 +583,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
+
 
 
 

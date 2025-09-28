@@ -123,6 +123,9 @@ const CommunityScreen: React.FC = () => {
           }}
           onEndReachedThreshold={0.4}
           loadingMore={loadingMore}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
           ListEmptyComponent={
             posts.length === 0 ? (
               <View style={styles.emptyContainer}>
