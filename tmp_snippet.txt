@@ -1,0 +1,1 @@
+﻿seed:tournament:docker":  "docker compose run --rm --no-deps -e GCLOUD_PROJECT=demo-project -e FIRESTORE_EMULATOR_HOST=firebase-emulators:8080 -e TID=%TID% -e REQ=%REQ% -e JOIN=%JOIN% batch-scheduler node scripts/seedTou

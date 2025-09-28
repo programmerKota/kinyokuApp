@@ -7,6 +7,7 @@ import {
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { Platform } from "react-native";
+import * as Device from "expo-device";
 
 // Safe env accessors to avoid any-typed process.env on RN/Expo
 type EnvLike = { [key: string]: string | undefined };
@@ -71,38 +72,48 @@ const usingDemoConfig =
   firebaseConfig.appId === "demo-app-id";
 
 const isProd = String(process.env.NODE_ENV).toLowerCase() === "production";
-export const useEmulator = useEmulatorEnv || (!isProd && usingDemoConfig);
+
+// Utilities used for emulator config and export a resolved flag
+const sanitize = (value?: string) => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "undefined" || trimmed === "null") return undefined;
+  if (trimmed.includes("${") || trimmed.startsWith("$")) return undefined;
+  return trimmed;
+};
+
+const hostFromEnv = sanitize(getEnv("EXPO_PUBLIC_EMULATOR_HOST"));
+const isRealDevice = Device.isDevice === true;
+const shouldDisableOnRealDevice = !hostFromEnv && isRealDevice; // localhost is unreachable from real devices
+
+export const useEmulator = (useEmulatorEnv || (!isProd && usingDemoConfig)) && !shouldDisableOnRealDevice;
 
 if (useEmulator) {
-  const sanitize = (value?: string) => {
-    if (!value) return undefined;
-    const trimmed = value.trim();
-    if (!trimmed || trimmed === "undefined" || trimmed === "null")
-      return undefined;
-    if (trimmed.includes("${") || trimmed.startsWith("$")) return undefined;
-    return trimmed;
-  };
-
-  const hostFromEnv = sanitize(getEnv("EXPO_PUBLIC_EMULATOR_HOST"));
   const defaultHost = Platform.OS === "android" ? "10.0.2.2" : "127.0.0.1";
   const host = hostFromEnv || defaultHost;
 
   try {
-    connectFirestoreEmulator(db, host, 8080);
-    const auth = getAuth(app);
-    connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
-    const storagePortEnv = getEnv("EXPO_PUBLIC_EMULATOR_STORAGE_PORT");
-    const storagePort = storagePortEnv ? Number(storagePortEnv) : 9199;
-    connectStorageEmulator(getStorage(app), host, storagePort);
-    try {
-      connectFunctionsEmulator(fbFunctions, host, 5001);
-    } catch (e) {
-      console.warn("[firebase] functions emulator connection failed:", e);
+    if (shouldDisableOnRealDevice) {
+      console.warn(
+        "[firebase] emulator disabled on real device. Set EXPO_PUBLIC_EMULATOR_HOST to your dev machine IP to enable.",
+      );
+    } else {
+      connectFirestoreEmulator(db, host, 8080);
+      const auth = getAuth(app);
+      connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
+      const storagePortEnv = getEnv("EXPO_PUBLIC_EMULATOR_STORAGE_PORT");
+      const storagePort = storagePortEnv ? Number(storagePortEnv) : 9199;
+      connectStorageEmulator(getStorage(app), host, storagePort);
+      try {
+        connectFunctionsEmulator(fbFunctions, host, 5001);
+      } catch (e) {
+        console.warn("[firebase] functions emulator connection failed:", e);
+      }
+      // eslint-disable-next-line no-console
+      console.log(
+        `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=${storagePort} functions=5001`,
+      );
     }
-    // eslint-disable-next-line no-console
-    console.log(
-      `[firebase] emulator connected: host=${host} firestore=8080 auth=9099 storage=${storagePort} functions=5001`,
-    );
   } catch (error) {
     console.warn("[firebase] emulator connection failed:", error);
   }

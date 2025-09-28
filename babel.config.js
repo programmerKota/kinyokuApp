@@ -16,7 +16,8 @@
             '@project-types': './src/types'
           }
         }
-      ]
+      ],
+      'react-native-reanimated/plugin'
     ],
   };
 };
