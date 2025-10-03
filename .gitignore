@@ -73,3 +73,14 @@ yarn-error.*
 # Firebase emulator cache
 /data/cache/
 
+# Local IDE/tooling
+.cursor/
+eslint_unix.txt
+lint.txt
+
+# Windows reserved filename noise
+nul
+
+# Env secrets (keep examples)
+.env*
+!*.example
