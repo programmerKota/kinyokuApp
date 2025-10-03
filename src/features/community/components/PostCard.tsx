@@ -1,16 +1,15 @@
-﻿import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+﻿import React, { useCallback } from "react";
+import { View, Text, StyleSheet, Image } from "react-native";
 
-import { colors, spacing, typography } from '@shared/theme';
-import uiStyles from '@shared/ui/styles';
-import { getContentStyle, getBlockLeftMargin } from '@shared/utils/nameUtils';
-import type { CommunityPost } from '@project-types';
-
-import RelativeTime from '@shared/components/RelativeTime';
-import UserProfileWithRank from '@shared/components/UserProfileWithRank';
-import { useProfile } from '@shared/hooks/useProfile';
-import LikeBar from '@features/community/components/LikeBar';
-import CommentBar from '@features/community/components/CommentBar';
+import CommentBar from "@features/community/components/CommentBar";
+import LikeBar from "@features/community/components/LikeBar";
+import type { CommunityPost } from "@project-types";
+import RelativeTime from "@shared/components/RelativeTime";
+import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import { useProfile } from "@shared/hooks/useProfile";
+import { colors, spacing, typography } from "@shared/theme";
+import uiStyles from "@shared/ui/styles";
+import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
 interface PostCardProps {
   post: CommunityPost;
@@ -61,12 +60,21 @@ const PostCard: React.FC<PostCardProps> = ({
             showTitle={true}
             style={styles.userProfileContainer}
           />
-          <RelativeTime value={post.createdAt} style={uiStyles.timestampRight} />
+          <RelativeTime
+            value={post.createdAt}
+            style={uiStyles.timestampRight}
+          />
         </View>
 
-        <View style={[styles.content, { marginLeft: getBlockLeftMargin('medium') }]}>
-          <Text style={[styles.text, getContentStyle('medium')]}>{post.content}</Text>
-          {post.imageUrl && <Image source={{ uri: post.imageUrl }} style={styles.postImage} />}
+        <View
+          style={[styles.content, { marginLeft: getBlockLeftMargin("medium") }]}
+        >
+          <Text style={[styles.text, getContentStyle("medium")]}>
+            {post.content}
+          </Text>
+          {post.imageUrl && (
+            <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -80,10 +88,11 @@ const PostCard: React.FC<PostCardProps> = ({
           <CommentBar
             postId={postId ?? post.id}
             initialCount={(commentsCount ?? post.comments) || 0}
-            onPress={onCommentId ? () => onCommentId(postId ?? post.id) : undefined}
+            onPress={
+              onCommentId ? () => onCommentId(postId ?? post.id) : undefined
+            }
           />
         </View>
-
       </View>
     </View>
   );
@@ -98,10 +107,10 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 0,
-    width: '100%',
+    width: "100%",
   },
   userProfileContainer: {
     flex: 1,
@@ -111,43 +120,40 @@ const styles = StyleSheet.create({
   },
   text: {},
   postImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 8,
     marginTop: spacing.md,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.xs,
-    marginLeft: getBlockLeftMargin('medium'),
+    marginLeft: getBlockLeftMargin("medium"),
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: spacing.lg,
   },
   actionText: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     marginLeft: spacing.xs,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   // like styles moved to LikeBar
 });
 
 // Allow only targeted updates (likes, comments, reply toggle)
-export default React.memo(
-  PostCard,
-  (prev, next) => {
-    const prevComments = (prev.commentsCount ?? prev.post.comments) || 0;
-    const nextComments = (next.commentsCount ?? next.post.comments) || 0;
-    // Ignore like-related props; LikeBar updates via external store
-    return (
-      prev.post.id === next.post.id &&
-      prevComments === nextComments &&
-      prev.authorAverageDays === next.authorAverageDays &&
-      prev.initialIsLiked === next.initialIsLiked
-    );
-  },
-);
+export default React.memo(PostCard, (prev, next) => {
+  const prevComments = (prev.commentsCount ?? prev.post.comments) || 0;
+  const nextComments = (next.commentsCount ?? next.post.comments) || 0;
+  // Ignore like-related props; LikeBar updates via external store
+  return (
+    prev.post.id === next.post.id &&
+    prevComments === nextComments &&
+    prev.authorAverageDays === next.authorAverageDays &&
+    prev.initialIsLiked === next.initialIsLiked
+  );
+});

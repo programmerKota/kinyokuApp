@@ -14,7 +14,7 @@ export interface Challenge {
   userId: string;
   goalDays: number;
   penaltyAmount: number;
-  status: 'active' | 'completed' | 'failed' | 'paused';
+  status: "active" | "completed" | "failed" | "paused";
   startedAt: Date;
   completedAt?: Date;
   failedAt?: Date;
@@ -56,11 +56,11 @@ export interface CommunityComment {
 
 // モデレーション情報
 export interface ModerationInfo {
-  status: 'clean' | 'pending' | 'flagged' | 'blocked';
+  status: "clean" | "pending" | "flagged" | "blocked";
   reasons?: string[];
   severity?: number; // 1-5
   checkedAt?: Date | { toDate: () => Date };
-  checkedBy?: 'auto' | string; // uid or auto
+  checkedBy?: string; // uid or system marker
 }
 
 // 支払い関連の型定義
@@ -68,8 +68,8 @@ export interface Payment {
   id: string;
   userId: string;
   amount: number;
-  type: 'penalty' | 'entry_fee' | 'prize';
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  type: "penalty" | "entry_fee" | "prize";
+  status: "pending" | "completed" | "failed" | "refunded";
   transactionId?: string;
   createdAt: Date;
   updatedAt: Date;

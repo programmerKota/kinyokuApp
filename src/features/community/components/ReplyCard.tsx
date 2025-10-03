@@ -1,10 +1,10 @@
-﻿import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+﻿import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import { colors, spacing, typography } from '@shared/theme';
-import type { CommunityComment } from '@project-types';
-import RelativeTime from '@shared/components/RelativeTime';
-import AvatarImage from '@shared/components/AvatarImage';
+import type { CommunityComment } from "@project-types";
+import AvatarImage from "@shared/components/AvatarImage";
+import RelativeTime from "@shared/components/RelativeTime";
+import { colors, spacing, typography } from "@shared/theme";
 
 interface ReplyCardProps {
   reply: CommunityComment;
@@ -14,9 +14,7 @@ interface ReplyCardProps {
 
 const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   const Container = onPress ? TouchableOpacity : View;
-  const containerProps = onPress
-    ? { activeOpacity: 0.8, onPress }
-    : {};
+  const containerProps = onPress ? { activeOpacity: 0.8, onPress } : {};
 
   return (
     <Container style={styles.container} {...containerProps}>
@@ -26,7 +24,9 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
             <AvatarImage uri={reply.authorAvatar} size={32} />
           ) : (
             <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>{reply.authorName.charAt(0)}</Text>
+              <Text style={styles.avatarFallbackText}>
+                {reply.authorName.charAt(0)}
+              </Text>
             </View>
           )}
         </View>
@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.xs,
   },
   avatarWrapper: {
@@ -59,19 +59,19 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarFallbackText: {
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerText: {
     flex: 1,
   },
   author: {
     fontSize: typography.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textPrimary,
   },
   timestamp: {

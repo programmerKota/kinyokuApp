@@ -3,11 +3,10 @@ import { View, StyleSheet } from "react-native";
 
 import { CommunityService } from "@core/services/firestore/communityService";
 import { UserStatsService } from "@core/services/userStatsService";
+import ReplyCard from "@features/community/components/ReplyCard";
+import type { CommunityComment } from "@project-types";
 import { colors, spacing } from "@shared/theme";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
-import type { CommunityComment } from "@project-types";
-
-import ReplyCard from "@features/community/components/ReplyCard";
 
 interface RepliesListProps {
   postId: string;
@@ -15,7 +14,11 @@ interface RepliesListProps {
   allowBlockedReplies?: boolean;
 }
 
-const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress, allowBlockedReplies = false }) => {
+const RepliesList: React.FC<RepliesListProps> = ({
+  postId,
+  onUserPress,
+  allowBlockedReplies = false,
+}) => {
   const [replies, setReplies] = useState<CommunityComment[]>([]);
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
@@ -29,7 +32,11 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress, allowBlo
           // Avoid needless state updates when identical
           if (
             prev.length === repliesList.length &&
-            prev.every((r, i) => r.id === repliesList[i]?.id && r.content === repliesList[i]?.content)
+            prev.every(
+              (r, i) =>
+                r.id === repliesList[i]?.id &&
+                r.content === repliesList[i]?.content,
+            )
           ) {
             return prev;
           }
@@ -37,25 +44,24 @@ const RepliesList: React.FC<RepliesListProps> = ({ postId, onUserPress, allowBlo
         });
         void initializeUserAverageDays(repliesList);
       },
-      { allowBlocked: allowBlockedReplies },
     );
     return unsubscribe;
   }, [postId, allowBlockedReplies]);
 
   const initializeUserAverageDays = async (replies: CommunityComment[]) => {
-        const averageDaysMap = new Map<string, number>();
+    const averageDaysMap = new Map<string, number>();
 
     // 重複するユーザーIDを取得
     const uniqueUserIds = new Set(replies.map((reply) => reply.authorId));
 
-        for (const userId of uniqueUserIds) {
-          try {
-            const days = await UserStatsService.getUserCurrentDaysForRank(userId);
-            averageDaysMap.set(userId, Math.max(0, days));
-          } catch {
-            averageDaysMap.set(userId, 0);
-          }
-        }
+    for (const userId of uniqueUserIds) {
+      try {
+        const days = await UserStatsService.getUserCurrentDaysForRank(userId);
+        averageDaysMap.set(userId, Math.max(0, days));
+      } catch {
+        averageDaysMap.set(userId, 0);
+      }
+    }
 
     setUserAverageDays(averageDaysMap);
   };

@@ -1,7 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
-import type { RouteProp } from '@react-navigation/native';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useEffect, useState, useCallback } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import type { RouteProp } from "@react-navigation/native";
+import {
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from "@react-navigation/native";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,30 +13,35 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  FlatList,
-  TextInput,
-} from 'react-native';
+} from "react-native";
 
-import PostList from '@features/community/components/PostList';
-import ListFooterSpinner from '@shared/components/ListFooterSpinner';
-import ReplyInputBar from '@shared/components/ReplyInputBar';
-import UserProfileWithRank from '@shared/components/UserProfileWithRank';
-import { useProfile } from '@shared/hooks/useProfile';
-import { useAuth } from '@app/contexts/AuthContext';
-import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
-import { BlockStore } from '@shared/state/blockStore';
-import type { FirestoreCommunityPost } from '@core/services/firestore';
-import { UserStatsService } from '@core/services/userStatsService';
-import { colors, spacing, typography } from '@shared/theme';
-import { uiStyles } from '@shared/ui/styles';
-import { buildReplyCountMapFromPosts, normalizeCommunityPostsFirestore, incrementCountMap } from '@shared/utils/community';
-import { navigateToUserDetail } from '@shared/utils/navigation';
+import { useAuth } from "@app/contexts/AuthContext";
+import {
+  CommunityService,
+  FollowService,
+  BlockService,
+} from "@core/services/firestore";
+import type { FirestoreCommunityPost } from "@core/services/firestore";
+import { UserStatsService } from "@core/services/userStatsService";
+import PostList from "@features/community/components/PostList";
+import ReplyInputBar from "@shared/components/ReplyInputBar";
+import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import { useProfile } from "@shared/hooks/useProfile";
+import { BlockStore } from "@shared/state/blockStore";
+import { colors, spacing, typography } from "@shared/theme";
+import { uiStyles } from "@shared/ui/styles";
+import {
+  buildReplyCountMapFromPosts,
+  normalizeCommunityPostsFirestore,
+  incrementCountMap,
+} from "@shared/utils/community";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 type RootStackParamList = {
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
 };
 
-type UserDetailRouteProp = RouteProp<RootStackParamList, 'UserDetail'>;
+type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 
 const UserDetailScreen: React.FC = () => {
   const route = useRoute<UserDetailRouteProp>();
@@ -40,7 +49,7 @@ const UserDetailScreen: React.FC = () => {
   const { userId, userName, userAvatar } = route.params || ({} as any);
   const { user } = useAuth();
   const live = useProfile(userId);
-  const [name, setName] = useState<string>(userName || 'ユーザー');
+  const [name, setName] = useState<string>(userName || "ユーザー");
   const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
   const [following, setFollowing] = useState<boolean>(false);
   const [postsData, setPostsData] = useState<FirestoreCommunityPost[]>([]);
@@ -48,10 +57,14 @@ const UserDetailScreen: React.FC = () => {
   const [hasMore, setHasMore] = useState(false);
   const [blocked, setBlocked] = useState<boolean>(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(new Set());
+  const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(
+    new Set(),
+  );
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState('');
-  const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
+  const [replyText, setReplyText] = useState("");
+  const [replyCounts, setReplyCounts] = useState<Map<string, number>>(
+    new Map(),
+  );
   const [averageDays, setAverageDays] = useState(0);
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
   // 逕ｻ髱｢繝輔か繝ｼ繧ｫ繧ｹ荳ｭ縺ｯ豈守ｧ貞・謠冗判縺励※逶ｸ蟇ｾ譎る俣繧呈峩譁ｰ
@@ -81,10 +94,12 @@ const UserDetailScreen: React.FC = () => {
   );
 
   useEffect(() => {
-    setName((prev) => prev || 'User');
+    setName((prev) => prev || "User");
     if (!userId) return;
     (async () => {
-      const days = await UserStatsService.getUserCurrentDaysForRank(userId).catch(() => 0);
+      const days = await UserStatsService.getUserCurrentDaysForRank(
+        userId,
+      ).catch(() => 0);
       setAverageDays(days);
     })();
   }, [userId]);
@@ -93,14 +108,17 @@ const UserDetailScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { LikeStore } = await import('@shared/state/likeStore');
+        const { LikeStore } = await import("@shared/state/likeStore");
         postsData.forEach((p) => {
-          LikeStore.setFromServer(p.id, { isLiked: likedPosts.has(p.id), likes: p.likes || 0 });
+          LikeStore.setFromServer(p.id, {
+            isLiked: likedPosts.has(p.id),
+            likes: p.likes || 0,
+          });
         });
       } catch {}
     })();
   }, [likedPosts, postsData]);
-      useEffect(() => {
+  useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let mounted = true;
 
@@ -116,28 +134,34 @@ const UserDetailScreen: React.FC = () => {
       } catch {}
 
       try {
-        unsubscribe = CommunityService.subscribeToUserPosts(userId, async (list) => {
-          const normalized = normalizeCommunityPostsFirestore(list);
+        unsubscribe = CommunityService.subscribeToUserPosts(
+          userId,
+          async (list) => {
+            const normalized = normalizeCommunityPostsFirestore(list);
 
-          // 返信の取得はトークアイコン押下時に行うため、
-          // ここでは Firestore から返信一覧を取得しない。
-          // 表示用の件数は投稿の `comments` を利用する。
-          const counts = buildReplyCountMapFromPosts(normalized);
+            // 返信の取得はトークアイコン押下時に行うため、
+            // ここでは Firestore から返信一覧を取得しない。
+            // 表示用の件数は投稿の `comments` を利用する。
+            const counts = buildReplyCountMapFromPosts(normalized);
 
-          setReplyCounts(counts);
-          setPostsData(normalized);
+            setReplyCounts(counts);
+            setPostsData(normalized);
 
-          if (user) {
-            const liked = new Set<string>();
-            for (const post of normalized) {
-              try {
-                const likedFlag = await CommunityService.isPostLikedByUser(post.id, user.uid);
-                if (likedFlag) liked.add(post.id);
-              } catch {}
+            if (user) {
+              const liked = new Set<string>();
+              for (const post of normalized) {
+                try {
+                  const likedFlag = await CommunityService.isPostLikedByUser(
+                    post.id,
+                    user.uid,
+                  );
+                  if (likedFlag) liked.add(post.id);
+                } catch {}
+              }
+              setLikedPosts(liked);
             }
-            setLikedPosts(liked);
-          }
-        });
+          },
+        );
       } catch {}
     })();
 
@@ -148,7 +172,12 @@ const UserDetailScreen: React.FC = () => {
   }, [userId, user]);
 
   const handlePostPress = (post: FirestoreCommunityPost) => {
-    navigateToUserDetail(navigation, post.authorId, post.authorName, post.authorAvatar);
+    navigateToUserDetail(
+      navigation,
+      post.authorId,
+      post.authorName,
+      post.authorAvatar,
+    );
   };
 
   const handleLike = async (postId: string) => {
@@ -157,7 +186,7 @@ const UserDetailScreen: React.FC = () => {
     try {
       await CommunityService.toggleLike(postId);
     } catch (e) {
-      console.warn('like toggle failed', e);
+      console.warn("like toggle failed", e);
     } finally {
       setLikingIds((prev) => {
         const s = new Set(prev);
@@ -169,36 +198,40 @@ const UserDetailScreen: React.FC = () => {
 
   const handleComment = (postId: string) => {
     try {
-      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      const {
+        ReplyVisibilityStore,
+      } = require("@shared/state/replyVisibilityStore");
       ReplyVisibilityStore.toggle(postId);
     } catch {}
   };
 
   const handleReply = (postId: string) => {
     setReplyingTo(postId);
-    setReplyText('');
+    setReplyText("");
   };
 
   const handleReplySubmit = async () => {
     if (!replyingTo || !replyText.trim()) return;
     try {
-      await CommunityService.addReply(replyingTo, { content: replyText.trim() });
+      await CommunityService.addReply(replyingTo, {
+        content: replyText.trim(),
+      });
       setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
       // Update minimal UI: just the bubble count for this post
       try {
-        const { ReplyCountStore } = await import('@shared/state/replyStore');
+        const { ReplyCountStore } = await import("@shared/state/replyStore");
         ReplyCountStore.increment(replyingTo, 1);
       } catch {}
       setReplyingTo(null);
-      setReplyText('');
+      setReplyText("");
     } catch (e) {
-      console.warn('reply failed', e);
+      console.warn("reply failed", e);
     }
   };
 
   const handleReplyCancel = () => {
     setReplyingTo(null);
-    setReplyText('');
+    setReplyText("");
   };
 
   // PostList 繧剃ｽｿ逕ｨ縺吶ｋ縺溘ａ蛟句挨繝ｬ繝ｳ繝繝ｩ縺ｯ荳崎ｦ・
@@ -213,7 +246,7 @@ const UserDetailScreen: React.FC = () => {
         setFollowing(true);
       }
     } catch (e) {
-      console.warn('follow toggle failed', e);
+      console.warn("follow toggle failed", e);
     }
   };
 
@@ -231,7 +264,7 @@ const UserDetailScreen: React.FC = () => {
         setBlocked(true);
       }
     } catch (e) {
-      console.warn('block toggle failed', e);
+      console.warn("block toggle failed", e);
     }
   };
 
@@ -242,7 +275,10 @@ const UserDetailScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={22} color={colors.gray800} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>プロフィール</Text>
@@ -266,19 +302,35 @@ const UserDetailScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={onToggleFollow}
-                style={[styles.followBtn, following ? styles.following : styles.follow]}
+                style={[
+                  styles.followBtn,
+                  following ? styles.following : styles.follow,
+                ]}
               >
-                <Text style={[styles.followText, following ? styles.followingText : styles.followText]}>
-                  {following ? 'フォロー中' : 'フォロー'}
+                <Text
+                  style={[
+                    styles.followText,
+                    following ? styles.followingText : styles.followText,
+                  ]}
+                >
+                  {following ? "フォロー中" : "フォロー"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={onToggleBlock}
-                style={[styles.blockBtn, blocked ? styles.blocking : styles.block]}
+                style={[
+                  styles.blockBtn,
+                  blocked ? styles.blocking : styles.block,
+                ]}
               >
-                <Text style={[styles.blockText, blocked ? styles.blockingText : styles.blockText]}>
-                  {blocked ? 'ブロック中' : 'ブロック'}
+                <Text
+                  style={[
+                    styles.blockText,
+                    blocked ? styles.blockingText : styles.blockText,
+                  ]}
+                >
+                  {blocked ? "ブロック中" : "ブロック"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -296,10 +348,14 @@ const UserDetailScreen: React.FC = () => {
         replyCounts={replyCounts}
         authorAverageDays={averageDays}
         allowBlockedReplies={true}
-        onLike={(id) => { void handleLike(id); }}
+        onLike={(id) => {
+          void handleLike(id);
+        }}
         onComment={handleComment}
         onReply={handleReply}
-        onUserPress={(uid, uname) => handlePostPress({ authorId: uid, authorName: uname } as any)}
+        onUserPress={(uid, uname) =>
+          handlePostPress({ authorId: uid, authorName: uname } as any)
+        }
         listStyle={{ flex: 1 }}
         contentContainerStyle={uiStyles.listContainer}
         onEndReached={() => {
@@ -329,8 +385,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundTertiary,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     backgroundColor: colors.white,
@@ -340,30 +396,30 @@ const styles = StyleSheet.create({
   backButton: { padding: spacing.sm },
   headerTitle: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.gray800,
   },
   listContainer: {
     backgroundColor: colors.white,
   },
   empty: {
-    paddingVertical: spacing['3xl'],
-    alignItems: 'center',
+    paddingVertical: spacing["3xl"],
+    alignItems: "center",
   },
   emptyText: {
     color: colors.textSecondary,
   },
   profileTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     backgroundColor: colors.white,
   },
-  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  actionsRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   userProfileContainer: {
     flex: 1,
     marginRight: spacing.sm,
@@ -374,23 +430,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
     minHeight: 28,
-    borderColor: '#F87171',
+    borderColor: "#F87171",
     backgroundColor: colors.white,
   },
   followText: {
-    color: '#F87171',
+    color: "#F87171",
     fontSize: typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   follow: {
     backgroundColor: colors.white,
   },
   following: {
-    backgroundColor: '#FDE2E2',
+    backgroundColor: "#FDE2E2",
   },
   followingText: {
-    color: '#EF4444',
-    fontWeight: '700',
+    color: "#EF4444",
+    fontWeight: "700",
   },
   blockBtn: {
     borderWidth: 1,
@@ -402,19 +458,19 @@ const styles = StyleSheet.create({
   blockText: {
     color: colors.textSecondary,
     fontSize: typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   block: {
     backgroundColor: colors.white,
     borderColor: colors.borderPrimary,
   },
   blocking: {
-    backgroundColor: '#E5E7EB',
-    borderColor: '#9CA3AF',
+    backgroundColor: "#E5E7EB",
+    borderColor: "#9CA3AF",
   },
   blockingText: {
     color: colors.gray800,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   divider: {
     height: 8,
@@ -431,22 +487,31 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderPrimary,
   },
   postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
-  postAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: spacing.md },
+  postAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: spacing.md,
+  },
   postAvatarPlaceholder: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.md,
   },
-  postAvatarInitial: { fontWeight: '700', color: colors.textSecondary },
-  postAuthor: { fontSize: typography.fontSize.base, fontWeight: '700', color: colors.gray800 },
+  postAvatarInitial: { fontWeight: "700", color: colors.textSecondary },
+  postAuthor: {
+    fontSize: typography.fontSize.base,
+    fontWeight: "700",
+    color: colors.gray800,
+  },
   postDot: { marginHorizontal: 6, color: colors.textSecondary },
   postTime: { fontSize: typography.fontSize.sm, color: colors.textSecondary },
   postContent: {
@@ -456,8 +521,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     marginLeft: 56,
   }, // 繧｢繝舌ち繝ｼ40px + 繝槭・繧ｸ繝ｳ16px = 56px
-  postActions: { flexDirection: 'row', alignItems: 'center', marginLeft: 56 }, // 繧｢繝舌ち繝ｼ40px + 繝槭・繧ｸ繝ｳ16px = 56px
-  postAction: { flexDirection: 'row', alignItems: 'center', marginRight: spacing['3xl'] },
+  postActions: { flexDirection: "row", alignItems: "center", marginLeft: 56 }, // 繧｢繝舌ち繝ｼ40px + 繝槭・繧ｸ繝ｳ16px = 56px
+  postAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: spacing["3xl"],
+  },
   postActionText: { marginLeft: 6, color: colors.textSecondary },
   replyInputContainer: {
     backgroundColor: colors.gray50,
@@ -474,16 +543,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderPrimary,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     marginBottom: spacing.md,
   },
   replyInputActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     gap: spacing.md,
   },
-  replyCancelButton: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  replyCancelButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
   replyCancelText: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
@@ -495,7 +567,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 20,
     minWidth: 60,
-    alignItems: 'center',
+    alignItems: "center",
   },
   replySubmitButtonDisabled: { backgroundColor: colors.gray300 },
   replySubmitText: {

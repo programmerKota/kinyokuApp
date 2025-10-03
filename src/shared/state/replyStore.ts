@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 const counts = new Map<string, number>();
 const subs = new Map<string, Set<() => void>>();
@@ -40,4 +40,3 @@ export const useReplyCount = (postId: string, initial: number) => {
   const get = () => ReplyCountStore.get(postId);
   return useSyncExternalStore(subscribe, get, get);
 };
-

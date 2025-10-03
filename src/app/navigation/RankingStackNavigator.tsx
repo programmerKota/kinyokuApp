@@ -1,7 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
 
-import RankingScreen from '@features/ranking/screens/RankingScreen';
+import RankingScreen from "@features/ranking/screens/RankingScreen";
 
 export type RankingStackParamList = {
   RankingMain: undefined;

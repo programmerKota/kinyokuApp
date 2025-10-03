@@ -1,25 +1,26 @@
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
-
-import { ChallengeService } from './firestore';
-import { getRankByDays } from './rankService';
-import { StatsService } from './statsService';
-import { db, COLLECTIONS } from '@app/config/firebase.config';
-
-const DISABLE_FIRESTORE = process.env.EXPO_PUBLIC_DISABLE_FIRESTORE === 'true';
+import { ChallengeService } from "./firestore";
+import { StatsService } from "./statsService";
+// Firestore依存を廃止。必要ならSupabaseへの保存を別途検討
 
 function toDateSafe(v: any): Date | undefined {
   if (!v) return undefined;
   if (v instanceof Date) return v;
-  if (typeof v?.toDate === 'function') return v.toDate();
+  if (typeof v?.toDate === "function") return v.toDate();
   return undefined;
 }
 
 export class UserStatsService {
-  private static userStatsCache = new Map<string, { averageDays: number; timestamp: number }>();
+  private static userStatsCache = new Map<
+    string,
+    { averageDays: number; timestamp: number }
+  >();
   private static CACHE_DURATION = 5 * 60 * 1000; // 5分間キャッシュ
 
   // 肩書用のキャッシュ（1日1回更新、午前5時）
-  private static rankCache = new Map<string, { averageDays: number; timestamp: number }>();
+  private static rankCache = new Map<
+    string,
+    { averageDays: number; timestamp: number }
+  >();
 
   static async getUserAverageDays(userId: string): Promise<number> {
     // キャッシュをチェック
@@ -60,7 +61,7 @@ export class UserStatsService {
 
       return averageDays;
     } catch (error) {
-      console.error('ユーザーの平均日数取得に失敗:', error);
+      console.error("ユーザーの平均日数取得に失敗:", error);
       return 0;
     }
   }
@@ -68,10 +69,21 @@ export class UserStatsService {
   // 肩書用の平均日数取得（1日1回更新、午前5時）
   static async getUserAverageDaysForRank(userId: string): Promise<number> {
     const now = new Date();
-    const today5AM = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 0, 0, 0);
+    const today5AM = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      5,
+      0,
+      0,
+      0,
+    );
 
     // 現在時刻が午前5時より前の場合は、前日の午前5時を基準にする
-    const baseTime = now < today5AM ? new Date(today5AM.getTime() - 24 * 60 * 60 * 1000) : today5AM;
+    const baseTime =
+      now < today5AM
+        ? new Date(today5AM.getTime() - 24 * 60 * 60 * 1000)
+        : today5AM;
 
     const cached = this.rankCache.get(userId);
     if (cached && cached.timestamp >= baseTime.getTime()) {
@@ -79,32 +91,7 @@ export class UserStatsService {
     }
 
     try {
-      // users/{uid} に事前計算がある場合はそれを利用（rankUpdatedAt が基準時刻以降）
-      try {
-        const ref = doc(db, COLLECTIONS.USERS, userId);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const d: any = snap.data();
-          const updatedAt: any = d.rankUpdatedAt ?? d.rankUpdatedAtTs ?? d.rank_updated_at;
-          const updated = updatedAt?.toDate
-            ? updatedAt.toDate()
-            : updatedAt instanceof Date
-              ? updatedAt
-              : undefined;
-          if (
-            typeof d.rankAverageDays === 'number' &&
-            updated &&
-            updated.getTime() >= baseTime.getTime()
-          ) {
-            const avgDays = d.rankAverageDays as number;
-            this.rankCache.set(userId, {
-              averageDays: avgDays,
-              timestamp: baseTime.getTime(),
-            });
-            return avgDays;
-          }
-        }
-      } catch {}
+      // 事前計算の読み込みは未実装（Supabase側での保存が必要なら実装）
 
       // フォールバック: チャレンジから計算（秒）
       const challengesFs = await ChallengeService.getUserChallenges(userId);
@@ -129,27 +116,11 @@ export class UserStatsService {
         timestamp: baseTime.getTime(),
       });
 
-      // ベストエフォートで users/{uid} に保存（開発用: Emulator / オンライン時）
-      try {
-        if (!DISABLE_FIRESTORE) {
-          const ref = doc(db, COLLECTIONS.USERS, userId);
-          const r = getRankByDays(averageDays);
-          await setDoc(
-            ref,
-            {
-              rankAverageDays: averageDays,
-              rankTitle: r.title,
-              rankEmoji: r.emoji,
-              rankUpdatedAt: Timestamp.now(),
-            } as any,
-            { merge: true },
-          );
-        }
-      } catch {}
+      // 保存は未実装（必要に応じてSupabase RPC等で保存）
 
       return averageDays;
     } catch (error) {
-      console.error('ユーザーの平均日数取得に失敗:', error);
+      console.error("ユーザーの平均日数取得に失敗:", error);
       return 0;
     }
   }
@@ -163,10 +134,12 @@ export class UserStatsService {
       const started = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
       // 0-based 経過日数（開始直後は0日）
-      const days = Math.floor((now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000));
+      const days = Math.floor(
+        (now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000),
+      );
       return Math.max(0, days);
     } catch (e) {
-      console.error('現在のチャレンジ日数取得に失敗:', e);
+      console.error("現在のチャレンジ日数取得に失敗:", e);
       return 0;
     }
   }

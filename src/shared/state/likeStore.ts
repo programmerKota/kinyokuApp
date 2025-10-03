@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 export type LikeState = { isLiked: boolean; likes: number; locked?: boolean };
 
@@ -51,4 +51,3 @@ export const useLikeState = (postId: string, initial: LikeState) => {
   const getSnapshot = () => LikeStore.get(postId) ?? initial;
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };
-

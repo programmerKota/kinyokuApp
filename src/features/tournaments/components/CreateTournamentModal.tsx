@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
 
-import Button from '@shared/components/Button';
-import InputField from '@shared/components/InputField';
-import Modal from '@shared/components/Modal';
+import Button from "@shared/components/Button";
+import InputField from "@shared/components/InputField";
+import Modal from "@shared/components/Modal";
 
 interface CreateTournamentModalProps {
   visible: boolean;
@@ -16,8 +16,8 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({
   onClose,
   onCreate,
 }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
   const handleCreate = () => {
     if (!name.trim()) {
@@ -27,8 +27,8 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({
       name: name.trim(),
       description: description.trim(),
     });
-    setName('');
-    setDescription('');
+    setName("");
+    setDescription("");
     onClose();
   };
 
@@ -54,8 +54,18 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({
       />
 
       <View style={styles.buttons}>
-        <Button title="キャンセル" onPress={onClose} variant="secondary" style={styles.button} />
-        <Button title="作成" onPress={handleCreate} disabled={!name.trim()} style={styles.button} />
+        <Button
+          title="キャンセル"
+          onPress={onClose}
+          variant="secondary"
+          style={styles.button}
+        />
+        <Button
+          title="作成"
+          onPress={handleCreate}
+          disabled={!name.trim()}
+          style={styles.button}
+        />
       </View>
     </Modal>
   );
@@ -63,8 +73,8 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({
 
 const styles = StyleSheet.create({
   buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginTop: 10,
   },
   button: {

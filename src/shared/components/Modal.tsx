@@ -1,5 +1,5 @@
-import React from 'react';
-import type { GestureResponderEvent } from 'react-native';
+import React from "react";
+import type { GestureResponderEvent } from "react-native";
 import {
   Modal as RNModal,
   View,
@@ -10,9 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
+} from "react-native";
 
-import { colors, spacing, typography, shadows } from '@shared/theme';
+import { colors, spacing, typography, shadows } from "@shared/theme";
 
 interface ModalProps {
   visible: boolean;
@@ -41,11 +41,16 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <RNModal visible={visible} animationType='slide' transparent onRequestClose={onClose}>
+    <RNModal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
         <View style={styles.overlay}>
           <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
           >
             <TouchableWithoutFeedback onPress={handleContentPress}>
@@ -62,7 +67,7 @@ const Modal: React.FC<ModalProps> = ({
                 </View>
                 <ScrollView
                   style={styles.content}
-                  keyboardShouldPersistTaps='handled'
+                  keyboardShouldPersistTaps="handled"
                   showsVerticalScrollIndicator={false}
                 >
                   {children}
@@ -79,24 +84,24 @@ const Modal: React.FC<ModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing['4xl'],
+    paddingVertical: spacing["4xl"],
   },
   keyboardAvoidingView: {
-    width: '100%',
-    maxHeight: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    maxHeight: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    maxHeight: '100%',
+    maxHeight: "100%",
     shadowColor: shadows.xl.shadowColor,
     shadowOffset: shadows.xl.shadowOffset,
     shadowOpacity: shadows.xl.shadowOpacity,
@@ -104,17 +109,17 @@ const styles = StyleSheet.create({
     elevation: shadows.xl.elevation,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing['2xl'],
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: spacing["2xl"],
     paddingVertical: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
   },
   title: {
     fontSize: typography.fontSize.xl,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.gray800,
     flex: 1,
   },
@@ -123,19 +128,17 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.gray100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   closeButtonText: {
     fontSize: typography.fontSize.lg,
     color: colors.textSecondary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   content: {
-    padding: spacing['2xl'],
+    padding: spacing["2xl"],
   },
 });
 
 export default Modal;
-
-

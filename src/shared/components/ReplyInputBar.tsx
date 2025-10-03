@@ -1,7 +1,13 @@
-import React from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from "react-native";
 
-import { colors, spacing, typography } from '@shared/theme';
+import { colors, spacing, typography } from "@shared/theme";
 
 interface ReplyInputBarProps {
   value: string;
@@ -36,11 +42,17 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
           <Text style={styles.cancelText}>キャンセル</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={onSubmit}
+          onPress={() => {
+            void onSubmit();
+          }}
           style={[styles.submitBtn, disabled && styles.submitBtnDisabled]}
           disabled={disabled}
         >
-          <Text style={[styles.submitText, disabled && styles.submitTextDisabled]}>返信</Text>
+          <Text
+            style={[styles.submitText, disabled && styles.submitTextDisabled]}
+          >
+            返信
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -63,13 +75,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderPrimary,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     marginBottom: spacing.md,
   },
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     gap: spacing.md,
   },
   cancelBtn: {
@@ -87,7 +99,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 20,
     minWidth: 60,
-    alignItems: 'center',
+    alignItems: "center",
   },
   submitBtnDisabled: {
     backgroundColor: colors.gray300,
@@ -103,4 +115,3 @@ const styles = StyleSheet.create({
 });
 
 export default ReplyInputBar;
-

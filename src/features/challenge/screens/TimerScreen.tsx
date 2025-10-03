@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React from "react";
+import { View, StyleSheet } from "react-native";
 
-import TimerDisplay from '@features/challenge/components/TimerDisplay';
-import ChallengeModal from '@features/challenge/components/ChallengeModal';
-import StopModal from '@features/challenge/components/StopModal';
-import useTimer from '@features/challenge/hooks/useTimer';
-import LoadingState from '@shared/components/LoadingState';
-import useErrorHandler from '@shared/hooks/useErrorHandler';
+import ChallengeModal from "@features/challenge/components/ChallengeModal";
+import StopModal from "@features/challenge/components/StopModal";
+import TimerDisplay from "@features/challenge/components/TimerDisplay";
+import useTimer from "@features/challenge/hooks/useTimer";
+import LoadingState from "@shared/components/LoadingState";
+import useErrorHandler from "@shared/hooks/useErrorHandler";
 
 const TimerScreen: React.FC = () => {
   const [state, actions] = useTimer();
@@ -41,8 +41,8 @@ const TimerScreen: React.FC = () => {
     } catch (error) {
       handleError(
         error,
-        { component: 'TimerScreen', action: 'startChallenge' },
-        { fallbackMessage: 'Failed to start challenge.' },
+        { component: "TimerScreen", action: "startChallenge" },
+        { fallbackMessage: "Failed to start challenge." },
       );
     }
   };
@@ -54,13 +54,13 @@ const TimerScreen: React.FC = () => {
       hideStopModal();
       await stopChallenge(completed);
       if (completed) {
-        console.log('Challenge completed');
+        console.log("Challenge completed");
       }
     } catch (error) {
       handleError(
         error,
-        { component: 'TimerScreen', action: 'stopChallenge' },
-        { fallbackMessage: 'Failed to stop challenge.' },
+        { component: "TimerScreen", action: "stopChallenge" },
+        { fallbackMessage: "Failed to stop challenge." },
       );
     }
   };
@@ -120,4 +120,3 @@ const styles = StyleSheet.create({
 });
 
 export default TimerScreen;
-

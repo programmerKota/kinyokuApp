@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 const subs = new Set<() => void>();
 let blocked = new Set<string>();
@@ -45,4 +45,3 @@ export const useBlockedIds = (): Set<string> => {
   const getSnapshot = () => BlockStore.get();
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };
-

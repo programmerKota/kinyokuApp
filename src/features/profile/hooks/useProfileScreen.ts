@@ -1,9 +1,9 @@
-import * as ImagePicker from 'expo-image-picker';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
+import * as ImagePicker from "expo-image-picker";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert } from "react-native";
 
-import { useAuth } from '@app/contexts/AuthContext';
-import { validateMaxLength, validateRequired } from '@shared/utils/validation';
+import { useAuth } from "@app/contexts/AuthContext";
+import { validateMaxLength, validateRequired } from "@shared/utils/validation";
 
 export interface UseProfileState {
   isEditing: boolean;
@@ -29,38 +29,38 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
   const { user, updateProfile } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editAvatar, setEditAvatar] = useState('');
+  const [editName, setEditName] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   useEffect(() => {
     if (user) {
       setEditName(user.displayName);
-      setEditAvatar(user.avatarUrl || '');
+      setEditAvatar(user.avatarUrl || "");
     }
   }, [user]);
 
   const handleSaveProfile = useCallback(async () => {
     const trimmedName = editName.trim();
-    const requiredValidation = validateRequired(trimmedName, 'ユーザー名');
+    const requiredValidation = validateRequired(trimmedName, "ユーザー名");
     if (!requiredValidation.isValid) {
-      Alert.alert('エラー', requiredValidation.message);
+      Alert.alert("エラー", requiredValidation.message);
       return;
     }
-    const maxLengthValidation = validateMaxLength(trimmedName, 8, 'ユーザー名');
+    const maxLengthValidation = validateMaxLength(trimmedName, 8, "ユーザー名");
     if (!maxLengthValidation.isValid) {
-      Alert.alert('エラー', maxLengthValidation.message);
+      Alert.alert("エラー", maxLengthValidation.message);
       return;
     }
     setLoading(true);
     try {
       await updateProfile(trimmedName, editAvatar.trim() || undefined);
       setIsEditing(false);
-      Alert.alert('成功', 'プロフィールを更新しました');
+      Alert.alert("成功", "プロフィールを更新しました");
     } catch (error) {
-      console.error('プロフィールの更新に失敗しました:', error);
-      Alert.alert('エラー', 'プロフィールの更新に失敗しました');
+      console.error("プロフィールの更新に失敗しました:", error);
+      Alert.alert("エラー", "プロフィールの更新に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
   const handleCancelEdit = useCallback(() => {
     if (user) {
       setEditName(user.displayName);
-      setEditAvatar(user.avatarUrl || '');
+      setEditAvatar(user.avatarUrl || "");
     }
     setIsEditing(false);
   }, [user]);
@@ -80,9 +80,10 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
 
   const handleImagePicker = useCallback(async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionResult.granted === false) {
-        Alert.alert('エラー', 'アルバムへのアクセス権限が必要です');
+        Alert.alert("エラー", "アルバムへのアクセス権限が必要です");
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -96,13 +97,13 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
         setEditAvatar(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('画像選択に失敗しました:', error);
-      Alert.alert('エラー', '画像の選択に失敗しました');
+      console.error("画像選択に失敗しました:", error);
+      Alert.alert("エラー", "画像の選択に失敗しました");
     }
   }, []);
 
   const handleRemoveImage = useCallback(() => {
-    setEditAvatar('');
+    setEditAvatar("");
   }, []);
 
   const handleAvatarPress = useCallback(async () => {

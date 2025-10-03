@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 const vis = new Map<string, boolean>();
 const subs = new Map<string, Set<() => void>>();

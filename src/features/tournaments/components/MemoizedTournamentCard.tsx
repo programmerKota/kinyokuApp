@@ -1,6 +1,7 @@
-﻿import React, { memo } from 'react';
+﻿import React, { memo } from "react";
 
-import TournamentCard, { UITournament } from './TournamentCard';
+import type { UITournament } from "./TournamentCard";
+import TournamentCard from "./TournamentCard";
 
 interface MemoizedTournamentCardProps {
   tournament: UITournament;
@@ -12,7 +13,14 @@ interface MemoizedTournamentCardProps {
 }
 
 const MemoizedTournamentCard = memo<MemoizedTournamentCardProps>(
-  ({ tournament, onJoin, onView, onToggleRecruitment, showDelete, onDelete }) => (
+  ({
+    tournament,
+    onJoin,
+    onView,
+    onToggleRecruitment,
+    showDelete,
+    onDelete,
+  }) => (
     <TournamentCard
       tournament={tournament}
       onJoin={onJoin}
@@ -24,7 +32,6 @@ const MemoizedTournamentCard = memo<MemoizedTournamentCardProps>(
   ),
 );
 
-MemoizedTournamentCard.displayName = 'MemoizedTournamentCard';
+MemoizedTournamentCard.displayName = "MemoizedTournamentCard";
 
 export default MemoizedTournamentCard;
-

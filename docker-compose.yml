@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   firebase-emulators:
@@ -13,21 +13,20 @@ services:
       - ./data/firebase:/data
       - ./data/cache:/root/.cache
     ports:
-      - '4000:4000' # Emulator UI
-      - '8080:8080' # Firestore
-      - '9099:9099' # Auth
-      - '9198:9199' # Storage (host 9198 -> container 9199)
+      - "4000:4000" # Emulator UI
+      - "8080:8080" # Firestore
+      - "9099:9099" # Auth
+      - "9198:9199" # Storage (host 9198 -> container 9199)
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          cpus: '1.00'
+          cpus: "1.00"
           memory: 1g
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256m
 
-  
 volumes: {}

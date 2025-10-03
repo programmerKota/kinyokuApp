@@ -1,17 +1,16 @@
-﻿import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+﻿import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 
-import Button from '@shared/components/Button';
-import { colors, spacing, typography, shadows } from '@shared/theme';
-import { uiStyles } from '@shared/ui/styles';
+import Button from "@shared/components/Button";
+import { colors, spacing, typography, shadows } from "@shared/theme";
+import { uiStyles } from "@shared/ui/styles";
 
 export interface UITournament {
   id: string;
   name: string;
   description: string;
   participantCount: number;
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  status: "upcoming" | "active" | "completed" | "cancelled";
   isJoined: boolean;
   ownerId: string;
   ownerName?: string;
@@ -29,8 +28,15 @@ export interface TournamentCardProps {
   onToggleRecruitment?: (tournamentId: string, open: boolean) => void;
 }
 
-const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onView, onDelete, showDelete = false, onToggleRecruitment }) => {
-  const canJoin = !tournament.isJoined && tournament.status === 'active';
+const TournamentCard: React.FC<TournamentCardProps> = ({
+  tournament,
+  onJoin,
+  onView,
+  onDelete,
+  showDelete = false,
+  onToggleRecruitment,
+}) => {
+  const canJoin = !tournament.isJoined && tournament.status === "active";
   const isPending = tournament.requestPending === true;
 
   return (
@@ -59,12 +65,15 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onV
             >
               {tournament.ownerAvatar ? (
                 <View style={styles.ownerAvatarWrap}>
-                  <Image source={{ uri: tournament.ownerAvatar }} style={styles.ownerAvatarImage} />
+                  <Image
+                    source={{ uri: tournament.ownerAvatar }}
+                    style={styles.ownerAvatarImage}
+                  />
                 </View>
               ) : (
                 <View style={styles.ownerAvatar}>
                   <Text style={styles.ownerAvatarText}>
-                    {(tournament.ownerName || 'U').charAt(0)}
+                    {(tournament.ownerName || "U").charAt(0)}
                   </Text>
                 </View>
               )}
@@ -74,12 +83,18 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onV
 
         {showDelete && tournament.ownerId ? (
           <View style={[uiStyles.row, styles.actionsRow]}>
-            {typeof tournament.recruitmentOpen !== 'undefined' ? (
+            {typeof tournament.recruitmentOpen !== "undefined" ? (
               <Button
-                title={tournament.recruitmentOpen ? '募集を停止' : '募集を再開'}
-                onPress={() => onToggleRecruitment && onToggleRecruitment(tournament.id, !tournament.recruitmentOpen)}
+                title={tournament.recruitmentOpen ? "募集を停止" : "募集を再開"}
+                onPress={() =>
+                  onToggleRecruitment &&
+                  onToggleRecruitment(
+                    tournament.id,
+                    !tournament.recruitmentOpen,
+                  )
+                }
                 size="small"
-                variant={tournament.recruitmentOpen ? 'secondary' : 'primary'}
+                variant={tournament.recruitmentOpen ? "secondary" : "primary"}
                 style={styles.joinButton}
               />
             ) : null}
@@ -97,10 +112,10 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onJoin, onV
           <Button
             title={
               tournament.recruitmentOpen === false
-                ? '募集は終了しました'
+                ? "募集は終了しました"
                 : isPending
-                  ? '申請中'
-                  : '参加申請'
+                  ? "申請中"
+                  : "参加申請"
             }
             onPress={() => onJoin(tournament.id)}
             size="small"
@@ -128,14 +143,14 @@ const styles = StyleSheet.create({
     ...shadows.lg,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: spacing.sm,
   },
   title: {
     fontSize: typography.fontSize.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textPrimary,
     flex: 1,
     marginRight: spacing.sm,
@@ -149,7 +164,7 @@ const styles = StyleSheet.create({
   },
   countBadgeText: {
     fontSize: typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.white,
   },
   description: {
@@ -159,49 +174,49 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   leftInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   ownerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   ownerAvatarWrap: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: colors.backgroundSecondary,
     marginRight: spacing.sm,
   },
   ownerAvatarImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   ownerAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.info,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.sm,
   },
   ownerAvatarText: {
     color: colors.white,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: typography.fontSize.sm,
   },
   ownerLabel: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: "500",
     marginRight: spacing.sm,
   },
   joinButton: {
@@ -217,17 +232,17 @@ const styles = StyleSheet.create({
   },
   joinedText: {
     fontSize: typography.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.white,
   },
   deleteButton: {
     marginLeft: spacing.sm,
     padding: spacing.xs,
     borderRadius: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   actionsRow: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionSpacing: {
     marginLeft: spacing.md,
@@ -235,12 +250,3 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(TournamentCard);
-
-
-
-
-
-
-
-
-

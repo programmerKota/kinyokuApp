@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-import { colors, spacing, typography } from '@shared/theme';
-import { useReplyCount } from '@shared/state/replyStore';
+import { useReplyCount } from "@shared/state/replyStore";
+import { colors, spacing, typography } from "@shared/theme";
 
 interface CommentBarProps {
   postId: string;
@@ -11,7 +11,11 @@ interface CommentBarProps {
   onPress?: (postId: string) => void;
 }
 
-const CommentBar: React.FC<CommentBarProps> = ({ postId, initialCount, onPress }) => {
+const CommentBar: React.FC<CommentBarProps> = ({
+  postId,
+  initialCount,
+  onPress,
+}) => {
   const count = useReplyCount(postId, initialCount);
   const [busy, setBusy] = useState(false);
 
@@ -26,7 +30,11 @@ const CommentBar: React.FC<CommentBarProps> = ({ postId, initialCount, onPress }
   }, [busy, onPress, postId]);
 
   return (
-    <TouchableOpacity style={styles.actionButton} onPress={handle} disabled={busy}>
+    <TouchableOpacity
+      style={styles.actionButton}
+      onPress={handle}
+      disabled={busy}
+    >
       <Ionicons name="chatbubble-outline" size={18} color={colors.info} />
       <Text style={[styles.actionText, { color: colors.info }]}>{count}</Text>
     </TouchableOpacity>
@@ -35,17 +43,16 @@ const CommentBar: React.FC<CommentBarProps> = ({ postId, initialCount, onPress }
 
 const styles = StyleSheet.create({
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: spacing.lg,
   },
   actionText: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     marginLeft: spacing.xs,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
 
 export default React.memo(CommentBar);
-

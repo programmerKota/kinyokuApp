@@ -1,11 +1,19 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { View, StyleSheet, Text, Alert, Image, TouchableOpacity, TextInput } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  Text,
+  Alert,
+  Image,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 
-import Button from '@shared/components/Button';
-import Modal from '@shared/components/Modal';
-import { colors, spacing, typography } from '@shared/theme';
+import Button from "@shared/components/Button";
+import Modal from "@shared/components/Modal";
+import { colors, spacing, typography } from "@shared/theme";
 
 const MAX_NAME_LENGTH = 8;
 
@@ -19,7 +27,7 @@ interface ProfileSetupModalProps {
 
 const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   visible,
-  initialName = '',
+  initialName = "",
   initialAvatar,
   onSubmit,
   onSkip,
@@ -29,7 +37,8 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const sanitize = (s?: string) => (s && /[\uFFFD]|[繝縺繧蜿螟遏鬟]/.test(s) ? '' : s || '');
+  const sanitize = (s?: string) =>
+    s && /[\uFFFD]|[繝縺繧蜿螟遏鬟]/.test(s) ? "" : s || "";
 
   useEffect(() => {
     if (!visible) return;
@@ -43,7 +52,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
   const validateName = (value: string): string | null => {
     const trimmed = value.trim();
-    if (trimmed.length === 0) return 'ユーザー名を入力してください。';
+    if (trimmed.length === 0) return "ユーザー名を入力してください。";
     if (trimmed.length > MAX_NAME_LENGTH) {
       return `ユーザー名は${MAX_NAME_LENGTH}文字以内で入力してください。`;
     }
@@ -54,7 +63,10 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('許可が必要です', '写真ライブラリへのアクセスを許可してください。');
+        Alert.alert(
+          "許可が必要です",
+          "写真ライブラリへのアクセスを許可してください。",
+        );
         return;
       }
       const res = await ImagePicker.launchImageLibraryAsync({
@@ -67,7 +79,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         setAvatarUri(res.assets[0].uri);
       }
     } catch (e) {
-      console.warn('ProfileSetupModal: image pick failed', e);
+      console.warn("ProfileSetupModal: image pick failed", e);
     }
   }, []);
 
@@ -84,8 +96,11 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     try {
       await onSubmit(name.trim(), avatarUri);
     } catch (err) {
-      console.error('ProfileSetupModal: save failed', err);
-      Alert.alert('エラー', 'プロフィールの保存に失敗しました。通信状況をご確認ください。');
+      console.error("ProfileSetupModal: save failed", err);
+      Alert.alert(
+        "エラー",
+        "プロフィールの保存に失敗しました。通信状況をご確認ください。",
+      );
       setSaving(false);
       return;
     }
@@ -97,27 +112,45 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     onSkip();
   }, [saving, onSkip]);
 
-  const isNameValid = name.trim().length > 0 && name.trim().length <= MAX_NAME_LENGTH;
+  const isNameValid =
+    name.trim().length > 0 && name.trim().length <= MAX_NAME_LENGTH;
 
   return (
-    <Modal visible={visible} onClose={handleSkip} title={'プロフィール設定'}>
+    <Modal visible={visible} onClose={handleSkip} title={"プロフィール設定"}>
       <View style={styles.content}>
         <View style={styles.avatarWrapper}>
-          <TouchableOpacity onPress={() => { void handlePickAvatar(); }} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={() => {
+              void handlePickAvatar();
+            }}
+            activeOpacity={0.8}
+          >
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.avatarLarge} />
             ) : (
               <View style={[styles.avatarLarge, styles.avatarPlaceholder]}>
-                <Ionicons name="person" size={42} color={colors.textSecondary} />
+                <Ionicons
+                  name="person"
+                  size={42}
+                  color={colors.textSecondary}
+                />
               </View>
             )}
           </TouchableOpacity>
           {avatarUri && (
-            <TouchableOpacity style={[styles.badge, styles.badgeDelete]} onPress={() => setAvatarUri(undefined)}>
+            <TouchableOpacity
+              style={[styles.badge, styles.badgeDelete]}
+              onPress={() => setAvatarUri(undefined)}
+            >
               <Ionicons name="close" size={14} color={colors.white} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={[styles.badge, styles.badgeEdit]} onPress={() => { void handlePickAvatar(); }}>
+          <TouchableOpacity
+            style={[styles.badge, styles.badgeEdit]}
+            onPress={() => {
+              void handlePickAvatar();
+            }}
+          >
             <Ionicons name="create" size={14} color={colors.white} />
           </TouchableOpacity>
         </View>
@@ -137,18 +170,39 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           autoCorrect={false}
           keyboardType="default"
           underlineColorAndroid="transparent"
-          onSubmitEditing={() => { if (isNameValid) { void saveProfile(); } }}
+          onSubmitEditing={() => {
+            if (isNameValid) {
+              void saveProfile();
+            }
+          }}
         />
         <View style={styles.underline} />
         {errorMessage ? (
-          <Text style={[styles.counter, { color: colors.error }]}>{errorMessage}</Text>
+          <Text style={[styles.counter, { color: colors.error }]}>
+            {errorMessage}
+          </Text>
         ) : (
-          <Text style={styles.counter}>{`${Math.min(nameLength, MAX_NAME_LENGTH)}/${MAX_NAME_LENGTH}`}</Text>
+          <Text
+            style={styles.counter}
+          >{`${Math.min(nameLength, MAX_NAME_LENGTH)}/${MAX_NAME_LENGTH}`}</Text>
         )}
 
         <View style={styles.actions}>
-          <Button title={'キャンセル'} variant="secondary" onPress={handleSkip} style={styles.button} disabled={saving} />
-          <Button title={saving ? '保存中...' : '保存'} onPress={() => { void saveProfile(); }} style={styles.button} disabled={saving || !isNameValid} />
+          <Button
+            title={"キャンセル"}
+            variant="secondary"
+            onPress={handleSkip}
+            style={styles.button}
+            disabled={saving}
+          />
+          <Button
+            title={saving ? "保存中..." : "保存"}
+            onPress={() => {
+              void saveProfile();
+            }}
+            style={styles.button}
+            disabled={saving || !isNameValid}
+          />
         </View>
       </View>
     </Modal>
@@ -157,8 +211,8 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
 const styles = StyleSheet.create({
   content: {
-    paddingVertical: spacing['2xl'],
-    alignItems: 'center',
+    paddingVertical: spacing["2xl"],
+    alignItems: "center",
   },
   avatarWrapper: {
     width: 120,
@@ -166,9 +220,9 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 2,
     borderColor: colors.borderPrimary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
     marginBottom: spacing.xl,
     backgroundColor: colors.white,
   },
@@ -178,19 +232,19 @@ const styles = StyleSheet.create({
     borderRadius: 56,
   },
   avatarPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 56,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     width: 24,
     height: 24,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
@@ -209,13 +263,13 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
   },
   nameInput: {
-    width: '80%',
-    textAlign: 'center',
+    width: "80%",
+    textAlign: "center",
     fontSize: typography.fontSize.lg,
     color: colors.textPrimary,
   },
   underline: {
-    width: '80%',
+    width: "80%",
     height: 2,
     backgroundColor: colors.primary,
     marginTop: 4,
@@ -226,8 +280,8 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
   },
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     columnGap: spacing.lg,
     marginTop: spacing.xl,
   },

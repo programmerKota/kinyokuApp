@@ -18,7 +18,7 @@ function locToKey(loc) {
 // behavior here for our use case.
 function importLocationsPlugin() {
   return {
-    name: 'metro-import-locations-shim',
+    name: "metro-import-locations-shim",
     visitor: {},
   };
 }

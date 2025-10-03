@@ -1,7 +1,5 @@
-import type { Unsubscribe } from 'firebase/firestore';
-import { doc, onSnapshot } from 'firebase/firestore';
-
-import { db } from '@app/config/firebase.config';
+type Unsubscribe = () => void;
+import { supabase } from "@app/config/supabase.config";
 
 export interface UserProfileLite {
   displayName?: string;
@@ -44,21 +42,48 @@ export class ProfileCache {
 
     // start snapshot if not started
     if (!entry.unsub) {
-      entry.unsub = onSnapshot(doc(db, 'users', userId), (snap) => {
-        const d = snap.data() as any | undefined;
-        const next = d ? { displayName: d.displayName, photoURL: d.photoURL } : undefined;
-        const prev = entry.data;
-        // shallow equality check to avoid noisy emits
-        const changed =
-          !prev ||
-          !next ||
-          prev.displayName !== next.displayName ||
-          prev.photoURL !== next.photoURL;
-        if (changed) {
-          entry.data = next;
-          entry.listeners.forEach((l) => l(entry.data));
+      let cancelled = false;
+      let timer: any;
+      const tick = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("displayName, photoURL")
+            .eq("id", userId)
+            .maybeSingle();
+          if (error) throw error;
+          if (!cancelled) {
+            const next = data
+              ? {
+                  displayName: (data as any).displayName ?? undefined,
+                  photoURL: (data as any).photoURL ?? undefined,
+                }
+              : undefined;
+            const prev = entry.data;
+            const changed =
+              !prev ||
+              !next ||
+              prev.displayName !== next?.displayName ||
+              prev.photoURL !== next?.photoURL;
+            if (changed) {
+              entry.data = next;
+              entry.listeners.forEach((l) => l(entry.data));
+            }
+          }
+        } catch {
+          // noop
+        } finally {
+          if (!cancelled)
+            timer = setTimeout(() => {
+              void tick();
+            }, 5000);
         }
-      });
+      };
+      void tick();
+      entry.unsub = () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
     }
 
     // cancel idle timer if any
@@ -119,7 +144,9 @@ export class ProfileCache {
     if (e.unsub) {
       try {
         e.unsub();
-      } catch {}
+      } catch {
+        // noop
+      }
     }
     this.entries.delete(userId);
   }

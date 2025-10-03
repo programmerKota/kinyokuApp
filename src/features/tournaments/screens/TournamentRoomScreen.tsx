@@ -1,28 +1,39 @@
-﻿import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import React, { useState, useEffect, useRef } from 'react';
-import { Alert, View, Text, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, FlatList } from 'react-native';
+﻿import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 
-import Button from '@shared/components/Button';
-import ConfirmDialog from '@shared/components/ConfirmDialog';
-import KeyboardAwareScrollView from '@shared/components/KeyboardAwareScrollView';
-import UserProfileWithRank from '@shared/components/UserProfileWithRank';
-import { useAuth } from '@app/contexts/AuthContext';
-import type { TournamentStackParamList } from '@app/navigation/TournamentStackNavigator';
-import { TournamentService, handleFirestoreError } from '@core/services/firestore';
-import type { FirestoreTournamentMessage } from '@core/services/firestore';
-import { UserStatsService } from '@core/services/userStatsService';
-import UserService from '@core/services/userService';
-import MessageBubble from '@features/tournaments/components/MessageBubble';
-import MessageInput from '@features/tournaments/components/MessageInput';
-import { colors, spacing, typography, shadows } from '@shared/theme';
-import { navigateToUserDetail } from '@shared/utils/navigation';
-import { toDate } from '@shared/utils/date';
+import { useAuth } from "@app/contexts/AuthContext";
+import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
+import {
+  TournamentService,
+  handleFirestoreError,
+} from "@core/services/firestore";
+import UserService from "@core/services/userService";
+import { UserStatsService } from "@core/services/userStatsService";
+import MessageBubble from "@features/tournaments/components/MessageBubble";
+import MessageInput from "@features/tournaments/components/MessageInput";
+import Button from "@shared/components/Button";
+import ConfirmDialog from "@shared/components/ConfirmDialog";
+import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
+import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import { colors, spacing, typography, shadows } from "@shared/theme";
+import { toDate } from "@shared/utils/date";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 type TournamentRoomScreenNavigationProp = StackNavigationProp<
   TournamentStackParamList,
-  'TournamentRoom'
+  "TournamentRoom"
 >;
 
 interface Message {
@@ -31,7 +42,7 @@ interface Message {
   authorName: string;
   text: string;
   timestamp: Date;
-  type: 'text' | 'system';
+  type: "text" | "system";
   avatar?: string;
 }
 
@@ -39,8 +50,8 @@ interface Participant {
   id: string;
   name: string;
   avatar?: string;
-  role: 'owner' | 'member';
-  status: 'joined' | 'left' | 'kicked' | 'completed' | 'failed';
+  role: "owner" | "member";
+  status: "joined" | "left" | "kicked" | "completed" | "failed";
   progressPercent?: number;
   currentDay?: number;
 }
@@ -60,19 +71,25 @@ interface TournamentRoomScreenProps {
   };
 }
 
-const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) => {
+const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
+  route,
+}) => {
   const navigation = useNavigation<TournamentRoomScreenNavigationProp>();
   const { tournamentId } = route.params;
-  const [activeTab, setActiveTab] = useState<'chat' | 'participants'>('chat');
+  const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat");
   const { user } = useAuth();
 
   // チャットメッセージ
   const [messages, setMessages] = useState<Message[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [tournament, setTournament] = useState<{ ownerId?: string } | null>(null);
+  const [tournament, setTournament] = useState<{ ownerId?: string } | null>(
+    null,
+  );
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   // const [loading, setLoading] = useState(true);
-  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
+  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
+    new Map(),
+  );
 
   // スクロール制御
   const listRef = useRef<FlatList<Message>>(null);
@@ -117,14 +134,14 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
                 const appended = [...news]
                   .reverse()
                   .map((msg) => ({
-                  id: msg.id,
-                  authorId: msg.authorId,
-                  authorName: msg.authorName,
-                  text: msg.text,
-                  timestamp: toDate(msg.createdAt),
-                  type: msg.type,
-                  avatar: msg.authorAvatar,
-                }))
+                    id: msg.id,
+                    authorId: msg.authorId,
+                    authorName: msg.authorName,
+                    text: msg.text,
+                    timestamp: toDate(msg.createdAt),
+                    type: msg.type,
+                    avatar: msg.authorAvatar,
+                  }))
                   .filter((m) => !existing.has(m.id));
                 if (appended.length === 0) return prev;
                 return [...appended, ...prev];
@@ -133,9 +150,9 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
           );
         }
         // keep cursor for older loads
-        setOlderCursor(nextCursor as any);
+        setOlderCursor(nextCursor);
       } catch (e) {
-        console.warn('failed to init chat messages:', e);
+        console.warn("failed to init chat messages:", e);
       }
     })();
     return () => {
@@ -166,7 +183,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
         avatar: msg.authorAvatar,
       }));
       setMessages((prev) => [...prev, ...olderDesc]);
-      setOlderCursor(nextCursor as any);
+      setOlderCursor(nextCursor);
     } finally {
       setLoadingMore(false);
     }
@@ -178,7 +195,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
     let unsubscribeRequests: undefined | (() => void);
     const init = async () => {
       try {
-        const tournamentData = await TournamentService.getTournament(tournamentId);
+        const tournamentData =
+          await TournamentService.getTournament(tournamentId);
         setTournament(tournamentData);
         // オーナー情報を取得。Firestore優先、なければローカルにフォールバック
         let ownerDisplayName: string | undefined;
@@ -186,10 +204,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
         try {
           if (tournamentData?.ownerId) {
             const owner = await (
-              await import('@core/services/firestore')
+              await import("@core/services/firestore")
             ).FirestoreUserService.getUserById(tournamentData.ownerId);
             ownerDisplayName = owner?.displayName;
-            ownerAvatarUrl = owner?.photoURL;
+            ownerAvatarUrl = owner?.photoURL ?? undefined;
           }
         } catch {
           // noop
@@ -213,31 +231,33 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
           tournamentId,
           async (list) => {
             // オーナーが含まれていなければ追加
-            const ownerExists = list.some((p) => p.userId === tournamentData?.ownerId);
+            const ownerExists = list.some(
+              (p) => p.userId === tournamentData?.ownerId,
+            );
             const all =
               ownerExists || !tournamentData?.ownerId
                 ? list
                 : [
-                  {
-                    id: 'owner-participant',
-                    tournamentId,
-                    userId: tournamentData.ownerId,
-                    userName: ownerDisplayName || 'ユーザー',
-                    userAvatar: ownerAvatarUrl,
-                    status: 'joined',
-                    joinedAt: tournamentData.createdAt,
-                    progressPercent: 0,
-                    currentDay: 0,
-                  },
-                  ...list,
-                ];
+                    {
+                      id: "owner-participant",
+                      tournamentId,
+                      userId: tournamentData.ownerId,
+                      userName: ownerDisplayName || "ユーザー",
+                      userAvatar: ownerAvatarUrl,
+                      status: "joined",
+                      joinedAt: tournamentData.createdAt,
+                      progressPercent: 0,
+                      currentDay: 0,
+                    },
+                    ...list,
+                  ];
 
             const converted: Participant[] = all.map((p) => ({
               id: p.userId,
               name: p.userName,
               avatar: p.userAvatar,
-              role: p.userId === tournamentData?.ownerId ? 'owner' : 'member',
-              status: p.status as Participant['status'],
+              role: p.userId === tournamentData?.ownerId ? "owner" : "member",
+              status: p.status as Participant["status"],
               progressPercent: p.progressPercent,
               currentDay: p.currentDay,
             }));
@@ -253,7 +273,11 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
                 );
                 averageDaysMap.set(participant.id, days);
               } catch (error) {
-                console.error('ユーザーの平均日数取得に失敗', participant.id, error);
+                console.error(
+                  "ユーザーの平均日数取得に失敗",
+                  participant.id,
+                  error,
+                );
                 averageDaysMap.set(participant.id, 0);
               }
             }
@@ -265,45 +289,55 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({ route }) =>
         unsubscribeRequests = TournamentService.subscribeToJoinRequests(
           tournamentId,
           (reqs) => {
-            const pending = reqs.filter((r) => r.status === 'pending');
+            const pending = reqs.filter((r) => r.status === "pending");
             const mapped: JoinRequest[] = pending.map((r) => ({
               id: r.id,
               userId: r.userId,
               userName: r.userName,
-              userAvatar: r.userAvatar,
+              userAvatar: r.userAvatar ?? undefined,
             }));
             setJoinRequests(mapped);
           },
         );
-} catch (e) {
-  console.error('トーナメントの参加者取得でエラーが発生しました:', e);
-  Alert.alert('エラー', 'トーナメントの参加者取得でエラーが発生しました');
-}
+      } catch (e) {
+        console.error("トーナメントの参加者取得でエラーが発生しました:", e);
+        Alert.alert("エラー", "トーナメントの参加者取得でエラーが発生しました");
+      }
     };
-void init();
-return () => {
-  if (unsubscribeParticipants) unsubscribeParticipants();
-  if (unsubscribeRequests) unsubscribeRequests();
-};
+    void init();
+    return () => {
+      if (unsubscribeParticipants) unsubscribeParticipants();
+      if (unsubscribeRequests) unsubscribeRequests();
+    };
   }, [tournamentId]);
 
-const handleApprove = async (requestId: string) => {
-  try {
-    await TournamentService.approveJoinRequest(requestId);
-  } catch (e) {
-    const err = handleFirestoreError(e);
-    setConfirm({ visible: true, title: 'エラー', message: err.message, onConfirm: () => setConfirm({ visible: false }) });
-  }
-};
+  const handleApprove = async (requestId: string) => {
+    try {
+      await TournamentService.approveJoinRequest(requestId);
+    } catch (e) {
+      const err = handleFirestoreError(e);
+      setConfirm({
+        visible: true,
+        title: "エラー",
+        message: err.message,
+        onConfirm: () => setConfirm({ visible: false }),
+      });
+    }
+  };
 
-const handleReject = async (requestId: string) => {
-  try {
-    await TournamentService.rejectJoinRequest(requestId);
-  } catch (e) {
-    const err = handleFirestoreError(e);
-    setConfirm({ visible: true, title: 'エラー', message: err.message, onConfirm: () => setConfirm({ visible: false }) });
-  }
-};
+  const handleReject = async (requestId: string) => {
+    try {
+      await TournamentService.rejectJoinRequest(requestId);
+    } catch (e) {
+      const err = handleFirestoreError(e);
+      setConfirm({
+        visible: true,
+        title: "エラー",
+        message: err.message,
+        onConfirm: () => setConfirm({ visible: false }),
+      });
+    }
+  };
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -312,11 +346,11 @@ const handleReject = async (requestId: string) => {
     const localId = `local-${Date.now()}`;
     const optimistic: Message = {
       id: localId,
-      authorId: user?.uid || 'me',
-      authorName: user?.displayName || 'あなた',
+      authorId: user?.uid || "me",
+      authorName: user?.displayName || "あなた",
       text: text.trim(),
       timestamp: new Date(),
-      type: 'text',
+      type: "text",
       avatar: user?.avatarUrl || undefined,
     };
     // desc: newest first → 先頭に追加
@@ -325,7 +359,10 @@ const handleReject = async (requestId: string) => {
     try {
       // メッセージポートエラー対策のため、タイムアウトを設定
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('メッセージ送信がタイムアウトしました')), 10000);
+        setTimeout(
+          () => reject(new Error("メッセージ送信がタイムアウトしました")),
+          10000,
+        );
       });
 
       const sendPromise = TournamentService.sendMessage(
@@ -333,10 +370,15 @@ const handleReject = async (requestId: string) => {
         text.trim(),
       );
 
-      const newId = (await Promise.race([sendPromise, timeoutPromise])) as string;
+      const newId = (await Promise.race([
+        sendPromise,
+        timeoutPromise,
+      ])) as string;
       // サーバIDに置き換え。既に同IDのサーバメッセージが来ていれば重複除去
       setMessages((prev) => {
-        const mapped = prev.map((m) => (m.id === localId ? { ...m, id: newId } : m));
+        const mapped = prev.map((m) =>
+          m.id === localId ? { ...m, id: newId } : m,
+        );
         const seen = new Set<string>();
         const dedup: Message[] = [];
         for (const m of mapped) {
@@ -349,57 +391,76 @@ const handleReject = async (requestId: string) => {
     } catch (error) {
       // 失敗時は楽観的メッセージを除去
       setMessages((prev) => prev.filter((m) => m.id !== localId));
-  console.error('メッセージの送信でエラーが発生しました:', error);
+      console.error("メッセージの送信でエラーが発生しました:", error);
 
-  // メッセージポートエラーの場合の特別な処理
-  if (error instanceof Error && error.message.includes('message port')) {
-    console.warn('メッセージポートエラーが発生しましたが、メッセージは送信された可能性があります');
-    return; // エラーを表示せずに処理を継続
-  }
-
-  const firestoreError = handleFirestoreError(error);
-  Alert.alert('エラー', firestoreError.message);
-}
-  };
-
-const handleBack = () => {
-  navigation.goBack();
-};
-
-const renderMessage = ({ item }: { item: Message }) => {
-  const isOwn = user ? item.authorId === user.uid : false;
-
-  return (
-    <MessageBubble
-      message={item}
-      isOwn={isOwn}
-      onUserPress={(uid, uname, uavatar) =>
-        navigateToUserDetail(navigation, uid, uname, uavatar)
+      // メッセージポートエラーの場合の特別な処理
+      if (error instanceof Error && error.message.includes("message port")) {
+        console.warn(
+          "メッセージポートエラーが発生しましたが、メッセージは送信された可能性があります",
+        );
+        return; // エラーを表示せずに処理を継続
       }
-    />
-  );
-};
 
-const handleParticipantPress = (participant: Participant) => {
-  navigateToUserDetail(navigation, participant.id, participant.name, participant.avatar);
-};
-
-const [confirm, setConfirm] = useState<{ visible: boolean; title?: string; message?: string; onConfirm?: () => void; loading?: boolean }>({ visible: false });
-
-const handleKick = async (p: Participant) => {
-  if (!tournament || user?.uid !== tournament.ownerId || p.role === 'owner') return;
-  const doKick = async () => {
-    try {
-      await TournamentService.kickParticipant(tournamentId, p.id);
-    } catch (e) {
-      const err = handleFirestoreError(e);
-      setConfirm({ visible: true, title: 'エラー', message: err.message, onConfirm: () => setConfirm({ visible: false }) });
+      const firestoreError = handleFirestoreError(error);
+      Alert.alert("エラー", firestoreError.message);
     }
   };
-  setConfirm({
-    visible: true,
-    title: '参加者を削除',
-    message: `「${p.name}」を参加者から削除します。よろしいですか？`,
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const renderMessage = ({ item }: { item: Message }) => {
+    const isOwn = user ? item.authorId === user.uid : false;
+
+    return (
+      <MessageBubble
+        message={item}
+        isOwn={isOwn}
+        onUserPress={(uid, uname, uavatar) =>
+          navigateToUserDetail(navigation, uid, uname, uavatar)
+        }
+      />
+    );
+  };
+
+  const handleParticipantPress = (participant: Participant) => {
+    navigateToUserDetail(
+      navigation,
+      participant.id,
+      participant.name,
+      participant.avatar,
+    );
+  };
+
+  const [confirm, setConfirm] = useState<{
+    visible: boolean;
+    title?: string;
+    message?: string;
+    onConfirm?: () => void;
+    loading?: boolean;
+  }>({ visible: false });
+
+  const handleKick = (p: Participant) => {
+    if (!tournament || user?.uid !== tournament.ownerId || p.role === "owner")
+      return;
+    const doKick = async () => {
+      try {
+        await TournamentService.kickParticipant(tournamentId, p.id);
+      } catch (e) {
+        const err = handleFirestoreError(e);
+        setConfirm({
+          visible: true,
+          title: "エラー",
+          message: err.message,
+          onConfirm: () => setConfirm({ visible: false }),
+        });
+      }
+    };
+    setConfirm({
+      visible: true,
+      title: "参加者を削除",
+      message: `「${p.name}」を参加者から削除します。よろしいですか？`,
       onConfirm: async () => {
         setConfirm((s) => ({ ...s, loading: true }));
         await doKick();
@@ -414,7 +475,9 @@ const handleKick = async (p: Participant) => {
       onPress={() => handleParticipantPress(item)}
       activeOpacity={0.8}
     >
-      {tournament && user?.uid === tournament.ownerId && item.role !== 'owner' ? (
+      {tournament &&
+      user?.uid === tournament.ownerId &&
+      item.role !== "owner" ? (
         <TouchableOpacity
           onPress={() => handleKick(item)}
           activeOpacity={0.8}
@@ -440,7 +503,10 @@ const handleKick = async (p: Participant) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.backgroundTertiary}
+      />
 
       {/* ヘッダー */}
       <View style={styles.header}>
@@ -454,21 +520,35 @@ const handleKick = async (p: Participant) => {
       {/* タブ */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'chat' && styles.activeTab]}
-          onPress={() => setActiveTab('chat')}
+          style={[styles.tab, activeTab === "chat" && styles.activeTab]}
+          onPress={() => setActiveTab("chat")}
         >
-          <Text style={[styles.tabText, activeTab === 'chat' && styles.activeTabText]}>チャット</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "chat" && styles.activeTabText,
+            ]}
+          >
+            チャット
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'participants' && styles.activeTab]}
-          onPress={() => setActiveTab('participants')}
+          style={[styles.tab, activeTab === "participants" && styles.activeTab]}
+          onPress={() => setActiveTab("participants")}
         >
-          <Text style={[styles.tabText, activeTab === 'participants' && styles.activeTabText]}>参加者</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "participants" && styles.activeTabText,
+            ]}
+          >
+            参加者
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* コンテンツ */}
-      {activeTab === 'chat' ? (
+      {activeTab === "chat" ? (
         <KeyboardAwareScrollView style={styles.chatContainer}>
           <FlatList
             data={messages}
@@ -494,23 +574,35 @@ const handleKick = async (p: Participant) => {
 
           {(() => {
             const canSend = Boolean(
-              user && (
-                (tournament && tournament.ownerId === user.uid) ||
-                participants.some((p) => p.id === user.uid && p.status === 'joined')
-              ),
+              user &&
+                ((tournament && tournament.ownerId === user.uid) ||
+                  participants.some(
+                    (p) => p.id === user.uid && p.status === "joined",
+                  )),
             );
             return canSend ? (
               <MessageInput onSend={handleSendMessage} />
             ) : (
-              <View style={{ padding: spacing.lg, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.borderPrimary }}>
-                <Text style={{ color: colors.textSecondary }}>参加者のみメッセージを送信できます</Text>
+              <View
+                style={{
+                  padding: spacing.lg,
+                  backgroundColor: colors.white,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.borderPrimary,
+                }}
+              >
+                <Text style={{ color: colors.textSecondary }}>
+                  参加者のみメッセージを送信できます
+                </Text>
               </View>
             );
           })()}
         </KeyboardAwareScrollView>
       ) : (
         <View style={styles.participantsList}>
-          {tournament && user?.uid === tournament.ownerId && joinRequests.length > 0 ? (
+          {tournament &&
+          user?.uid === tournament.ownerId &&
+          joinRequests.length > 0 ? (
             <View style={styles.requestsSection}>
               <Text style={styles.requestsTitle}>参加申請</Text>
               {joinRequests.map((r) => (
@@ -525,8 +617,22 @@ const handleKick = async (p: Participant) => {
                     style={styles.requestProfile}
                   />
                   <View style={styles.requestActions}>
-                    <Button title="承認" size="small" variant="primary" onPress={() => { void handleApprove(r.id); }} />
-                    <Button title="却下" size="small" variant="danger" onPress={() => { void handleReject(r.id); }} />
+                    <Button
+                      title="承認"
+                      size="small"
+                      variant="primary"
+                      onPress={() => {
+                        void handleApprove(r.id);
+                      }}
+                    />
+                    <Button
+                      title="却下"
+                      size="small"
+                      variant="danger"
+                      onPress={() => {
+                        void handleReject(r.id);
+                      }}
+                    />
                   </View>
                 </View>
               ))}
@@ -543,10 +649,10 @@ const handleKick = async (p: Participant) => {
       )}
       <ConfirmDialog
         visible={confirm.visible}
-        title={confirm.title || ''}
+        title={confirm.title || ""}
         message={confirm.message}
-        confirmText={confirm.title === '参加者を削除' ? '削除' : 'OK'}
-        cancelText={'キャンセル'}
+        confirmText={confirm.title === "参加者を削除" ? "削除" : "OK"}
+        cancelText={"キャンセル"}
         onConfirm={confirm.onConfirm || (() => setConfirm({ visible: false }))}
         onCancel={() => setConfirm({ visible: false })}
         loading={!!confirm.loading}
@@ -561,8 +667,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundTertiary,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     backgroundColor: colors.white,
@@ -575,9 +681,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.gray800,
-    textAlign: 'center',
+    textAlign: "center",
   },
   placeholder: {
     width: 40,
@@ -586,7 +692,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
@@ -594,7 +700,7 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     paddingVertical: spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
   activeTab: {
     borderBottomWidth: 2,
@@ -602,7 +708,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
   },
   activeTabText: {
@@ -630,14 +736,14 @@ const styles = StyleSheet.create({
   },
   requestsTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.gray800,
     marginBottom: spacing.md,
   },
   requestRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.borderPrimary,
@@ -646,12 +752,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   requestActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
   },
   participantItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
     padding: spacing.lg,
     marginBottom: spacing.md,
@@ -666,25 +772,25 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.error,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     fontSize: typography.fontSize.base,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
   },
   participantInfo: {
     flex: 1,
   },
   participantHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   participantName: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.gray800,
   },
   progressText: {
@@ -694,4 +800,3 @@ const styles = StyleSheet.create({
 });
 
 export default TournamentRoomScreen;
-

@@ -90,7 +90,7 @@ export interface StrictModerationInfo {
   reasons?: string[];
   severity?: number; // 1-5
   checkedAt?: Date;
-  checkedBy?: "auto" | string; // uid or auto
+  checkedBy?: string; // uid or system marker
 }
 
 // 支払い関連の厳密な型定義
@@ -214,7 +214,3 @@ export interface StrictStats {
   totalPosts: number;
   lastUpdated: Date;
 }
-
-
-
-

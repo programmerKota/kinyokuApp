@@ -1,10 +1,9 @@
-﻿import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { toDate } from '@shared/utils/date';
-import type { Challenge } from '@project-types';
+﻿import { supabase } from "@app/config/supabase.config";
+import { toDate } from "@shared/utils/date";
+// import type { Challenge } from "@project-types";
 
-import { FirestoreUserService } from './firestore';
-import { StatsService } from './statsService';
-import { db, COLLECTIONS } from '@app/config/firebase.config';
+import { FirestoreUserService } from "./firestore";
+// import { StatsService } from "./statsService";
 
 export interface UserRanking {
   id: string;
@@ -23,22 +22,25 @@ export class RankingService {
    */
   static async getUserRankings(): Promise<UserRanking[]> {
     try {
-      // 現在挑戦中（active）の継続時間でランキング
-      const challengesSnap = await getDocs(
-        query(collection(db, COLLECTIONS.CHALLENGES), where('status', '==', 'active')),
-      );
-      if (challengesSnap.empty) return [];
+      // 現在挑戦中（active）の継続時間でランキング（Supabase）
+      const { data, error } = await supabase
+        .from("challenges")
+        .select("userId, startedAt, status")
+        .eq("status", "active");
+      if (error) throw error;
+      type Row = { userId: string; startedAt: string; status: string };
+      const rows = (data || []) as Row[];
+      if (rows.length === 0) return [];
 
       const now = Date.now();
       // Map: userId -> latest active challenge start time
       const latestActiveByUser = new Map<string, Date | undefined>();
 
-      challengesSnap.docs.forEach((d) => {
-        const data = d.data() as Record<string, unknown>;
-        const userId = data.userId as string | undefined;
-        const status = data.status as string | undefined;
-        if (!userId || status !== 'active') return;
-        const startedAt = toDate((data as any).startedAt);
+      rows.forEach((r) => {
+        const userId = r.userId as string | undefined;
+        const status = r.status as string | undefined;
+        if (!userId || status !== "active") return;
+        const startedAt = toDate(r.startedAt);
         // 1ユーザーに1件想定。念のため最新 startedAt を採用。
         const prev = latestActiveByUser.get(userId);
         if (!prev || (prev?.getTime?.() || 0) < (startedAt?.getTime?.() || 0)) {
@@ -57,8 +59,8 @@ export class RankingService {
 
         rankings.push({
           id: userId,
-          name: userInfo?.displayName || 'ユーザー',
-          avatar: userInfo?.photoURL,
+          name: userInfo?.displayName || "ユーザー",
+          avatar: userInfo?.photoURL ?? undefined,
           averageTime: duration, // フィールド名は互換のためそのまま
           totalChallenges: 1,
           completedChallenges: 0,
@@ -71,7 +73,7 @@ export class RankingService {
       rankings.forEach((r, i) => (r.rank = i + 1));
       return rankings;
     } catch (error) {
-      console.error('RankingService.getUserRankings error:', error);
+      console.error("RankingService.getUserRankings error:", error);
       return [];
     }
   }
@@ -81,26 +83,34 @@ export class RankingService {
    */
   private static async getUserChallenges(userId: string) {
     try {
-      const challengesSnapshot = await getDocs(
-        query(
-          collection(db, COLLECTIONS.CHALLENGES),
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc'),
-        ),
-      );
-
-      return challengesSnapshot.docs.map((doc) => {
-        const data = doc.data() as Record<string, unknown>;
-        return {
-          id: doc.id,
-          ...data,
-          startedAt: toDate((data as any).startedAt),
-          completedAt: (data as any).completedAt ? toDate((data as any).completedAt) : null,
-          failedAt: (data as any).failedAt ? toDate((data as any).failedAt) : null,
-        } as Challenge;
-      });
+      const { data, error } = await supabase
+        .from("challenges")
+        .select("*")
+        .eq("userId", userId)
+        .order("createdAt", { ascending: false });
+      if (error) throw error;
+      type CRow = {
+        id: string;
+        userId: string;
+        goalDays: number;
+        penaltyAmount: number;
+        status: string;
+        startedAt: string;
+        completedAt?: string | null;
+        failedAt?: string | null;
+        totalPenaltyPaid?: number;
+        createdAt: string;
+        updatedAt: string;
+      };
+      return ((data || []) as CRow[]).map((row) => ({
+        id: row.id,
+        ...row,
+        startedAt: toDate(row.startedAt),
+        completedAt: row.completedAt ? toDate(row.completedAt) : null,
+        failedAt: row.failedAt ? toDate(row.failedAt) : null,
+      }));
     } catch (error) {
-      console.error('RankingService.getUserChallenges error:', error);
+      console.error("RankingService.getUserChallenges error:", error);
       return [];
     }
   }

@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useAuth } from '@app/contexts/AuthContext';
-import { ChallengeService, PaymentFirestoreService } from '@core/services/firestore';
-import { PaymentService } from '@core/services/payments/paymentService';
-import { useModal } from '@shared/hooks';
+import { useAuth } from "@app/contexts/AuthContext";
+import {
+  ChallengeService,
+  PaymentFirestoreService,
+} from "@core/services/firestore";
+import { PaymentService } from "@core/services/payments/paymentService";
+import { useModal } from "@shared/hooks";
 
-export type ChallengeStatus = 'active' | 'completed' | 'failed' | 'paused';
+export type ChallengeStatus = "active" | "completed" | "failed" | "paused";
 
 export interface CurrentSession {
   id: string;
@@ -44,7 +47,7 @@ export interface UseTimerActions {
 function safeToDate(input: unknown): Date | undefined {
   if (!input) return undefined;
   if (input instanceof Date) return input;
-  if (typeof (input as { toDate?: () => Date })?.toDate === 'function') {
+  if (typeof (input as { toDate?: () => Date })?.toDate === "function") {
     try {
       return (input as { toDate: () => Date }).toDate();
     } catch {
@@ -63,30 +66,35 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
   const [penaltyAmount, setPenaltyAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isStarting, setIsStarting] = useState<boolean>(false);
-  const [currentSession, setCurrentSession] = useState<CurrentSession | null>(null);
+  const [currentSession, setCurrentSession] = useState<CurrentSession | null>(
+    null,
+  );
   const [actualDuration, setActualDuration] = useState<number>(0);
 
   useEffect(() => {
     if (!user?.uid) return;
     setIsLoading(true);
-    const unsubscribe = ChallengeService.subscribeToActiveChallenge(user.uid, (activeChallenge) => {
-      if (activeChallenge) {
-        const startedAt = safeToDate(activeChallenge.startedAt) ?? new Date();
-        const session: CurrentSession = {
-          id: activeChallenge.id,
-          goalDays: activeChallenge.goalDays,
-          penaltyAmount: activeChallenge.penaltyAmount,
-          status: activeChallenge.status as ChallengeStatus,
-          startedAt,
-          completedAt: safeToDate(activeChallenge.completedAt) ?? null,
-          failedAt: safeToDate(activeChallenge.failedAt) ?? null,
-        };
-        setCurrentSession(session);
-      } else {
-        setCurrentSession(null);
-      }
-      setIsLoading(false);
-    });
+    const unsubscribe = ChallengeService.subscribeToActiveChallenge(
+      user.uid,
+      (activeChallenge) => {
+        if (activeChallenge) {
+          const startedAt = safeToDate(activeChallenge.startedAt) ?? new Date();
+          const session: CurrentSession = {
+            id: activeChallenge.id,
+            goalDays: activeChallenge.goalDays,
+            penaltyAmount: activeChallenge.penaltyAmount,
+            status: activeChallenge.status as ChallengeStatus,
+            startedAt,
+            completedAt: safeToDate(activeChallenge.completedAt) ?? null,
+            failedAt: safeToDate(activeChallenge.failedAt) ?? null,
+          };
+          setCurrentSession(session);
+        } else {
+          setCurrentSession(null);
+        }
+        setIsLoading(false);
+      },
+    );
     return () => unsubscribe();
   }, [user?.uid]);
 
@@ -94,9 +102,9 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
     if (!currentSession) return 0;
     const startTime = currentSession.startedAt.getTime();
     const endTime =
-      currentSession.status === 'completed' && currentSession.completedAt
+      currentSession.status === "completed" && currentSession.completedAt
         ? currentSession.completedAt.getTime()
-        : currentSession.status === 'failed' && currentSession.failedAt
+        : currentSession.status === "failed" && currentSession.failedAt
           ? currentSession.failedAt.getTime()
           : Date.now();
     return Math.floor((endTime - startTime) / 1000);
@@ -116,25 +124,29 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
   const totalSeconds = currentSession
     ? currentSession.goalDays * 24 * 60 * 60
     : goalDays * 24 * 60 * 60;
-  const progressPercent = currentSession ? Math.min((actualDuration / totalSeconds) * 100, 100) : 0;
-  const isGoalAchieved = currentSession ? actualDuration >= totalSeconds : false;
+  const progressPercent = currentSession
+    ? Math.min((actualDuration / totalSeconds) * 100, 100)
+    : 0;
+  const isGoalAchieved = currentSession
+    ? actualDuration >= totalSeconds
+    : false;
 
   const startChallenge = useCallback(
     async (days: number, amount: number) => {
-      if (!user?.uid) throw new Error('ユーザーが認証されていません');
+      if (!user?.uid) throw new Error("ユーザーが認証されていません");
       if (isStarting) return;
       setIsStarting(true);
       try {
         const existing = await ChallengeService.getActiveChallenge(user.uid);
         if (existing) {
-          throw new Error('ALREADY_ACTIVE');
+          throw new Error("ALREADY_ACTIVE");
         }
         const now = new Date();
         await ChallengeService.createChallenge({
           userId: user.uid,
           goalDays: days,
           penaltyAmount: amount,
-          status: 'active' as const,
+          status: "active" as const,
           startedAt: now,
           completedAt: null,
           failedAt: null,
@@ -149,22 +161,24 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
 
   const stopChallenge = useCallback(
     async (isCompleted: boolean) => {
-      if (!currentSession) throw new Error('進行中のチャレンジがありません');
+      if (!currentSession) throw new Error("進行中のチャレンジがありません");
       setIsLoading(true);
       try {
         const now = new Date();
 
         // If failed and penalty > 0, request in-app purchase first
         if (!isCompleted && currentSession.penaltyAmount > 0) {
-          const result = await PaymentService.payPenalty(currentSession.penaltyAmount);
+          const result = await PaymentService.payPenalty(
+            currentSession.penaltyAmount,
+          );
           // Record payment (best-effort)
           try {
             if (user?.uid) {
               await PaymentFirestoreService.addPayment({
                 userId: user.uid,
                 amount: currentSession.penaltyAmount,
-                type: 'penalty',
-                status: 'completed',
+                type: "penalty",
+                status: "completed",
                 transactionId: result.transactionId,
               } as any);
             }
@@ -172,7 +186,9 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
         }
 
         await ChallengeService.updateChallenge(currentSession.id, {
-          status: (isCompleted ? 'completed' : 'failed') as 'completed' | 'failed',
+          status: (isCompleted ? "completed" : "failed") as
+            | "completed"
+            | "failed",
           completedAt: isCompleted ? now : null,
           failedAt: !isCompleted ? now : null,
           totalPenaltyPaid: isCompleted ? 0 : currentSession.penaltyAmount,

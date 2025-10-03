@@ -5,7 +5,7 @@ Two reliable ways to test on device with real backend data.
 - Internal Build (recommended)
   - No Metro, no LAN issues. The app contains your env and talks directly to Firebase/RevenueCat.
   - Steps:
-    1) Add EAS Secrets (public runtime envs):
+    1. Add EAS Secrets (public runtime envs):
        - EXPO_PUBLIC_RC_API_KEY
        - EXPO_PUBLIC_FIREBASE_API_KEY
        - EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
@@ -15,8 +15,8 @@ Two reliable ways to test on device with real backend data.
        - EXPO_PUBLIC_FIREBASE_APP_ID
        - Command example:
          - eas secret:create --scope project --name EXPO_PUBLIC_RC_API_KEY --value <key>
-    2) Build + install: npm run build:ios:preview
-    3) Open the link on your iPhone and install.
+    2. Build + install: npm run build:ios:preview
+    3. Open the link on your iPhone and install.
 
 - Dev Client over LAN (no tunnel)
   - Ensure PC and iPhone are on the same Wi‑Fi and firewall allows Node.js.
@@ -25,5 +25,6 @@ Two reliable ways to test on device with real backend data.
   - The URL should be exp://<your-pc-ip>:8081.
 
 Notes
+
 - Do not set emulator envs when testing on device.
 - Purchases use RevenueCat when EXPO_PUBLIC_RC_API_KEY is present and EXPO_PUBLIC_PAYMENTS_DEV_MODE is not true.

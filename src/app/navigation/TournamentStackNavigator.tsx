@@ -1,9 +1,9 @@
-import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
 
-import TournamentsScreen from '@features/tournaments/screens/TournamentsScreen';
-import TournamentRoomScreen from '@features/tournaments/screens/TournamentRoomScreen';
-import UserDetailScreen from '@features/profile/screens/UserDetailScreen';
+import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
+import TournamentRoomScreen from "@features/tournaments/screens/TournamentRoomScreen";
+import TournamentsScreen from "@features/tournaments/screens/TournamentsScreen";
 
 export type TournamentStackParamList = {
   TournamentsList: undefined;

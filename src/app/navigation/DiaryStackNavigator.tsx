@@ -1,7 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
 
-import DiaryByDayScreen from '@features/diary/screens/DiaryByDayScreen';
+import DiaryByDayScreen from "@features/diary/screens/DiaryByDayScreen";
 
 export type DiaryStackParamList = {
   DiaryByDay: undefined;

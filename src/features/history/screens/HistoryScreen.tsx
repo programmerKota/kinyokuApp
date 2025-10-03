@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,14 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
-} from 'react-native';
+} from "react-native";
 
-import HistoryCard from '@features/history/components/HistoryCard';
-import { useAuth } from '@app/contexts/AuthContext';
-import { ChallengeService } from '@core/services/firestore';
-import { StatsService } from '@core/services/statsService';
-import { colors, spacing, typography } from '@shared/theme';
-import type { Challenge } from '@project-types';
+import { useAuth } from "@app/contexts/AuthContext";
+import { ChallengeService } from "@core/services/firestore";
+import { StatsService } from "@core/services/statsService";
+import HistoryCard from "@features/history/components/HistoryCard";
+import type { Challenge } from "@project-types";
+import { colors, spacing, typography } from "@shared/theme";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
@@ -44,7 +44,9 @@ const HistoryScreen: React.FC = () => {
 
       try {
         // チャレンジ履歴を取得
-        const firestoreChallenges = await ChallengeService.getUserChallenges(user.uid);
+        const firestoreChallenges = await ChallengeService.getUserChallenges(
+          user.uid,
+        );
         const challengesData = firestoreChallenges.map((challenge) => ({
           id: challenge.id,
           userId: challenge.userId,
@@ -54,22 +56,32 @@ const HistoryScreen: React.FC = () => {
           startedAt:
             challenge.startedAt instanceof Date
               ? challenge.startedAt
-              : challenge.startedAt.toDate(),
+              : new Date(challenge.startedAt as any),
           completedAt:
             challenge.completedAt instanceof Date
               ? challenge.completedAt
-              : challenge.completedAt?.toDate?.() || undefined,
+              : challenge.completedAt
+                ? new Date(challenge.completedAt as any)
+                : undefined,
           failedAt:
             challenge.failedAt instanceof Date
               ? challenge.failedAt
-              : challenge.failedAt?.toDate?.() || undefined,
+              : challenge.failedAt
+                ? new Date(challenge.failedAt as any)
+                : undefined,
           totalPenaltyPaid: challenge.totalPenaltyPaid,
-          createdAt: challenge.createdAt.toDate(),
-          updatedAt: challenge.updatedAt.toDate(),
+          createdAt:
+            challenge.createdAt instanceof Date
+              ? challenge.createdAt
+              : new Date(challenge.createdAt as any),
+          updatedAt:
+            challenge.updatedAt instanceof Date
+              ? challenge.updatedAt
+              : new Date(challenge.updatedAt as any),
         }));
         setChallenges(challengesData);
       } catch (error) {
-        console.error('データの取得に失敗しました:', error);
+        console.error("データの取得に失敗しました:", error);
       }
     };
 
@@ -85,7 +97,9 @@ const HistoryScreen: React.FC = () => {
 
     try {
       // チャレンジ履歴を再取得
-      const firestoreChallenges = await ChallengeService.getUserChallenges(user.uid);
+      const firestoreChallenges = await ChallengeService.getUserChallenges(
+        user.uid,
+      );
       const challengesData = firestoreChallenges.map((challenge) => ({
         id: challenge.id,
         userId: challenge.userId,
@@ -93,22 +107,34 @@ const HistoryScreen: React.FC = () => {
         penaltyAmount: challenge.penaltyAmount,
         status: challenge.status,
         startedAt:
-          challenge.startedAt instanceof Date ? challenge.startedAt : challenge.startedAt.toDate(),
+          challenge.startedAt instanceof Date
+            ? challenge.startedAt
+            : new Date(challenge.startedAt as any),
         completedAt:
           challenge.completedAt instanceof Date
             ? challenge.completedAt
-            : challenge.completedAt?.toDate?.() || undefined,
+            : challenge.completedAt
+              ? new Date(challenge.completedAt as any)
+              : undefined,
         failedAt:
           challenge.failedAt instanceof Date
             ? challenge.failedAt
-            : challenge.failedAt?.toDate?.() || undefined,
+            : challenge.failedAt
+              ? new Date(challenge.failedAt as any)
+              : undefined,
         totalPenaltyPaid: challenge.totalPenaltyPaid,
-        createdAt: challenge.createdAt.toDate(),
-        updatedAt: challenge.updatedAt.toDate(),
+        createdAt:
+          challenge.createdAt instanceof Date
+            ? challenge.createdAt
+            : new Date(challenge.createdAt as any),
+        updatedAt:
+          challenge.updatedAt instanceof Date
+            ? challenge.updatedAt
+            : new Date(challenge.updatedAt as any),
       }));
       setChallenges(challengesData);
     } catch (error) {
-      console.error('データの再取得に失敗しました:', error);
+      console.error("データの再取得に失敗しました:", error);
     } finally {
       setRefreshing(false);
     }
@@ -118,10 +144,16 @@ const HistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.backgroundTertiary}
+      />
 
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>履歴</Text>
@@ -157,15 +189,18 @@ const HistoryScreen: React.FC = () => {
               </View>
               <Text style={styles.statLabel}>平均時間</Text>
               {(() => {
-                const formatted = StatsService.formatDuration(challengeStats.averageTime);
-                const { days, time } = StatsService.splitFormattedDuration(formatted);
+                const formatted = StatsService.formatDuration(
+                  challengeStats.averageTime,
+                );
+                const { days, time } =
+                  StatsService.splitFormattedDuration(formatted);
                 return (
                   <>
                     <Text style={styles.statValue}>
-                      {challengeStats.averageTime > 0 ? days : '0日'}
+                      {challengeStats.averageTime > 0 ? days : "0日"}
                     </Text>
                     <Text style={styles.statSubValue}>
-                      {challengeStats.averageTime > 0 ? time : '00:00:00'}
+                      {challengeStats.averageTime > 0 ? time : "00:00:00"}
                     </Text>
                   </>
                 );
@@ -178,15 +213,18 @@ const HistoryScreen: React.FC = () => {
               </View>
               <Text style={styles.statLabel}>最長記録</Text>
               {(() => {
-                const formatted = StatsService.formatDuration(challengeStats.longestTime);
-                const { days, time } = StatsService.splitFormattedDuration(formatted);
+                const formatted = StatsService.formatDuration(
+                  challengeStats.longestTime,
+                );
+                const { days, time } =
+                  StatsService.splitFormattedDuration(formatted);
                 return (
                   <>
                     <Text style={styles.statValue}>
-                      {challengeStats.longestTime > 0 ? days : '0日'}
+                      {challengeStats.longestTime > 0 ? days : "0日"}
                     </Text>
                     <Text style={styles.statSubValue}>
-                      {challengeStats.longestTime > 0 ? time : '00:00:00'}
+                      {challengeStats.longestTime > 0 ? time : "00:00:00"}
                     </Text>
                   </>
                 );
@@ -199,7 +237,9 @@ const HistoryScreen: React.FC = () => {
               <Ionicons name="flag" size={20} color={colors.white} />
             </View>
             <Text style={styles.challengeLabel}>チャレンジ回数</Text>
-            <Text style={styles.challengeValue}>{challengeStats.totalChallenges}回</Text>
+            <Text style={styles.challengeValue}>
+              {challengeStats.totalChallenges}回
+            </Text>
           </View>
         </View>
 
@@ -232,7 +272,9 @@ const HistoryScreen: React.FC = () => {
                 <Ionicons name="leaf" size={32} color={colors.gray300} />
               </View>
               <Text style={styles.emptyTitle}>まだ記録がありません</Text>
-              <Text style={styles.emptyText}>最初のチャレンジを始めましょう！</Text>
+              <Text style={styles.emptyText}>
+                最初のチャレンジを始めましょう！
+              </Text>
             </View>
           )}
         </View>
@@ -247,9 +289,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundTertiary,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     backgroundColor: colors.backgroundPrimary,
@@ -260,10 +302,10 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: 'bold',
+    fontSize: typography.fontSize["2xl"],
+    fontWeight: "bold",
     color: colors.textPrimary,
-    textAlign: 'center',
+    textAlign: "center",
     flex: 1,
   },
   placeholder: {
@@ -273,40 +315,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recordCard: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: "#8B5CF6",
     margin: spacing.xl,
     borderRadius: 20,
     padding: spacing.xl,
   },
   recordHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.xl,
   },
   waveIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
   },
   recordTitle: {
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
   },
   recordStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: spacing.xl,
   },
   statBox: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: spacing.sm,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 16,
     padding: spacing.lg,
   },
@@ -314,32 +356,32 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   statLabel: {
     fontSize: typography.fontSize.sm,
     color: colors.white,
     marginBottom: spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statValue: {
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
     marginBottom: spacing.xs,
   },
   statSubValue: {
     fontSize: typography.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
   },
   challengeCountBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 16,
     padding: spacing.lg,
   },
@@ -347,9 +389,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
   },
   challengeLabel: {
@@ -359,46 +401,46 @@ const styles = StyleSheet.create({
   },
   challengeValue: {
     fontSize: typography.fontSize.lg,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
   },
   pastRecordsSection: {
     padding: spacing.xl,
   },
   pastRecordsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.xl,
   },
   pastRecordsTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textPrimary,
     marginLeft: spacing.sm,
   },
   emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: spacing['4xl'],
+    alignItems: "center",
+    paddingVertical: spacing["4xl"],
   },
   leafIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: colors.gray100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: spacing.lg,
   },
   emptyTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
   emptyText: {
     fontSize: typography.fontSize.sm,
     color: colors.textTertiary,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

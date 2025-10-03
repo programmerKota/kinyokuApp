@@ -1,15 +1,22 @@
-import React, { useCallback } from 'react';
-import { FlatList, View, TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback } from "react";
+import {
+  FlatList,
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import type { RefreshControlProps, StyleProp, ViewStyle } from "react-native";
 
-import type { CommunityPost } from '@project-types';
-import ListFooterSpinner from '@shared/components/ListFooterSpinner';
-import PostCard from '@features/community/components/PostCard';
-import RepliesList from '@features/community/components/RepliesList';
-import { useReplyVisibility } from '@shared/state/replyVisibilityStore';
-import { colors, spacing, typography } from '@shared/theme';
-import { CONTENT_LEFT_MARGIN } from '@shared/utils/nameUtils';
+import PostCard from "@features/community/components/PostCard";
+import RepliesList from "@features/community/components/RepliesList";
+import type { CommunityPost } from "@project-types";
+import ListFooterSpinner from "@shared/components/ListFooterSpinner";
+import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
+import { colors, spacing, typography } from "@shared/theme";
+import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface PostListProps {
   posts: CommunityPost[];
@@ -68,12 +75,27 @@ const PostList: React.FC<PostListProps> = ({
         onUserPress={onUserPress}
       />
     ),
-    [likedPosts, authorAverageDays, replyCounts, allowBlockedReplies, onLike, onComment, onReply, onUserPress],
+    [
+      likedPosts,
+      authorAverageDays,
+      replyCounts,
+      allowBlockedReplies,
+      onLike,
+      onComment,
+      onReply,
+      onUserPress,
+    ],
   );
 
   return (
     <FlatList
-      extraData={{ likedPosts, replyCounts, authorAverageDays, loadingMore, hasMore }}
+      extraData={{
+        likedPosts,
+        replyCounts,
+        authorAverageDays,
+        loadingMore,
+        hasMore,
+      }}
       style={listStyle}
       data={posts}
       renderItem={renderItem}
@@ -84,7 +106,9 @@ const PostList: React.FC<PostListProps> = ({
       onEndReached={() => {
         if (onEndReached && hasMore && !loadingMore) onEndReached();
       }}
-      ListFooterComponent={() => (loadingMore && hasMore ? <ListFooterSpinner loading /> : null)}
+      ListFooterComponent={() =>
+        loadingMore && hasMore ? <ListFooterSpinner loading /> : null
+      }
       refreshControl={refreshControl}
       ListEmptyComponent={() => {
         const isRefreshing = (refreshControl as any)?.props?.refreshing;
@@ -113,13 +137,25 @@ const PostListRow: React.FC<{
   onComment: (postId: string) => void;
   onReply: (postId: string) => void;
   onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
-}> = ({ item, likedPosts, authorAverageDays, allowBlockedReplies = false, replyCounts, onLike, onComment, onReply, onUserPress }) => {
+}> = ({
+  item,
+  likedPosts,
+  authorAverageDays,
+  allowBlockedReplies = false,
+  replyCounts,
+  onLike,
+  onComment,
+  onReply,
+  onUserPress,
+}) => {
   const visible = useReplyVisibility(item.id, false);
   const avgDays =
-    typeof authorAverageDays === 'number'
+    typeof authorAverageDays === "number"
       ? authorAverageDays
-      : ((authorAverageDays as Map<string, number>)?.get?.(item.authorId) as number) || 0;
-  const comments = (replyCounts?.get(item.id) ?? item.comments ?? 0) as number;
+      : ((authorAverageDays as Map<string, number>)?.get?.(
+          item.authorId,
+        ) as number) || 0;
+  const comments = replyCounts?.get(item.id) ?? item.comments ?? 0;
 
   return (
     <View>
@@ -129,7 +165,9 @@ const PostListRow: React.FC<{
         onLikeId={onLike}
         onCommentId={onComment}
         onReplyId={onReply}
-        onUserPressId={(uid, uname) => onUserPress(uid, uname, item.authorAvatar)}
+        onUserPressId={(uid, uname) =>
+          onUserPress(uid, uname, item.authorAvatar)
+        }
         initialIsLiked={likedPosts.has(item.id)}
         authorAverageDays={avgDays}
         commentsCount={comments}
@@ -138,7 +176,10 @@ const PostListRow: React.FC<{
       {visible && (
         <View style={rowStyles.replyButtonContainer}>
           <View style={rowStyles.replyButtonSpacer} />
-          <TouchableOpacity style={rowStyles.replyButton} onPress={() => onReply(item.id)}>
+          <TouchableOpacity
+            style={rowStyles.replyButton}
+            onPress={() => onReply(item.id)}
+          >
             <View style={rowStyles.replyIconContainer}>
               <Ionicons name="add" size={16} color={colors.white} />
             </View>
@@ -160,43 +201,43 @@ const PostListRow: React.FC<{
 
 const rowStyles = StyleSheet.create({
   replyButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
   },
   replyButtonSpacer: {
     width: spacing.lg + CONTENT_LEFT_MARGIN.medium,
   },
   replyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "transparent",
     paddingHorizontal: 0,
     paddingVertical: spacing.xs,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   replyIconContainer: {
     width: 24,
     height: 24,
     borderRadius: 12,
     backgroundColor: colors.info,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   replyText: {
     fontSize: typography.fontSize.sm,
     color: colors.info,
     marginLeft: spacing.sm,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
 
 const stylesEmpty = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing['5xl'],
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: spacing["5xl"],
   },
 });

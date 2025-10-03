@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { TournamentService, FirestoreUserService } from "@core/services/firestore";
+import { TournamentService } from "@core/services/firestore";
 import type { StrictTournamentParticipant } from "@project-types/strict";
 
 interface UseTournamentParticipantsState {

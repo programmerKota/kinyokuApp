@@ -17,6 +17,9 @@ npm ci
 開発コマンド
 
 - npm run start: Expo 開発サーバー起動
+- npm run start:tunnel: Expo をトンネル経由で起動（外部ネットワークから検証）
+- npm run start:tunnel:auto: LAN IP を自動設定して --tunnel 起動（推奨）
+- npm run start:tunnel:proxy: ngrok を使わず localtunnel 経由で起動（回避策）
 - npm run typecheck: 型チェック（出力なし）
 - npm run lint: ESLint 実行
 - npm run lint:fix: 自動修正
@@ -47,28 +50,28 @@ GitHub Actions で typecheck と lint を実行します。将来的にテスト
 - Jest + RTL による最小テストの追加
 - ドメイン型集約と any 削減
 
+トンネル経由での動作確認（--tunnel）
 
-開発メモ: エミュレータ永続化
+- 物理端末や外部ネットワークから検証する場合は、Expo のトンネル接続を使います。
+- 実行コマンド: `npm run start:tunnel`
+- 事前に IP 自動設定も行う場合: `npm run start:tunnel:auto`
+- Dev Client を使う場合: `npm run start:dev-client:tunnel`
+  - 自動設定版: `npm run start:dev-client:tunnel:auto`
 
-- Docker Compose での起動は永続化済み（/data に export）。
-- ローカル CLI で起動する場合は、再起動でデータが消えないよう `--import/--export-on-exit` を付けてください。
+Firebase（本番）接続
 
-コマンド例
+- `.env.local` に本番 Firebase の Web 設定（EXPO*PUBLIC_FIREBASE*...）を設定してください。
+- エミュレータ関連の設定は不要です。
 
-```
-npm run emulators
-# もしくは直接
-firebase emulators:start --import ./data/firebase --export-on-exit --project demo-project --config firebase.json
-```
+手順の目安
 
-Expo からエミュレータへ接続するための推奨設定（.env）
+- `npm run start:tunnel` を実行し、CLI に表示される QR を Expo Go（または Dev Client）で読み取ります。
 
-```
-EXPO_PUBLIC_USE_EMULATOR=true
-EXPO_PUBLIC_EMULATOR_HOST=127.0.0.1   # 物理端末はPCのLAN IP
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=demo-project
-```
+トラブルシューティング: ngrok tunnel took too long to connect
 
-
-
-
+- 社内 FW/プロキシで ngrok への到達がブロックされると発生します。
+- 回避策: ngrok を使わずプロキシトンネルを使う
+  - `npm run start:tunnel:proxy`（内部で localtunnel を起動）
+  - Dev Client の場合: `npm run start:dev-client:tunnel:proxy`
+  - これらは `EXPO_PACKAGER_PROXY_URL` を自動設定し、Expo の生成 URL をトンネル経由に切り替えます。
+- 追加チェック: Expo ログイン、社内プロキシ設定、FW で `*.exp.direct`/`*.ngrok.io` が遮断されていないか

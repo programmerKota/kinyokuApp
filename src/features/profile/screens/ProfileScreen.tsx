@@ -1,5 +1,7 @@
-﻿import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+﻿import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import React from "react";
 import {
   View,
   Text,
@@ -9,17 +11,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-} from 'react-native';
+} from "react-native";
 
-import useProfileScreen from '@features/profile/hooks/useProfileScreen';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/RootNavigator';
-import Button from '@shared/components/Button';
-import InputField from '@shared/components/InputField';
-import Modal from '@shared/components/Modal';
-import { useAuth } from '@app/contexts/AuthContext';
-import { colors, spacing, typography, shadows } from '@shared/theme';
+import { useAuth } from "@app/contexts/AuthContext";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
+import useProfileScreen from "@features/profile/hooks/useProfileScreen";
+import Button from "@shared/components/Button";
+import InputField from "@shared/components/InputField";
+import Modal from "@shared/components/Modal";
+import { colors, spacing, typography, shadows } from "@shared/theme";
 
 const ActionCard = ({
   icon,
@@ -44,13 +44,21 @@ const ActionCard = ({
     </View>
     <View style={styles.actionTextWrap}>
       <Text style={styles.actionTitle}>{title}</Text>
-      {description ? <Text style={styles.actionDesc}>{description}</Text> : null}
+      {description ? (
+        <Text style={styles.actionDesc}>{description}</Text>
+      ) : null}
     </View>
     <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
   </TouchableOpacity>
 );
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
     <View style={styles.sectionBody}>{children}</View>
@@ -76,7 +84,10 @@ const ProfileScreen: React.FC = () => {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={colors.backgroundTertiary}
+        />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>読み込み中...</Text>
         </View>
@@ -86,9 +97,15 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.backgroundTertiary}
+      />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {isEditing ? (
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
@@ -112,7 +129,9 @@ const ProfileScreen: React.FC = () => {
                 ) : (
                   <View style={styles.avatarPlaceholder}>
                     <Ionicons name="camera-outline" size={32} color="#9CA3AF" />
-                    <Text style={styles.placeholderText}>タップして{'\n'}写真を選択</Text>
+                    <Text style={styles.placeholderText}>
+                      タップして{"\n"}写真を選択
+                    </Text>
                   </View>
                 )}
                 <View style={[styles.overlayButton, styles.editIconOverlay]}>
@@ -170,7 +189,7 @@ const ProfileScreen: React.FC = () => {
                   title="ブロック中のユーザー"
                   description="ブロックしたユーザーの一覧を表示"
                   onPress={() => {
-                    void navigation.navigate('BlockedUsers');
+                    void navigation.navigate("BlockedUsers");
                   }}
                 />
               </Section>
@@ -180,10 +199,9 @@ const ProfileScreen: React.FC = () => {
                   title="開発者へフィードバック"
                   description="不具合報告・改善提案を送信"
                   onPress={() => {
-                    void navigation.navigate('Feedback');
+                    void navigation.navigate("Feedback");
                   }}
                 />
-
               </Section>
             </View>
           </View>
@@ -196,9 +214,12 @@ const ProfileScreen: React.FC = () => {
         onClose={() => setShowAvatarModal(false)}
         title="プロフィール画像"
       >
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: "center" }}>
           {user?.avatarUrl ? (
-            <Image source={{ uri: user.avatarUrl }} style={styles.avatarPreview} />
+            <Image
+              source={{ uri: user.avatarUrl }}
+              style={styles.avatarPreview}
+            />
           ) : null}
           <View style={styles.editButtons}>
             <Button
@@ -246,8 +267,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: typography.fontSize.base,
@@ -259,15 +280,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     marginBottom: spacing.xl,
     borderRadius: 20,
-    padding: spacing['2xl'],
+    padding: spacing["2xl"],
     paddingTop: 40,
     paddingBottom: 28,
-    alignItems: 'center',
+    alignItems: "center",
     minHeight: 320,
     ...shadows.lg,
   },
   actionGrid: {
-    width: '100%',
+    width: "100%",
     marginTop: 18,
     paddingHorizontal: spacing.lg,
     gap: 12,
@@ -277,7 +298,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: typography.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
     marginLeft: spacing.md,
     marginBottom: 6,
@@ -286,8 +307,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.borderPrimary,
@@ -300,9 +321,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EEF2FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#EEF2FF",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.md,
   },
   actionTextWrap: {
@@ -310,7 +331,7 @@ const styles = StyleSheet.create({
   },
   actionTitle: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.gray800,
   },
   actionDesc: {
@@ -334,16 +355,16 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderColor: colors.info,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderText: {
     color: colors.textSecondary,
     fontSize: 13,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.sm,
     lineHeight: 16,
   },
@@ -352,12 +373,12 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: colors.info,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
   },
   avatarPreview: {
@@ -368,19 +389,19 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.gray800,
     marginTop: spacing.sm,
     marginBottom: 9,
   },
   userNameEditing: {
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
     textDecorationColor: colors.info,
-    textDecorationStyle: 'solid',
+    textDecorationStyle: "solid",
   },
   editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     backgroundColor: colors.gray100,
@@ -390,17 +411,17 @@ const styles = StyleSheet.create({
   editButtonText: {
     marginLeft: 4,
     fontSize: typography.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.info,
   },
   editButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: spacing['2xl'],
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: spacing["2xl"],
   },
   singleActionWrapper: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginTop: 18,
     marginBottom: 0,
   },
@@ -417,15 +438,15 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   avatarEditContainer: {
-    position: 'relative',
+    position: "relative",
   },
   overlayButton: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 16,
     width: 32,
     height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: colors.white,
     shadowOffset: { width: 0, height: 3 },
@@ -446,31 +467,31 @@ const styles = StyleSheet.create({
     shadowColor: colors.error,
   },
   nameEditContainer: {
-    width: '100%',
+    width: "100%",
     marginTop: 6,
     marginBottom: 6,
   },
   nameInput: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 0,
     paddingHorizontal: 0,
     borderBottomWidth: 2,
     borderBottomColor: colors.info,
-    alignSelf: 'center',
-    width: '70%',
+    alignSelf: "center",
+    width: "70%",
     paddingBottom: spacing.xs,
   },
   nameInputText: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.gray800,
-    textAlign: 'center',
+    textAlign: "center",
   },
   characterCount: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
   },
   saveButton: {
     backgroundColor: colors.info,
@@ -480,8 +501,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 12,
     gap: 12,
   },

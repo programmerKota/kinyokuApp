@@ -38,7 +38,8 @@ export const toDate = (input: DateLike): Date => {
 };
 
 // 共通: 日本語の日時表示（例: 2024/9/10 12:34）
-export const formatDateTimeJP = (date: Date): string => {
+export const formatDateTimeJP = (value: DateLike): string => {
+  const date = toDate(value);
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "2-digit",
@@ -46,7 +47,8 @@ export const formatDateTimeJP = (date: Date): string => {
     hour: "2-digit",
     minute: "2-digit",
   };
-  return date.toLocaleDateString("ja-JP", options);
+  // include time as well
+  return date.toLocaleString("ja-JP", options);
 };
 
 // 共通: 相対時間表示

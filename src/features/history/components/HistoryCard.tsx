@@ -1,16 +1,16 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import { StatsService } from '@core/services/statsService';
-import uiStyles from '@shared/ui/styles';
-import { colors, spacing, typography, shadows } from '@shared/theme';
-import { formatDateTimeJP } from '@shared/utils/date';
-import type { Challenge, Payment } from '@project-types';
+import { StatsService } from "@core/services/statsService";
+import type { Challenge, Payment } from "@project-types";
+import { colors, spacing, typography, shadows } from "@shared/theme";
+import uiStyles from "@shared/ui/styles";
+import { formatDateTimeJP } from "@shared/utils/date";
 
 interface HistoryCardProps {
   item: Challenge | Payment;
-  type: 'challenge' | 'payment';
+  type: "challenge" | "payment";
   onPress?: () => void;
 }
 
@@ -18,9 +18,9 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
   const calculateDuration = (challenge: Challenge) => {
     const startTime = challenge.startedAt.getTime();
     const endTime =
-      challenge.status === 'completed' && challenge.completedAt
+      challenge.status === "completed" && challenge.completedAt
         ? challenge.completedAt.getTime()
-        : challenge.status === 'failed' && challenge.failedAt
+        : challenge.status === "failed" && challenge.failedAt
           ? challenge.failedAt.getTime()
           : Date.now();
     return Math.floor((endTime - startTime) / 1000);
@@ -28,15 +28,15 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return colors.success;
-      case 'failed':
+      case "failed":
         return colors.error;
-      case 'active':
+      case "active":
         return colors.info;
-      case 'paused':
+      case "paused":
         return colors.warning;
-      case 'pending':
+      case "pending":
         return colors.textSecondary;
       default:
         return colors.textSecondary;
@@ -45,22 +45,22 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return '完了';
-      case 'failed':
-        return '失敗';
-      case 'active':
-        return '進行中';
-      case 'paused':
-        return '一時停止';
-      case 'pending':
-        return '処理中';
+      case "completed":
+        return "完了";
+      case "failed":
+        return "失敗";
+      case "active":
+        return "進行中";
+      case "paused":
+        return "一時停止";
+      case "pending":
+        return "処理中";
       default:
         return status;
     }
   };
 
-  if (type === 'challenge') {
+  if (type === "challenge") {
     const challenge = item as Challenge;
     const actualDuration = calculateDuration(challenge);
 
@@ -75,9 +75,14 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
           </View>
           <View style={styles.statusContainer}>
             <View
-              style={[styles.statusBadge, { backgroundColor: getStatusColor(challenge.status) }]}
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(challenge.status) },
+              ]}
             >
-              <Text style={styles.statusText}>{getStatusText(challenge.status)}</Text>
+              <Text style={styles.statusText}>
+                {getStatusText(challenge.status)}
+              </Text>
             </View>
           </View>
         </View>
@@ -85,7 +90,9 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
         <View style={styles.details}>
           <View style={[uiStyles.rowBetween, styles.detailRow]}>
             <Text style={styles.detailLabel}>実際の継続時間</Text>
-            <Text style={styles.detailValue}>{StatsService.formatDuration(actualDuration)}</Text>
+            <Text style={styles.detailValue}>
+              {StatsService.formatDuration(actualDuration)}
+            </Text>
           </View>
           <View style={[uiStyles.rowBetween, styles.detailRow]}>
             <Text style={styles.detailLabel}>目標時間</Text>
@@ -95,18 +102,24 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
           </View>
           <View style={[uiStyles.rowBetween, styles.detailRow]}>
             <Text style={styles.detailLabel}>ペナルティ金額</Text>
-            <Text style={styles.detailValue}>¥{challenge.penaltyAmount.toLocaleString()}</Text>
+            <Text style={styles.detailValue}>
+              ¥{challenge.penaltyAmount.toLocaleString()}
+            </Text>
           </View>
-          {challenge.status === 'completed' && challenge.completedAt && (
+          {challenge.status === "completed" && challenge.completedAt && (
             <View style={[uiStyles.rowBetween, styles.detailRow]}>
               <Text style={styles.detailLabel}>完了日</Text>
-              <Text style={styles.detailValue}>{formatDateTimeJP(challenge.completedAt)}</Text>
+              <Text style={styles.detailValue}>
+                {formatDateTimeJP(challenge.completedAt)}
+              </Text>
             </View>
           )}
-          {challenge.status === 'failed' && challenge.failedAt && (
+          {challenge.status === "failed" && challenge.failedAt && (
             <View style={[uiStyles.rowBetween, styles.detailRow]}>
               <Text style={styles.detailLabel}>失敗日</Text>
-              <Text style={styles.detailValue}>{formatDateTimeJP(challenge.failedAt)}</Text>
+              <Text style={styles.detailValue}>
+                {formatDateTimeJP(challenge.failedAt)}
+              </Text>
             </View>
           )}
           {challenge.totalPenaltyPaid > 0 && (
@@ -129,17 +142,17 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
         <View style={styles.iconContainer}>
           <Ionicons
             name={
-              payment.type === 'penalty'
-                ? 'warning'
-                : payment.type === 'entry_fee'
-                  ? 'card'
-                  : 'gift'
+              payment.type === "penalty"
+                ? "warning"
+                : payment.type === "entry_fee"
+                  ? "card"
+                  : "gift"
             }
             size={24}
             color={
-              payment.type === 'penalty'
+              payment.type === "penalty"
                 ? colors.error
-                : payment.type === 'entry_fee'
+                : payment.type === "entry_fee"
                   ? colors.info
                   : colors.success
             }
@@ -147,17 +160,26 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
         </View>
         <View style={styles.content}>
           <Text style={styles.title}>
-            {payment.type === 'penalty'
-              ? 'ペナルティ支払い'
-              : payment.type === 'entry_fee'
-                ? '参加費支払い'
-                : '賞金受取'}
+            {payment.type === "penalty"
+              ? "ペナルティ支払い"
+              : payment.type === "entry_fee"
+                ? "参加費支払い"
+                : "賞金受取"}
           </Text>
-          <Text style={styles.subtitle}>{formatDateTimeJP(payment.createdAt)}</Text>
+          <Text style={styles.subtitle}>
+            {formatDateTimeJP(payment.createdAt)}
+          </Text>
         </View>
         <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(payment.status) }]}>
-            <Text style={styles.statusText}>{getStatusText(payment.status)}</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(payment.status) },
+            ]}
+          >
+            <Text style={styles.statusText}>
+              {getStatusText(payment.status)}
+            </Text>
           </View>
         </View>
       </View>
@@ -168,10 +190,11 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
           <Text
             style={[
               styles.detailValue,
-              payment.type === 'prize' ? styles.prizeText : styles.paymentText,
+              payment.type === "prize" ? styles.prizeText : styles.paymentText,
             ]}
           >
-            {payment.type === 'prize' ? '+' : ''}¥{payment.amount.toLocaleString()}
+            {payment.type === "prize" ? "+" : ""}¥
+            {payment.amount.toLocaleString()}
           </Text>
         </View>
         {payment.transactionId && (
@@ -194,8 +217,8 @@ const styles = StyleSheet.create({
     ...shadows.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
   },
   iconContainer: {
@@ -203,8 +226,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: colors.gray100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
   },
   content: {
@@ -212,7 +235,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.gray800,
     marginBottom: spacing.xs,
   },
@@ -230,7 +253,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.white,
   },
   details: {
@@ -247,7 +270,7 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: typography.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.gray800,
   },
   penaltyText: {

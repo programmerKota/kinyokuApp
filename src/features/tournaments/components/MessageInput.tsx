@@ -1,9 +1,9 @@
-﻿import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+﻿import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 
-import { useModerationGuard } from '@shared/hooks/useModerationGuard';
-import { colors, spacing, typography } from '@shared/theme';
+import { useModerationGuard } from "@shared/hooks/useModerationGuard";
+import { colors, spacing, typography } from "@shared/theme";
 
 interface MessageInputProps {
   onSend: (text: string) => void;
@@ -12,15 +12,15 @@ interface MessageInputProps {
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSend,
-  placeholder = 'メッセージを入力...',
+  placeholder = "メッセージを入力...",
 }) => {
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const guard = useModerationGuard(messageText);
 
   const handleSend = () => {
     if (!messageText.trim() || !guard.canSend) return;
     onSend(messageText.trim());
-    setMessageText('');
+    setMessageText("");
   };
 
   return (
@@ -38,7 +38,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <TouchableOpacity
           style={[
             styles.sendButton,
-            (!messageText.trim() || !guard.canSend) && styles.sendButtonDisabled,
+            (!messageText.trim() || !guard.canSend) &&
+              styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
           disabled={!messageText.trim() || !guard.canSend}
@@ -46,7 +47,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
           <Ionicons
             name="send"
             size={20}
-            color={messageText.trim() && guard.canSend ? colors.white : colors.textTertiary}
+            color={
+              messageText.trim() && guard.canSend
+                ? colors.white
+                : colors.textTertiary
+            }
           />
         </TouchableOpacity>
       </View>
@@ -61,8 +66,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.borderPrimary,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     padding: spacing.lg,
     minHeight: 60,
   },
@@ -83,8 +88,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: colors.info,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

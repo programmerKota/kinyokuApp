@@ -1,7 +1,7 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-import { colors, spacing, typography, shadows } from '@shared/theme';
+import { colors, spacing, typography, shadows } from "@shared/theme";
 
 interface DayCardProps {
   day: number;
@@ -10,7 +10,12 @@ interface DayCardProps {
   onPress?: (day: number) => void;
 }
 
-const DayCard: React.FC<DayCardProps> = ({ day, selected = false, posted = false, onPress }) => {
+const DayCard: React.FC<DayCardProps> = ({
+  day,
+  selected = false,
+  posted = false,
+  onPress,
+}) => {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -18,7 +23,9 @@ const DayCard: React.FC<DayCardProps> = ({ day, selected = false, posted = false
       onPress={() => onPress?.(day)}
     >
       {posted && <Text style={styles.badge}>済</Text>}
-      <Text style={[styles.title, selected && styles.titleSelected]}>{day}日目</Text>
+      <Text style={[styles.title, selected && styles.titleSelected]}>
+        {day}日目
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -33,21 +40,21 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   selected: {
-    backgroundColor: '#E5F2FF',
+    backgroundColor: "#E5F2FF",
     borderColor: colors.info,
     borderWidth: 1,
   },
   title: {
     fontSize: typography.fontSize.sm,
     color: colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   titleSelected: {
     color: colors.info,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -6,
     left: -6,
     backgroundColor: colors.successLight,
@@ -57,7 +64,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     fontSize: typography.fontSize.xs,
     zIndex: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });
 

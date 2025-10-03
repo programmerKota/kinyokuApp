@@ -1,14 +1,18 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useAuth } from '@app/contexts/AuthContext';
-import { CommunityService, FollowService, BlockService } from '@core/services/firestore';
-import { UserStatsService } from '@core/services/userStatsService';
-import { buildReplyCountMapFromPosts, normalizeCommunityPosts, toggleLikeInList, incrementCountMap } from '@shared/utils/community';
-import { useBlockedIds } from '@shared/state/blockStore';
-import { LikeStore } from '@shared/state/likeStore';
-import type { CommunityPost } from '@project-types';
+import { useAuth } from "@app/contexts/AuthContext";
+import { CommunityService, FollowService } from "@core/services/firestore";
+import { UserStatsService } from "@core/services/userStatsService";
+import type { CommunityPost } from "@project-types";
+import { useBlockedIds } from "@shared/state/blockStore";
+import { LikeStore } from "@shared/state/likeStore";
+import {
+  buildReplyCountMapFromPosts,
+  normalizeCommunityPosts,
+  incrementCountMap,
+} from "@shared/utils/community";
 
-export type CommunityTab = 'all' | 'my' | 'following';
+export type CommunityTab = "all" | "my" | "following";
 
 export interface UseCommunityState {
   posts: CommunityPost[];
@@ -47,15 +51,21 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<CommunityTab>('all');
+  const [activeTab, setActiveTab] = useState<CommunityTab>("all");
   const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState('');
-  const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(new Set());
-  const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
+  const [replyText, setReplyText] = useState("");
+  const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(
+    new Set(),
+  );
+  const [replyCounts, setReplyCounts] = useState<Map<string, number>>(
+    new Map(),
+  );
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
-  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(new Map());
-  const [cursor, setCursor] = useState<unknown | undefined>(undefined);
+  const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
+    new Map(),
+  );
+  const [cursor, setCursor] = useState<unknown>(undefined as unknown);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const blockedSet = useBlockedIds();
@@ -84,7 +94,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       if (toCheck.length === 0) return;
       const next = new Set(likedPosts);
       for (const id of toCheck) {
-        const isLiked = await CommunityService.isPostLikedByUser(id, user.uid).catch(() => false);
+        const isLiked = await CommunityService.isPostLikedByUser(
+          id,
+          user.uid,
+        ).catch(() => false);
         if (isLiked) next.add(id);
       }
       setLikedPosts(next);
@@ -96,36 +109,47 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   useEffect(() => {
     try {
       posts.forEach((p) => {
-        LikeStore.setFromServer(p.id, { isLiked: likedPosts.has(p.id), likes: p.likes || 0 });
+        LikeStore.setFromServer(p.id, {
+          isLiked: likedPosts.has(p.id),
+          likes: p.likes || 0,
+        });
       });
     } catch {}
   }, [likedPosts, posts]);
 
-  const initializeUserAverageDays = useCallback(async (list: CommunityPost[]) => {
-    const next = new Map(userAverageDays);
-    const uniqueIds = new Set(list.map((p) => p.authorId));
-    const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
-    if (missing.length === 0) return;
-    for (const uid of missing) {
-      const days = await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0);
-      next.set(uid, Math.max(0, days));
-    }
-    setUserAverageDays(next);
-  }, [userAverageDays]);
+  const initializeUserAverageDays = useCallback(
+    async (list: CommunityPost[]) => {
+      const next = new Map(userAverageDays);
+      const uniqueIds = new Set(list.map((p) => p.authorId));
+      const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
+      if (missing.length === 0) return;
+      for (const uid of missing) {
+        const days = await UserStatsService.getUserCurrentDaysForRank(
+          uid,
+        ).catch(() => 0);
+        next.set(uid, Math.max(0, days));
+      }
+      setUserAverageDays(next);
+    },
+    [userAverageDays],
+  );
 
-  const normalizePosts = useCallback(async (list: CommunityPost[]) => {
-    const normalized = normalizeCommunityPosts(list);
-    // 繝悶Ο繝・け縺励◆繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ謚慕ｨｿ繧帝勁螟・
-    const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
-    const counts = buildReplyCountMapFromPosts(filtered);
-    setReplyCounts(counts);
-    // Initialize per-post reply counters store for minimal UI updates
-    try {
-      const { ReplyCountStore } = await import('@shared/state/replyStore');
-      filtered.forEach((p) => ReplyCountStore.init(p.id, p.comments || 0));
-    } catch {}
-    return filtered;
-  }, [blockedSet]);
+  const normalizePosts = useCallback(
+    async (list: CommunityPost[]) => {
+      const normalized = normalizeCommunityPosts(list);
+      // 繝悶Ο繝・け縺励◆繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ謚慕ｨｿ繧帝勁螟・
+      const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
+      const counts = buildReplyCountMapFromPosts(filtered);
+      setReplyCounts(counts);
+      // Initialize per-post reply counters store for minimal UI updates
+      try {
+        const { ReplyCountStore } = await import("@shared/state/replyStore");
+        filtered.forEach((p) => ReplyCountStore.init(p.id, p.comments || 0));
+      } catch {}
+      return filtered;
+    },
+    [blockedSet],
+  );
 
   const mergePostsById = useCallback(
     (prev: CommunityPost[], next: CommunityPost[]): CommunityPost[] => {
@@ -165,7 +189,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         } else {
           const p = out[idx];
           if (
-            !(p &&
+            !(
+              p &&
               p.authorId === n.authorId &&
               p.authorName === n.authorName &&
               p.authorAvatar === n.authorAvatar &&
@@ -173,7 +198,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
               p.likes === n.likes &&
               p.comments === n.comments &&
               String(p.createdAt) === String(n.createdAt) &&
-              String(p.updatedAt) === String(n.updatedAt))
+              String(p.updatedAt) === String(n.updatedAt)
+            )
           ) {
             out[idx] = n;
           }
@@ -189,7 +215,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     let unsubscribe: (() => void) | undefined;
     const run = () => {
       switch (activeTab) {
-        case 'all':
+        case "all":
           // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.all?.posts?.length) {
             setPosts(cacheRef.current.all.posts);
@@ -205,21 +231,26 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           setRefreshing(true);
           (async () => {
             try {
-              const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+              const { items, nextCursor } =
+                await CommunityService.getRecentPostsPage(100);
               const normalized = await normalizePosts(items as CommunityPost[]);
               setPosts(normalized);
               setCursor(nextCursor);
               setHasMore(Boolean(nextCursor));
               void initializeLikedPosts(normalized);
               void initializeUserAverageDays(normalized);
-              cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+              cacheRef.current.all = {
+                posts: normalized,
+                cursor: nextCursor,
+                hasMore: Boolean(nextCursor),
+              };
               initRunRef.current.all = true;
             } finally {
               setRefreshing(false);
             }
           })();
           break;
-        case 'my':
+        case "my":
           // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.my?.posts?.length) {
             setPosts(cacheRef.current.my.posts);
@@ -237,7 +268,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             (async () => {
               try {
                 const list = await CommunityService.getUserPosts(user.uid);
-                const normalized = await normalizePosts(list as CommunityPost[]);
+                const normalized = await normalizePosts(
+                  list as CommunityPost[],
+                );
                 setPosts(normalized);
                 void initializeLikedPosts(normalized);
                 void initializeUserAverageDays(normalized);
@@ -251,7 +284,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setPosts([]);
           }
           break;
-        case 'following':
+        case "following":
           // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
           if (cacheRef.current.following?.posts?.length) {
             setPosts(cacheRef.current.following.posts);
@@ -297,19 +330,16 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [
-    activeTab,
-    user,
-    followingUsers,
-    normalizePosts,
-    mergePostsById,
-  ]);
+  }, [activeTab, user, followingUsers, normalizePosts, mergePostsById]);
 
   const loadMore = useCallback(async () => {
-    if (activeTab !== 'all' || loadingMore || !hasMore) return;
+    if (activeTab !== "all" || loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const { items, nextCursor } = await CommunityService.getRecentPostsPage(100, cursor as any);
+      const { items, nextCursor } = await CommunityService.getRecentPostsPage(
+        100,
+        cursor as any,
+      );
       if (items.length === 0) {
         setHasMore(false);
         if (cacheRef.current.all) cacheRef.current.all.hasMore = false;
@@ -318,7 +348,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       const normalized = await normalizePosts(items as CommunityPost[]);
       setPosts((prev) => {
         const merged = appendUniqueById(prev, normalized);
-        cacheRef.current.all = { posts: merged, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        cacheRef.current.all = {
+          posts: merged,
+          cursor: nextCursor,
+          hasMore: Boolean(nextCursor),
+        };
         return merged;
       });
       setCursor(nextCursor);
@@ -341,9 +375,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   // subscribe following ids
   useEffect(() => {
     if (!user) return;
-    const unsub = FollowService.subscribeToFollowingUserIds(user.uid, (ids: string[]) => {
-      setFollowingUsers(new Set(ids));
-    });
+    const unsub = FollowService.subscribeToFollowingUserIds(
+      user.uid,
+      (ids: string[]) => {
+        setFollowingUsers(new Set(ids));
+      },
+    );
     return unsub;
   }, [user]);
 
@@ -353,20 +390,25 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   }, [blockedSet]);
 
   // actions
-    const handleRefresh = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      if (activeTab === 'all') {
-        const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+      if (activeTab === "all") {
+        const { items, nextCursor } =
+          await CommunityService.getRecentPostsPage(100);
         const normalized = await normalizePosts(items as CommunityPost[]);
         setPosts(normalized);
         setCursor(nextCursor);
         setHasMore(Boolean(nextCursor));
         void initializeLikedPosts(normalized);
         void initializeUserAverageDays(normalized);
-        cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        cacheRef.current.all = {
+          posts: normalized,
+          cursor: nextCursor,
+          hasMore: Boolean(nextCursor),
+        };
         initRunRef.current.all = true;
-      } else if (activeTab === 'my') {
+      } else if (activeTab === "my") {
         if (!user) return;
         const list = await CommunityService.getUserPosts(user.uid);
         const normalized = await normalizePosts(list as CommunityPost[]);
@@ -377,7 +419,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         void initializeUserAverageDays(normalized);
         cacheRef.current.my = { posts: normalized };
         initRunRef.current.my = true;
-      } else if (activeTab === 'following') {
+      } else if (activeTab === "following") {
         if (!user || followingUsers.size === 0) {
           setPosts([]);
           setHasMore(false);
@@ -386,14 +428,18 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             const unsub = CommunityService.subscribeToFollowingPosts(
               Array.from(followingUsers),
               async (list) => {
-                const normalized = await normalizePosts(list as CommunityPost[]);
+                const normalized = await normalizePosts(
+                  list as CommunityPost[],
+                );
                 setPosts(normalized);
                 setCursor(undefined);
                 setHasMore(false);
                 void initializeLikedPosts(normalized);
                 void initializeUserAverageDays(normalized);
                 cacheRef.current.following = { posts: normalized };
-                try { unsub(); } catch {}
+                try {
+                  unsub();
+                } catch {}
                 resolve();
               },
             );
@@ -403,7 +449,14 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     } finally {
       setRefreshing(false);
     }
-  }, [activeTab, user, followingUsers, normalizePosts, initializeLikedPosts, initializeUserAverageDays]);
+  }, [
+    activeTab,
+    user,
+    followingUsers,
+    normalizePosts,
+    initializeLikedPosts,
+    initializeUserAverageDays,
+  ]);
 
   const handleCreatePost = useCallback(
     async (postData: { content: string }) => {
@@ -416,7 +469,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       initRunRef.current.my = false;
 
       const refreshAll = async () => {
-        const { items, nextCursor } = await CommunityService.getRecentPostsPage(100);
+        const { items, nextCursor } =
+          await CommunityService.getRecentPostsPage(100);
         const normalized = await normalizePosts(items as CommunityPost[]);
         if (createPostRequestSeqRef.current !== requestId) return;
         setPosts(normalized);
@@ -424,7 +478,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         setHasMore(Boolean(nextCursor));
         void initializeLikedPosts(normalized);
         void initializeUserAverageDays(normalized);
-        cacheRef.current.all = { posts: normalized, cursor: nextCursor, hasMore: Boolean(nextCursor) };
+        cacheRef.current.all = {
+          posts: normalized,
+          cursor: nextCursor,
+          hasMore: Boolean(nextCursor),
+        };
         initRunRef.current.all = true;
       };
 
@@ -443,12 +501,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         initRunRef.current.my = true;
       };
 
-      if (activeTab === 'my') {
+      if (activeTab === "my") {
         await refreshMy();
         return;
       }
 
-      if (activeTab === 'all') {
+      if (activeTab === "all") {
         await refreshAll();
         return;
       }
@@ -464,32 +522,37 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     ],
   );
 
-  const handleLike = useCallback(async (postId: string) => {
-    if (likingIds.has(postId)) return;
-    setLikingIds((prev) => new Set(prev).add(postId));
-    try {
-      // Perform server toggle only; UI was updated optimistically.
-      await CommunityService.toggleLike(postId);
-    } finally {
-      setLikingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(postId);
-        return next;
-      });
-    }
-  }, [likingIds, posts]);
+  const handleLike = useCallback(
+    async (postId: string) => {
+      if (likingIds.has(postId)) return;
+      setLikingIds((prev) => new Set(prev).add(postId));
+      try {
+        // Perform server toggle only; UI was updated optimistically.
+        await CommunityService.toggleLike(postId);
+      } finally {
+        setLikingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(postId);
+          return next;
+        });
+      }
+    },
+    [likingIds, posts],
+  );
 
   const handleComment = useCallback((postId: string) => {
     // Toggle minimal-UI reply visibility only; avoid list-wide re-render
     try {
-      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      const {
+        ReplyVisibilityStore,
+      } = require("@shared/state/replyVisibilityStore");
       ReplyVisibilityStore.toggle(postId);
     } catch {}
   }, []);
 
   const handleReply = useCallback((postId: string) => {
     setReplyingTo(postId);
-    setReplyText('');
+    setReplyText("");
   }, []);
 
   const handleReplySubmit = useCallback(async () => {
@@ -498,32 +561,34 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
     // Update only the counter for this post (bubble)
     try {
-      const { ReplyCountStore } = await import('@shared/state/replyStore');
+      const { ReplyCountStore } = await import("@shared/state/replyStore");
       ReplyCountStore.increment(replyingTo, 1);
     } catch {}
     setReplyingTo(null);
-    setReplyText('');
+    setReplyText("");
   }, [replyText, replyingTo]);
 
   const handleReplyCancel = useCallback(() => {
     setReplyingTo(null);
-    setReplyText('');
+    setReplyText("");
   }, []);
 
   const handleTabPress = useCallback((tab: CommunityTab) => {
     // タブ切替時に返信表示の開閉状態をリセット
     try {
-      const { ReplyVisibilityStore } = require('@shared/state/replyVisibilityStore');
+      const {
+        ReplyVisibilityStore,
+      } = require("@shared/state/replyVisibilityStore");
       ReplyVisibilityStore.clearAll?.();
     } catch {}
     // どのタブでも再入時はキャッシュ/初期化をリセットして再取得させる
-    if (tab === 'all') {
+    if (tab === "all") {
       cacheRef.current.all = undefined;
       initRunRef.current.all = false;
-    } else if (tab === 'my') {
+    } else if (tab === "my") {
       cacheRef.current.my = undefined;
       initRunRef.current.my = false;
-    } else if (tab === 'following') {
+    } else if (tab === "following") {
       cacheRef.current.following = undefined;
       initRunRef.current.following = false;
     }
@@ -583,11 +648,3 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
-
-
-
-
-
-
-
-

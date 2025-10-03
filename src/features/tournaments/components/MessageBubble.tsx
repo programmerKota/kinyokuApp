@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 
-import { colors, spacing, typography, shadows } from '@shared/theme';
-import AvatarImage from '@shared/components/AvatarImage';
+import AvatarImage from "@shared/components/AvatarImage";
+import { colors, spacing, typography, shadows } from "@shared/theme";
 
 interface MessageBubbleProps {
   message: {
@@ -11,15 +17,19 @@ interface MessageBubbleProps {
     authorName: string;
     text: string;
     timestamp: Date;
-    type: 'text' | 'system';
+    type: "text" | "system";
     avatar?: string;
   };
   isOwn: boolean;
   onUserPress?: (userId: string, userName: string, userAvatar?: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, onUserPress }) => {
-  if (message.type === 'system') {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  isOwn,
+  onUserPress,
+}) => {
+  if (message.type === "system") {
     return (
       <View style={styles.systemContainer}>
         <Text style={styles.systemText}>{message.text}</Text>
@@ -28,19 +38,25 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, onUserPre
   }
 
   return (
-    <View style={[styles.messageContainer, isOwn && styles.ownMessageContainer]}>
-      {!isOwn && (
-        onUserPress ? (
+    <View
+      style={[styles.messageContainer, isOwn && styles.ownMessageContainer]}
+    >
+      {!isOwn &&
+        (onUserPress ? (
           <TouchableOpacity
             style={styles.avatarContainer}
             activeOpacity={0.8}
-            onPress={() => onUserPress(message.authorId, message.authorName, message.avatar)}
+            onPress={() =>
+              onUserPress(message.authorId, message.authorName, message.avatar)
+            }
           >
             {message.avatar ? (
               <AvatarImage uri={message.avatar} size={32} />
             ) : (
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{message.authorName.charAt(0)}</Text>
+                <Text style={styles.avatarText}>
+                  {message.authorName.charAt(0)}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -50,25 +66,31 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, onUserPre
               <AvatarImage uri={message.avatar} size={32} />
             ) : (
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{message.authorName.charAt(0)}</Text>
+                <Text style={styles.avatarText}>
+                  {message.authorName.charAt(0)}
+                </Text>
               </View>
             )}
           </View>
-        )
-      )}
+        ))}
       <View style={[styles.messageContent, isOwn && styles.ownMessageContent]}>
-        {!isOwn && (
-          onUserPress ? (
+        {!isOwn &&
+          (onUserPress ? (
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => onUserPress(message.authorId, message.authorName, message.avatar)}
+              onPress={() =>
+                onUserPress(
+                  message.authorId,
+                  message.authorName,
+                  message.avatar,
+                )
+              }
             >
               <Text style={styles.authorName}>{message.authorName}</Text>
             </TouchableOpacity>
           ) : (
             <Text style={styles.authorName}>{message.authorName}</Text>
-          )
-        )}
+          ))}
         {/* Bubble */}
         <View
           style={[
@@ -81,7 +103,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, onUserPre
             style={[
               styles.messageText,
               isOwn ? styles.ownMessageText : styles.otherMessageText,
-              Platform.OS === 'web' ? styles.messageTextWeb : null,
+              Platform.OS === "web" ? styles.messageTextWeb : null,
             ]}
           >
             {message.text}
@@ -92,12 +114,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwn, onUserPre
           style={[
             styles.timestamp,
             isOwn ? styles.ownTimestamp : styles.otherTimestamp,
-            isOwn ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' },
+            isOwn ? { alignSelf: "flex-end" } : { alignSelf: "flex-start" },
           ]}
         >
-          {message.timestamp.toLocaleTimeString('ja-JP', {
-            hour: '2-digit',
-            minute: '2-digit',
+          {message.timestamp.toLocaleTimeString("ja-JP", {
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </Text>
       </View>
@@ -109,11 +131,11 @@ const styles = StyleSheet.create({
   messageContainer: {
     marginVertical: spacing.xs,
     paddingHorizontal: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   ownMessageContainer: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   avatarContainer: {
     marginRight: spacing.sm,
@@ -122,14 +144,14 @@ const styles = StyleSheet.create({
   messageContent: {
     flex: 1,
     minWidth: 0, // allow children to shrink and wrap on web
-    alignItems: 'flex-start', // default: content-sized bubble
+    alignItems: "flex-start", // default: content-sized bubble
   },
   ownMessageContent: {
-    alignItems: 'flex-end', // own messages right-aligned
+    alignItems: "flex-end", // own messages right-aligned
   },
   bubbleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     flex: 1,
     minWidth: 0,
   },
@@ -138,16 +160,16 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.info,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: typography.fontSize.sm,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.white,
   },
   bubble: {
-    maxWidth: '80%',
+    maxWidth: "80%",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: 20,
@@ -156,10 +178,10 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   bubbleOther: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   bubbleOwn: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   ownBubble: {
     backgroundColor: colors.info,
@@ -171,7 +193,7 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontSize: typography.fontSize.xs,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.info,
     marginBottom: spacing.xs,
     marginLeft: spacing.xs,
@@ -180,13 +202,13 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     lineHeight: 22,
     flexShrink: 1,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   messageTextWeb: {
     // RN Web specific: allow long words/continuous text to wrap
-    wordBreak: 'break-all',
-    overflowWrap: 'anywhere',
-    whiteSpace: 'pre-wrap',
+    wordBreak: "break-all",
+    overflowWrap: "anywhere",
+    whiteSpace: "pre-wrap",
   } as any,
   ownMessageText: {
     color: colors.white,
@@ -207,14 +229,14 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   systemContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
   systemText: {
     fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     backgroundColor: colors.gray100,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -222,19 +244,16 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(
-  MessageBubble,
-  (prev, next) => {
-    const a = prev.message;
-    const b = next.message;
-    return (
-      prev.isOwn === next.isOwn &&
-      a.id === b.id &&
-      a.text === b.text &&
-      a.authorName === b.authorName &&
-      a.avatar === b.avatar &&
-      a.type === b.type &&
-      a.timestamp.getTime() === b.timestamp.getTime()
-    );
-  },
-);
+export default React.memo(MessageBubble, (prev, next) => {
+  const a = prev.message;
+  const b = next.message;
+  return (
+    prev.isOwn === next.isOwn &&
+    a.id === b.id &&
+    a.text === b.text &&
+    a.authorName === b.authorName &&
+    a.avatar === b.avatar &&
+    a.type === b.type &&
+    a.timestamp.getTime() === b.timestamp.getTime()
+  );
+});

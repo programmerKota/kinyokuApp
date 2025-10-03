@@ -1,5 +1,5 @@
-﻿import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+﻿import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,11 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
-} from 'react-native';
+} from "react-native";
 
-import { useModerationGuard } from '@shared/hooks/useModerationGuard';
-import { colors, spacing, typography } from '@shared/theme';
-import uiStyles from '@shared/ui/styles';
+import { useModerationGuard } from "@shared/hooks/useModerationGuard";
+import { colors, spacing, typography } from "@shared/theme";
+import uiStyles from "@shared/ui/styles";
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -24,13 +24,17 @@ interface CreatePostModalProps {
   onSubmit: (post: { content: string }) => void;
 }
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onSubmit }) => {
-  const [content, setContent] = useState('');
+const CreatePostModal: React.FC<CreatePostModalProps> = ({
+  visible,
+  onClose,
+  onSubmit,
+}) => {
+  const [content, setContent] = useState("");
   const guard = useModerationGuard(content);
 
   const handleSubmit = () => {
     if (!content.trim() || !guard.canSend) {
-      Alert.alert('エラー', '投稿内容を入力してください');
+      Alert.alert("エラー", "投稿内容を入力してください");
       return;
     }
 
@@ -38,15 +42,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
       content: content.trim(),
     });
 
-    setContent('');
+    setContent("");
     onClose();
   };
 
   const handleClose = () => {
-    setContent('');
+    setContent("");
     onClose();
   };
-
 
   return (
     <RNModal
@@ -65,7 +68,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         >
           <View style={styles.content}>
@@ -82,16 +85,29 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ visible, onClose, onS
 
             <View style={[uiStyles.rowBetween, styles.footer]}>
               <View style={styles.counterContainer}>
-                <Text style={[styles.counter, content.length > 260 && styles.counterWarning]}>
+                <Text
+                  style={[
+                    styles.counter,
+                    content.length > 260 && styles.counterWarning,
+                  ]}
+                >
                   {content.length}/280
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={handleSubmit}
-                style={[styles.postButton, !content.trim() && styles.postButtonDisabled]}
+                style={[
+                  styles.postButton,
+                  !content.trim() && styles.postButtonDisabled,
+                ]}
                 disabled={!content.trim()}
               >
-                <Text style={[styles.postButtonText, !content.trim() && styles.postButtonTextDisabled]}>
+                <Text
+                  style={[
+                    styles.postButtonText,
+                    !content.trim() && styles.postButtonTextDisabled,
+                  ]}
+                >
                   投稿
                 </Text>
               </TouchableOpacity>
@@ -109,9 +125,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
@@ -130,9 +146,9 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: spacing.lg,
   },
   postButton: {
@@ -141,7 +157,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: 25,
     minWidth: 80,
-    alignItems: 'center',
+    alignItems: "center",
   },
   postButtonDisabled: {
     backgroundColor: colors.gray300,
@@ -149,7 +165,7 @@ const styles = StyleSheet.create({
   postButtonText: {
     color: colors.white,
     fontSize: typography.fontSize.base,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   postButtonTextDisabled: {
     color: colors.gray500,
@@ -158,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     color: colors.textPrimary,
     minHeight: 200,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     lineHeight: 26,
     backgroundColor: colors.gray50,
     borderRadius: 12,
@@ -168,7 +184,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   counterContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   counter: {
     fontSize: typography.fontSize.sm,

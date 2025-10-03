@@ -1,23 +1,26 @@
-import type { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import React, { useCallback, useEffect, useState } from "react";
+import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 
-import type { RootStackParamList } from '@app/navigation/RootNavigator';
-import TimerScreen from '@features/challenge/screens/TimerScreen';
-import HistoryButton from '@features/home/components/HistoryButton';
-import RankingButton from '@features/home/components/RankingButton';
-import ProfileSetupModal from '@features/home/components/ProfileSetupModalCard';
-import DiaryButton from '@features/diary/components/DiaryButton';
-import { useAuth } from '@app/contexts/AuthContext';
-import { colors, spacing } from '@shared/theme';
+import { useAuth } from "@app/contexts/AuthContext";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
+import TimerScreen from "@features/challenge/screens/TimerScreen";
+import DiaryButton from "@features/diary/components/DiaryButton";
+import HistoryButton from "@features/home/components/HistoryButton";
+import ProfileSetupModal from "@features/home/components/ProfileSetupModalCard";
+import RankingButton from "@features/home/components/RankingButton";
+import { colors, spacing } from "@shared/theme";
 
-const PROFILE_SETUP_SEEN_KEY = 'profile_setup_seen_v1';
-const forceProfileModal = String(
-  // Allow forcing the profile setup modal to stay open (dev convenience)
-  (typeof process !== 'undefined' && (process as unknown as { env?: Record<string, string | undefined> }).env?.EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL) ||
-  ''
-).toLowerCase() === 'true';
+const PROFILE_SETUP_SEEN_KEY = "profile_setup_seen_v1";
+const forceProfileModal =
+  String(
+    // Allow forcing the profile setup modal to stay open (dev convenience)
+    (typeof process !== "undefined" &&
+      (process as unknown as { env?: Record<string, string | undefined> }).env
+        ?.EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL) ||
+      "",
+  ).toLowerCase() === "true";
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
 
@@ -45,7 +48,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           setProfileModalVisible(true);
         }
       } catch (error) {
-        console.warn('HomeScreen: failed to read profile setup flag', error);
+        console.warn("HomeScreen: failed to read profile setup flag", error);
       } finally {
         if (active) {
           setCheckingFirstLaunch(false);
@@ -61,9 +64,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     if (persistingFlag) return;
     setPersistingFlag(true);
     try {
-      await AsyncStorage.setItem(PROFILE_SETUP_SEEN_KEY, 'true');
+      await AsyncStorage.setItem(PROFILE_SETUP_SEEN_KEY, "true");
     } catch (error) {
-      console.warn('HomeScreen: failed to persist profile setup flag', error);
+      console.warn("HomeScreen: failed to persist profile setup flag", error);
     } finally {
       setPersistingFlag(false);
     }
@@ -77,7 +80,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         setProfileModalVisible(false);
       }
     },
-    [updateProfile, markFlagAsSeen]
+    [updateProfile, markFlagAsSeen],
   );
 
   const handleProfileSkip = useCallback(async () => {
@@ -88,12 +91,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.backgroundTertiary}
+      />
       <TimerScreen />
 
       <ProfileSetupModal
-        visible={(forceProfileModal || profileModalVisible) && !checkingFirstLaunch}
-        initialName={user?.displayName || ''}
+        visible={
+          (forceProfileModal || profileModalVisible) && !checkingFirstLaunch
+        }
+        initialName={user?.displayName || ""}
         onSubmit={handleProfileSubmit}
         initialAvatar={user?.avatarUrl}
         onSkip={handleProfileSkip}
@@ -101,15 +109,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       <View style={styles.buttonContainer}>
         <View style={styles.quickBtn}>
-          <HistoryButton onPress={() => navigation.navigate('History')} />
+          <HistoryButton onPress={() => navigation.navigate("History")} />
         </View>
         <View style={styles.quickBtn}>
-          <DiaryButton onPress={() => navigation.navigate('Diary')} />
+          <DiaryButton onPress={() => navigation.navigate("Diary")} />
         </View>
         <View style={styles.quickBtn}>
           <RankingButton
-            onPress={() => navigation.navigate('Ranking')}
-            style={{ width: '100%' }}
+            onPress={() => navigation.navigate("Ranking")}
+            style={{ width: "100%" }}
           />
         </View>
       </View>
@@ -123,18 +131,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundTertiary,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 0,
     paddingBottom: spacing.lg,
   },
   quickBtn: {
     flex: 1,
     minWidth: 120,
-    alignItems: 'stretch',
+    alignItems: "stretch",
     paddingHorizontal: spacing.xs,
   },
 });
 
 export default HomeScreen;
-

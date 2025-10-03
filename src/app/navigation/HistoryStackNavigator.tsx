@@ -1,7 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
 
-import HistoryScreen from '@features/history/screens/HistoryScreen';
+import HistoryScreen from "@features/history/screens/HistoryScreen";
 
 export type HistoryStackParamList = {
   HistoryMain: undefined;

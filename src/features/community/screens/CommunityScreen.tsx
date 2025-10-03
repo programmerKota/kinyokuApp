@@ -1,33 +1,28 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
   StatusBar,
-  TextInput,
-  ActivityIndicator,
-} from 'react-native';
+} from "react-native";
 
-import Button from '@shared/components/Button';
-import ReplyInputBar from '@shared/components/ReplyInputBar';
-import KeyboardAwareScrollView from '@shared/components/KeyboardAwareScrollView';
-import ListFooterSpinner from '@shared/components/ListFooterSpinner';
-import { uiStyles } from '@shared/ui/styles';
-import { colors, spacing, typography, shadows } from '@shared/theme';
-import { navigateToUserDetail } from '@shared/utils/navigation';
-import type { CommunityPost } from '@project-types';
-
-import CreatePostModal from '@features/community/components/CreatePostModal';
-import PostList from '@features/community/components/PostList';
-import useCommunity from '@features/community/hooks/useCommunity';
-import type { TournamentStackParamList } from '@app/navigation/TournamentStackNavigator';
+import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
+import CreatePostModal from "@features/community/components/CreatePostModal";
+import PostList from "@features/community/components/PostList";
+import useCommunity from "@features/community/hooks/useCommunity";
+import type { CommunityPost } from "@project-types";
+import Button from "@shared/components/Button";
+import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
+import ReplyInputBar from "@shared/components/ReplyInputBar";
+import { colors, spacing, typography, shadows } from "@shared/theme";
+import { uiStyles } from "@shared/ui/styles";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 type Nav = StackNavigationProp<TournamentStackParamList>;
 
@@ -65,7 +60,12 @@ const CommunityScreen: React.FC = () => {
 
   const handlePostPress = useCallback(
     (post: CommunityPost) => {
-      navigateToUserDetail(navigation, post.authorId, post.authorName, post.authorAvatar);
+      navigateToUserDetail(
+        navigation,
+        post.authorId,
+        post.authorName,
+        post.authorAvatar,
+      );
     },
     [navigation],
   );
@@ -74,30 +74,51 @@ const CommunityScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundTertiary} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.backgroundTertiary}
+      />
 
       <View style={uiStyles.tabBar}>
         <TouchableOpacity
-          style={[uiStyles.tab, activeTab === 'all' && uiStyles.tabActive]}
-          onPress={() => handleTabPress('all')}
+          style={[uiStyles.tab, activeTab === "all" && uiStyles.tabActive]}
+          onPress={() => handleTabPress("all")}
         >
-          <Text style={[uiStyles.tabText, activeTab === 'all' && uiStyles.tabTextActive]}>
+          <Text
+            style={[
+              uiStyles.tabText,
+              activeTab === "all" && uiStyles.tabTextActive,
+            ]}
+          >
             すべて
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[uiStyles.tab, activeTab === 'my' && uiStyles.tabActive]}
-          onPress={() => handleTabPress('my')}
+          style={[uiStyles.tab, activeTab === "my" && uiStyles.tabActive]}
+          onPress={() => handleTabPress("my")}
         >
-          <Text style={[uiStyles.tabText, activeTab === 'my' && uiStyles.tabTextActive]}>
+          <Text
+            style={[
+              uiStyles.tabText,
+              activeTab === "my" && uiStyles.tabTextActive,
+            ]}
+          >
             My投稿
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[uiStyles.tab, activeTab === 'following' && uiStyles.tabActive]}
-          onPress={() => handleTabPress('following')}
+          style={[
+            uiStyles.tab,
+            activeTab === "following" && uiStyles.tabActive,
+          ]}
+          onPress={() => handleTabPress("following")}
         >
-          <Text style={[uiStyles.tabText, activeTab === 'following' && uiStyles.tabTextActive]}>
+          <Text
+            style={[
+              uiStyles.tabText,
+              activeTab === "following" && uiStyles.tabTextActive,
+            ]}
+          >
             フォロー
           </Text>
         </TouchableOpacity>
@@ -111,11 +132,18 @@ const CommunityScreen: React.FC = () => {
           showReplyButtons={showReplyButtons}
           replyCounts={replyCounts}
           authorAverageDays={userAverageDays}
-          hasMore={activeTab === 'all' ? hasMore : false}
-          onLike={(id) => { void handleLike(id); }}
+          hasMore={activeTab === "all" ? hasMore : false}
+          onLike={(id) => {
+            void handleLike(id);
+          }}
           onComment={handleComment}
           onReply={handleReply}
-          onUserPress={(uid, uname) => handlePostPress({ authorId: uid, authorName: uname } as CommunityPost)}
+          onUserPress={(uid, uname) =>
+            handlePostPress({
+              authorId: uid,
+              authorName: uname,
+            } as CommunityPost)
+          }
           contentContainerStyle={uiStyles.listContainer}
           onEndReached={() => {
             if (!hasMore || loadingMore || posts.length === 0) return;
@@ -129,25 +157,30 @@ const CommunityScreen: React.FC = () => {
           ListEmptyComponent={
             posts.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="chatbubble-outline" size={64} color={colors.gray300} />
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={64}
+                  color={colors.gray300}
+                />
                 <Text style={styles.emptyTitle}>
-                  {activeTab === 'all' && '投稿がありません'}
-                  {activeTab === 'my' && '自分の投稿がありません'}
-                  {activeTab === 'following' && 'フォロー中の投稿がありません'}
+                  {activeTab === "all" && "投稿がありません"}
+                  {activeTab === "my" && "自分の投稿がありません"}
+                  {activeTab === "following" && "フォロー中の投稿がありません"}
                 </Text>
                 <Text style={styles.emptyText}>
-                  {activeTab === 'all' && '最初の投稿を作成してみましょう'}
-                  {activeTab === 'my' && 'まだ投稿していません'}
-                  {activeTab === 'following' && 'フォローしているユーザーがいません'}
+                  {activeTab === "all" && "最初の投稿を作成してみましょう"}
+                  {activeTab === "my" && "まだ投稿していません"}
+                  {activeTab === "following" &&
+                    "フォローしているユーザーがいません"}
                 </Text>
-                {activeTab === 'all' && (
+                {activeTab === "all" && (
                   <Button
                     title="投稿を作成"
                     onPress={() => setShowCreateModal(true)}
                     style={styles.emptyButton}
                   />
                 )}
-                {activeTab === 'following' && (
+                {activeTab === "following" && (
                   <Button
                     title="投稿者をフォロー"
                     onPress={() => {
@@ -167,12 +200,17 @@ const CommunityScreen: React.FC = () => {
           value={replyText}
           onChangeText={setReplyText}
           onCancel={handleReplyCancel}
-          onSubmit={() => { void handleReplySubmit(); }}
+          onSubmit={() => {
+            void handleReplySubmit();
+          }}
           autoFocus
         />
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={() => setShowCreateModal(true)}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowCreateModal(true)}
+      >
         <Ionicons name="add" size={24} color={colors.white} />
       </TouchableOpacity>
 
@@ -200,13 +238,13 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderPrimary,
   },
   title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: '700',
+    fontSize: typography.fontSize["2xl"],
+    fontWeight: "700",
     color: colors.textPrimary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     backgroundColor: colors.backgroundPrimary,
@@ -216,7 +254,7 @@ const styles = StyleSheet.create({
   tab: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    marginRight: spacing['3xl'],
+    marginRight: spacing["3xl"],
   },
   activeTab: {
     borderBottomWidth: 2,
@@ -224,7 +262,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: typography.fontSize.base,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.textSecondary,
   },
   activeTabText: {
@@ -235,26 +273,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: spacing.xl,
     right: spacing.xl,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.info,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     ...shadows.lg,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing['5xl'],
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: spacing["5xl"],
   },
   emptyTitle: {
     fontSize: typography.fontSize.lg,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
@@ -262,11 +300,11 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: typography.fontSize.sm,
     color: colors.textTertiary,
-    textAlign: 'center',
-    marginBottom: spacing['2xl'],
+    textAlign: "center",
+    marginBottom: spacing["2xl"],
   },
   emptyButton: {
-    paddingHorizontal: spacing['3xl'],
+    paddingHorizontal: spacing["3xl"],
   },
   replyInputContainer: {
     backgroundColor: colors.gray50,
@@ -283,13 +321,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderPrimary,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     marginBottom: spacing.md,
   },
   replyInputActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
     gap: spacing.md,
   },
   replyCancelButton: {
@@ -307,7 +345,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: 20,
     minWidth: 60,
-    alignItems: 'center',
+    alignItems: "center",
   },
   replySubmitButtonDisabled: {
     backgroundColor: colors.gray300,

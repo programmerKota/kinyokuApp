@@ -1,12 +1,10 @@
-﻿import type { Timestamp } from 'firebase/firestore';
-
 export interface FirestoreUser {
   id: string;
   email: string;
   displayName: string;
   photoURL?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FirestoreChallenge {
@@ -14,13 +12,13 @@ export interface FirestoreChallenge {
   userId: string;
   goalDays: number;
   penaltyAmount: number;
-  status: 'active' | 'completed' | 'failed' | 'paused';
-  startedAt: Timestamp | Date;
-  completedAt?: Timestamp | Date | null;
-  failedAt?: Timestamp | Date | null;
+  status: "active" | "completed" | "failed" | "paused";
+  startedAt: Date;
+  completedAt?: Date | null;
+  failedAt?: Date | null;
   totalPenaltyPaid: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FirestoreTournament {
@@ -31,12 +29,12 @@ export interface FirestoreTournament {
   maxParticipants: number;
   entryFee: number;
   prizePool: number;
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  status: "upcoming" | "active" | "completed" | "cancelled";
   recruitmentOpen: boolean;
-  startDate: Timestamp;
-  endDate: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  startDate: Date;
+  endDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FirestoreTournamentParticipant {
@@ -45,9 +43,9 @@ export interface FirestoreTournamentParticipant {
   userId: string;
   userName: string;
   userAvatar?: string;
-  status: 'joined' | 'left' | 'kicked' | 'completed' | 'failed';
-  joinedAt: Timestamp;
-  leftAt?: Timestamp;
+  status: "joined" | "left" | "kicked" | "completed" | "failed";
+  joinedAt: Date;
+  leftAt?: Date;
   progressPercent?: number;
   currentDay?: number;
 }
@@ -58,8 +56,8 @@ export interface FirestoreTournamentJoinRequest {
   userId: string;
   userName: string;
   userAvatar?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: Timestamp;
+  status: "pending" | "approved" | "rejected";
+  createdAt: Date;
 }
 
 export interface FirestoreTournamentMessage {
@@ -69,8 +67,8 @@ export interface FirestoreTournamentMessage {
   authorName: string;
   authorAvatar?: string;
   text: string;
-  type: 'text' | 'system';
-  createdAt: Timestamp;
+  type: "text" | "system";
+  createdAt: Date;
 }
 
 export interface FirestoreCommunityPost {
@@ -83,8 +81,8 @@ export interface FirestoreCommunityPost {
   imageUrl?: string;
   likes: number;
   comments: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FirestoreFollow {
@@ -98,11 +96,11 @@ export interface FirestorePayment {
   id: string;
   userId: string;
   amount: number;
-  type: 'penalty' | 'entry_fee' | 'prize';
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  type: "penalty" | "entry_fee" | "prize";
+  status: "pending" | "completed" | "failed" | "refunded";
   transactionId?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FirestoreDiary {

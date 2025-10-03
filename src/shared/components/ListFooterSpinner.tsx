@@ -14,6 +14,8 @@ const ListFooterSpinner: React.FC<ListFooterSpinnerProps> = ({
   loading,
   color = colors.primary,
   paddingVertical = spacing.lg,
+  // showWhenEmpty is deprecated and unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   showWhenEmpty = false,
 }) => {
   if (!loading) return null;
