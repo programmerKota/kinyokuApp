@@ -1,1 +1,22 @@
-﻿seed:tournament:docker":  "docker compose run --rm --no-deps -e GCLOUD_PROJECT=demo-project -e FIRESTORE_EMULATOR_HOST=firebase-emulators:8080 -e TID=%TID% -e REQ=%REQ% -e JOIN=%JOIN% batch-scheduler node scripts/seedTou
+   1: import React from "react";
+   2: import { GestureHandlerRootView } from "react-native-gesture-handler";
+   3: 
+   4: import { AuthProvider } from "@app/contexts/AuthContext";
+   5: import RootNavigator from "@app/navigation/RootNavigator";
+   6: import ConnectivityBadge from "@shared/components/ConnectivityBadge";
+   7: import ErrorBoundary from "@shared/components/ErrorBoundary";
+   8: 
+   9: const App = () => {
+  10:   return (
+  11:     <GestureHandlerRootView style={{ flex: 1 }}>
+  12:       <ErrorBoundary>
+  13:         <AuthProvider>
+  14:           <RootNavigator />
+  15:         </AuthProvider>
+  16:       </ErrorBoundary>
+  17:       {__DEV__ && <ConnectivityBadge />}
+  18:     </GestureHandlerRootView>
+  19:   );
+  20: };
+  21: 
+  22: export default App;

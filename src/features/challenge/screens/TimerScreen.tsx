@@ -7,10 +7,12 @@ import TimerDisplay from "@features/challenge/components/TimerDisplay";
 import useTimer from "@features/challenge/hooks/useTimer";
 import LoadingState from "@shared/components/LoadingState";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
 const TimerScreen: React.FC = () => {
   const [state, actions] = useTimer();
   const { handleError } = useErrorHandler();
+  const { requireAuth } = useAuthPrompt();
   const {
     goalDays,
     penaltyAmount,
@@ -48,6 +50,8 @@ const TimerScreen: React.FC = () => {
   };
 
   const handleConfirmStop = async () => {
+    const ok = await requireAuth();
+    if (!ok) return;
     if (!currentSession) return;
     const completed = isGoalAchieved;
     try {
@@ -65,7 +69,9 @@ const TimerScreen: React.FC = () => {
     }
   };
 
-  const handleStartPress = () => {
+  const handleStartPress = async () => {
+    const ok = await requireAuth();
+    if (!ok) return;
     setGoalDays(7);
     setPenaltyAmount(0);
     showChallengeModal();

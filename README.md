@@ -75,3 +75,5 @@ Firebase（本番）接続
   - Dev Client の場合: `npm run start:dev-client:tunnel:proxy`
   - これらは `EXPO_PACKAGER_PROXY_URL` を自動設定し、Expo の生成 URL をトンネル経由に切り替えます。
 - 追加チェック: Expo ログイン、社内プロキシ設定、FW で `*.exp.direct`/`*.ngrok.io` が遮断されていないか
+
+

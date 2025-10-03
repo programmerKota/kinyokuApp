@@ -288,33 +288,71 @@ export class TournamentService {
       callback([] as unknown as FirestoreTournamentJoinRequest[]);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
-    const tick = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("tournament_join_requests")
-          .select("*")
-          .eq("tournamentId", tournamentId)
-          .order("createdAt", { ascending: false });
-        if (error) throw error;
-        if (!cancelled) {
-          const items = (data || []).map((row) => ({
-            ...row,
-            createdAt: toTs(row.createdAt),
-          })) as FirestoreTournamentJoinRequest[];
-          callback(items);
+
+    let current: FirestoreTournamentJoinRequest[] = [];
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const emit = () => callback([...current]);
+    const sortDesc = (a: any, b: any) =>
+      String(b.createdAt as any).localeCompare(String(a.createdAt as any));
+
+    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+      if (!row || row.tournamentId !== tournamentId) return;
+      if (type === "INSERT") {
+        const item = { ...row, createdAt: toTs(row.createdAt) } as any;
+        current = [item, ...current].sort(sortDesc);
+      } else if (type === "UPDATE") {
+        const idx = current.findIndex((r) => r.id === row.id);
+        const item = { ...row, createdAt: toTs(row.createdAt) } as any;
+        if (idx >= 0) {
+          const copy = [...current];
+          copy[idx] = { ...copy[idx], ...item };
+          current = copy.sort(sortDesc);
+        } else {
+          current = [item, ...current].sort(sortDesc);
         }
-      } catch (e) {
-        // noop
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 5000);
+      } else if (type === "DELETE") {
+        current = current.filter((r) => r.id !== row.id);
       }
+      emit();
     };
-    void tick();
+
+    const init = async () => {
+      const { data, error } = await supabase
+        .from("tournament_join_requests")
+        .select("*")
+        .eq("tournamentId", tournamentId)
+        .order("createdAt", { ascending: false });
+      if (error) throw error;
+      current = (data || []).map((row) => ({
+        ...row,
+        createdAt: toTs((row as any).createdAt),
+      })) as any;
+      emit();
+
+      channel = supabase
+        .channel(`realtime:tournament_join_requests:${tournamentId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "tournament_join_requests",
+          },
+          (payload: any) => {
+            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
+            const row =
+              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            if (!row) return;
+            applyChange(type, row);
+          },
+        )
+        .subscribe();
+    };
+
+    void init();
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 
@@ -416,35 +454,33 @@ export class TournamentService {
       callback([]);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
-    const tick = async () => {
-      try {
-        const iso = toIso(afterCreatedAt);
-        const { data, error } = await supabase
-          .from("tournament_messages")
-          .select("*")
-          .eq("tournamentId", tournamentId)
-          .gt("createdAt", iso || new Date(0).toISOString())
-          .order("createdAt", { ascending: true });
-        if (error) throw error;
-        if (!cancelled) {
-          const items = (data || []).map((row) => ({
-            ...row,
-            createdAt: toTs(row.createdAt),
-          })) as FirestoreTournamentMessage[];
-          callback(items);
-        }
-      } catch (e) {
-        // noop
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 3000);
-      }
+
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+    let sinceIso = toIso(afterCreatedAt) || new Date(0).toISOString();
+
+    const onInsert = (row: any) => {
+      if (!row || row.tournamentId !== tournamentId) return;
+      const created = String(row.createdAt || new Date(0).toISOString());
+      if (created <= sinceIso) return;
+      sinceIso = created;
+      const msg = [{ ...row, createdAt: toTs(row.createdAt) }] as any;
+      callback(msg);
     };
-    void tick();
+
+    channel = supabase
+      .channel(`realtime:tournament_messages:new:${tournamentId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "tournament_messages" },
+        (payload: any) => {
+          const row = payload.new;
+          onInsert(row);
+        },
+      )
+      .subscribe();
+
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 
@@ -455,22 +491,64 @@ export class TournamentService {
       callback([]);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
-    const tick = async () => {
-      try {
-        const list = await this.getTournaments();
-        if (!cancelled) callback(list);
-      } catch (e) {
-        // noop
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 5000);
+
+    let current: FirestoreTournament[] = [];
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const emit = () => callback([...current]);
+    const sortDesc = (a: any, b: any) =>
+      String(b.createdAt as any).localeCompare(String(a.createdAt as any));
+
+    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+      if (!row) return;
+      const item = {
+        ...row,
+        startDate: toTs(row.startDate),
+        endDate: toTs(row.endDate),
+        createdAt: toTs(row.createdAt),
+        updatedAt: toTs(row.updatedAt),
+      } as any;
+      if (type === "INSERT") {
+        current = [item, ...current].sort(sortDesc);
+      } else if (type === "UPDATE") {
+        const idx = current.findIndex((r) => r.id === row.id);
+        if (idx >= 0) {
+          const copy = [...current];
+          copy[idx] = { ...copy[idx], ...item };
+          current = copy.sort(sortDesc);
+        } else {
+          current = [item, ...current].sort(sortDesc);
+        }
+      } else if (type === "DELETE") {
+        current = current.filter((r) => r.id !== row.id);
       }
+      emit();
     };
-    void tick();
+
+    const init = async () => {
+      const list = await this.getTournaments();
+      current = list;
+      emit();
+      channel = supabase
+        .channel("realtime:tournaments")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "tournaments" },
+          (payload: any) => {
+            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
+            const row =
+              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            if (!row) return;
+            applyChange(type, row);
+          },
+        )
+        .subscribe();
+    };
+
+    void init();
+
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 
@@ -524,41 +602,89 @@ export class TournamentService {
       callback([] as unknown as FirestoreTournamentParticipant[]);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
-    const tick = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("tournament_participants")
-          .select("*")
-          .eq("tournamentId", tournamentId)
-          .order("joinedAt", { ascending: true });
-        if (error) throw error;
-        if (!cancelled) {
-          const items = (data || []).map((row) => ({
-            id: row.id,
-            tournamentId: row.tournamentId,
-            userId: row.userId,
-            userName: row.userName,
-            userAvatar: row.userAvatar ?? undefined,
-            status: row.status,
-            joinedAt: toTs(row.joinedAt),
-            leftAt: row.leftAt ? toTs(row.leftAt) : undefined,
-            progressPercent: row.progressPercent,
-            currentDay: row.currentDay,
-          })) as FirestoreTournamentParticipant[];
-          callback(items);
+
+    let current: FirestoreTournamentParticipant[] = [];
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const emit = () => callback([...current]);
+    const sortAsc = (a: any, b: any) =>
+      String(a.joinedAt as any).localeCompare(String(b.joinedAt as any));
+
+    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+      if (!row || row.tournamentId !== tournamentId) return;
+      const item = {
+        id: row.id,
+        tournamentId: row.tournamentId,
+        userId: row.userId,
+        userName: row.userName,
+        userAvatar: row.userAvatar ?? undefined,
+        status: row.status,
+        joinedAt: toTs(row.joinedAt),
+        leftAt: row.leftAt ? toTs(row.leftAt) : undefined,
+        progressPercent: row.progressPercent,
+        currentDay: row.currentDay,
+      } as any;
+      if (type === "INSERT") {
+        current = [...current, item].sort(sortAsc);
+      } else if (type === "UPDATE") {
+        const idx = current.findIndex((p) => p.id === row.id);
+        if (idx >= 0) {
+          const copy = [...current];
+          copy[idx] = { ...copy[idx], ...item };
+          current = copy.sort(sortAsc);
+        } else {
+          current = [...current, item].sort(sortAsc);
         }
-      } catch (e) {
-        // noop
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 5000);
+      } else if (type === "DELETE") {
+        current = current.filter((p) => p.id !== row.id);
       }
+      emit();
     };
-    void tick();
+
+    const init = async () => {
+      const { data, error } = await supabase
+        .from("tournament_participants")
+        .select("*")
+        .eq("tournamentId", tournamentId)
+        .order("joinedAt", { ascending: true });
+      if (error) throw error;
+      current = (data || []).map((row) => ({
+        id: (row as any).id,
+        tournamentId: (row as any).tournamentId,
+        userId: (row as any).userId,
+        userName: (row as any).userName,
+        userAvatar: (row as any).userAvatar ?? undefined,
+        status: (row as any).status,
+        joinedAt: toTs((row as any).joinedAt),
+        leftAt: (row as any).leftAt ? toTs((row as any).leftAt) : undefined,
+        progressPercent: (row as any).progressPercent,
+        currentDay: (row as any).currentDay,
+      })) as any;
+      emit();
+
+      channel = supabase
+        .channel(`realtime:tournament_participants:${tournamentId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "tournament_participants",
+          },
+          (payload: any) => {
+            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
+            const row =
+              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            if (!row) return;
+            applyChange(type, row);
+          },
+        )
+        .subscribe();
+    };
+
+    void init();
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 

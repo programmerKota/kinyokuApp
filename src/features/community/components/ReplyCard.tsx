@@ -25,17 +25,17 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
           ) : (
             <View style={styles.avatarFallback}>
               <Text style={styles.avatarFallbackText}>
-                {reply.authorName.charAt(0)}
+                {(reply.authorName || "ユーザー").charAt(0)}
               </Text>
             </View>
           )}
         </View>
         <View style={styles.headerText}>
-          <Text style={styles.author}>{reply.authorName}</Text>
+          <Text style={styles.author}>{reply.authorName || "ユーザー"}</Text>
           <RelativeTime value={reply.createdAt} style={styles.timestamp} />
         </View>
       </View>
-      <Text style={styles.content}>{reply.content}</Text>
+      <Text style={styles.content}>{reply.content ?? ""}</Text>
     </Container>
   );
 };

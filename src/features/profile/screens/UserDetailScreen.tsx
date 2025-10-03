@@ -36,6 +36,7 @@ import {
   incrementCountMap,
 } from "@shared/utils/community";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
 type RootStackParamList = {
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
@@ -67,6 +68,7 @@ const UserDetailScreen: React.FC = () => {
   );
   const [averageDays, setAverageDays] = useState(0);
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
+  const { requireAuth } = useAuthPrompt();
   // 逕ｻ髱｢繝輔か繝ｼ繧ｫ繧ｹ荳ｭ縺ｯ豈守ｧ貞・謠冗判縺励※逶ｸ蟇ｾ譎る俣繧呈峩譁ｰ
   const [nowTick, setNowTick] = useState(0);
 
@@ -181,6 +183,8 @@ const UserDetailScreen: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
+    const ok = await requireAuth();
+    if (!ok) return;
     if (likingIds.has(postId)) return;
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
@@ -205,13 +209,17 @@ const UserDetailScreen: React.FC = () => {
     } catch {}
   };
 
-  const handleReply = (postId: string) => {
+  const handleReply = async (postId: string) => {
+    const ok = await requireAuth();
+    if (!ok) return;
     setReplyingTo(postId);
     setReplyText("");
   };
 
   const handleReplySubmit = async () => {
     if (!replyingTo || !replyText.trim()) return;
+    const ok = await requireAuth();
+    if (!ok) return;
     try {
       await CommunityService.addReply(replyingTo, {
         content: replyText.trim(),
@@ -238,6 +246,8 @@ const UserDetailScreen: React.FC = () => {
 
   const onToggleFollow = async () => {
     try {
+      const ok = await requireAuth();
+      if (!ok) return;
       if (following) {
         await FollowService.unfollow(userId);
         setFollowing(false);
@@ -252,6 +262,8 @@ const UserDetailScreen: React.FC = () => {
 
   const onToggleBlock = async () => {
     try {
+      const ok = await requireAuth();
+      if (!ok) return;
       if (blocked) {
         // Optimistic
         BlockStore.remove(userId);

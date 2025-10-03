@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@app/contexts/AuthContext";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { CommunityService, FollowService } from "@core/services/firestore";
 import { UserStatsService } from "@core/services/userStatsService";
 import type { CommunityPost } from "@project-types";
@@ -46,6 +47,7 @@ export interface UseCommunityActions {
 
 export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const { user } = useAuth();
+  const { requireAuth } = useAuthPrompt();
 
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -460,6 +462,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const handleCreatePost = useCallback(
     async (postData: { content: string }) => {
+      const ok = await requireAuth();
+      if (!ok) return;
       const requestId = (createPostRequestSeqRef.current += 1);
       await CommunityService.addPost(postData);
 
@@ -524,6 +528,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const handleLike = useCallback(
     async (postId: string) => {
+      const ok = await requireAuth();
+      if (!ok) return;
       if (likingIds.has(postId)) return;
       setLikingIds((prev) => new Set(prev).add(postId));
       try {
@@ -557,6 +563,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const handleReplySubmit = useCallback(async () => {
     if (!replyingTo || !replyText.trim()) return;
+    const ok = await requireAuth();
+    if (!ok) return;
     await CommunityService.addReply(replyingTo, { content: replyText.trim() });
     setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
     // Update only the counter for this post (bubble)

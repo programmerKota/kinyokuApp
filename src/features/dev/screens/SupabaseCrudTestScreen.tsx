@@ -114,3 +114,5 @@ const SupabaseCrudTestScreen: React.FC = () => {
 };
 
 export default SupabaseCrudTestScreen;
+
+

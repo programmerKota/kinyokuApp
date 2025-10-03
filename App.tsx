@@ -6,6 +6,7 @@ import RootNavigator from "@app/navigation/RootNavigator";
 import ErrorBoundary from "@shared/components/ErrorBoundary";
 import ConnectivityBadge from "@shared/components/ConnectivityBadge";
 import { initSupabaseAuthDeepLinks } from "@core/services/supabase/authService";
+import { AuthPromptProvider } from "@shared/auth/AuthPromptProvider";
 
 const App = () => {
   useEffect(() => {
@@ -14,9 +15,11 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
+        <AuthPromptProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </AuthPromptProvider>
       </ErrorBoundary>
       {__DEV__ && <ConnectivityBadge />}
     </GestureHandlerRootView>

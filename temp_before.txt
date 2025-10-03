@@ -1,0 +1,59 @@
+import { supabase, supabaseConfig } from "@app/config/supabase.config";
+
+// Supabase繧ｵ繝ｼ繝薙せ縺ｮ繝吶・繧ｹ繧ｯ繝ｩ繧ｹ
+export class SupabaseService {
+  protected static client = supabase;
+
+  // 謗･邯壹ユ繧ｹ繝・ Auth 繝倥Ν繧ｹ繝√ぉ繝・け縺ｫ蟇ｾ縺励※GET縺励・00縺ｪ繧画磁邯唹K縺ｨ蛻､螳・  static async testConnection(): Promise<boolean> {
+    try {
+      // If env is not configured, don't attempt any network call
+      if (!supabaseConfig?.isConfigured) return false;
+      // Single source of truth: supabaseConfig.url
+      const baseUrl = supabaseConfig.url;
+      if (!baseUrl) return false;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+
+      const res = await fetch(`${baseUrl}/auth/v1/health`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      }).catch((err) => {
+        console.error("Health check request error:", err);
+        return undefined;
+      });
+
+      clearTimeout(timeout);
+
+      if (!res) return false;
+      const ok = res.ok;
+      if (ok) console.log("Supabase health endpoint reachable");
+      else
+        console.error("Supabase health endpoint returned non-OK:", res.status);
+      return ok;
+    } catch (error) {
+      console.error("Supabase connection test error:", error);
+      return false;
+    }
+  }
+
+  // 繝・・繧ｿ繝吶・繧ｹ縺ｮ蝓ｺ譛ｬ諠・ｱ繧貞叙蠕・  static async getDatabaseInfo() {
+    try {
+      const { data, error } = await this.client.rpc("version");
+
+      if (error) {
+        console.error("Failed to get database info:", error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Database info error:", error);
+      return null;
+    }
+  }
+}
+
+export default SupabaseService;
+

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { validateMaxLength, validateRequired } from "@shared/utils/validation";
 
 export interface UseProfileState {
@@ -27,6 +28,7 @@ export interface UseProfileActions {
 
 export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
   const { user, updateProfile } = useAuth();
+  const { requireAuth } = useAuthPrompt();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -42,6 +44,8 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
   }, [user]);
 
   const handleSaveProfile = useCallback(async () => {
+    const ok = await requireAuth();
+    if (!ok) return;
     const trimmedName = editName.trim();
     const requiredValidation = validateRequired(trimmedName, "ユーザー名");
     if (!requiredValidation.isValid) {
@@ -64,7 +68,7 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
     } finally {
       setLoading(false);
     }
-  }, [editName, editAvatar, updateProfile]);
+  }, [editName, editAvatar, updateProfile, requireAuth]);
 
   const handleCancelEdit = useCallback(() => {
     if (user) {
@@ -79,6 +83,8 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
   }, []);
 
   const handleImagePicker = useCallback(async () => {
+    const ok = await requireAuth();
+    if (!ok) return;
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -100,7 +106,7 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
       console.error("画像選択に失敗しました:", error);
       Alert.alert("エラー", "画像の選択に失敗しました");
     }
-  }, []);
+  }, [requireAuth]);
 
   const handleRemoveImage = useCallback(() => {
     setEditAvatar("");

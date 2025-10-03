@@ -3,17 +3,17 @@ import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
 export class FollowService {
   static async getFollowDocId(targetUserId: string): Promise<string> {
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     return `${currentUserId}_${targetUserId}`;
   }
 
   static async isFollowing(targetUserId: string): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) return false;
     const id = `${currentUserId}_${targetUserId}`;
     const { data, error } = await supabase
       .from("follows")
@@ -26,9 +26,9 @@ export class FollowService {
 
   static async follow(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase
       .from("follows")
@@ -39,9 +39,9 @@ export class FollowService {
 
   static async unfollow(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase.from("follows").delete().eq("id", id);
     if (error) throw error;
@@ -65,24 +65,46 @@ export class FollowService {
       callback([]);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
 
-    const tick = async () => {
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const init = async () => {
       try {
-        const userIds = await FollowService.getFollowingUserIds(followerId);
-        if (!cancelled) callback(userIds);
+        const { data: s } = await supabase.auth.getSession();
+        const uid = (s?.session?.user?.id as string | undefined) || followerId;
+        const userIds = await FollowService.getFollowingUserIds(uid);
+        callback(userIds);
       } catch {
-        // ignore
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 5000);
+        callback([]);
       }
+
+      channel = supabase
+        .channel(`realtime:follows:${followerId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "follows" },
+          async (payload: any) => {
+            const row = (payload.new || payload.old) as
+              | { followerId?: string }
+              | undefined;
+            if (!row) return;
+            const { data: s2 } = await supabase.auth.getSession();
+            const uid = (s2?.session?.user?.id as string | undefined) || followerId;
+            if ((row.followerId as any) !== uid) return;
+            try {
+              const userIds = await FollowService.getFollowingUserIds(uid);
+              callback(userIds);
+            } catch {
+              // ignore
+            }
+          },
+        )
+        .subscribe();
     };
 
-    void tick();
+    void init();
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 

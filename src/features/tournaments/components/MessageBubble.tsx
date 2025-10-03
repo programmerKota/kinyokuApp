@@ -55,7 +55,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             ) : (
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {message.authorName.charAt(0)}
+                  {(message.authorName || "ユーザー").charAt(0)}
                 </Text>
               </View>
             )}
@@ -67,7 +67,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             ) : (
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {message.authorName.charAt(0)}
+                  {(message.authorName || "ユーザー").charAt(0)}
                 </Text>
               </View>
             )}
@@ -86,10 +86,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 )
               }
             >
-              <Text style={styles.authorName}>{message.authorName}</Text>
+              <Text style={styles.authorName}>{message.authorName || "ユーザー"}</Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.authorName}>{message.authorName}</Text>
+            <Text style={styles.authorName}>{message.authorName || "ユーザー"}</Text>
           ))}
         {/* Bubble */}
         <View

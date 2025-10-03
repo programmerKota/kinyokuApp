@@ -10,10 +10,12 @@ export class ChallengeService {
     if (!supabaseConfig?.isConfigured)
       throw new Error("Supabase未設定です。環境変数を設定してください。");
     // conflict check: active exists?
+    const { data: s } = await supabase.auth.getSession();
+    const uid = (s?.session?.user?.id as string | undefined) || challengeData.userId;
     const { data: active } = await supabase
       .from("challenges")
       .select("id")
-      .eq("userId", challengeData.userId)
+      .eq("userId", uid)
       .eq("status", "active")
       .limit(1)
       .maybeSingle();
@@ -26,6 +28,7 @@ export class ChallengeService {
     const now = new Date().toISOString();
     const payload: any = {
       ...challengeData,
+      userId: uid,
       startedAt:
         challengeData.startedAt instanceof Date
           ? challengeData.startedAt.toISOString()
@@ -57,7 +60,7 @@ export class ChallengeService {
     const { data, error } = await supabase
       .from("challenges")
       .select("*")
-      .eq("userId", userId)
+      .eq("userId", ((await supabase.auth.getSession()).data?.session?.user?.id as string | undefined) || userId)
       .order("createdAt", { ascending: false });
     if (error) throw error;
     return (data || []).map((d) => ({
@@ -96,10 +99,12 @@ export class ChallengeService {
   ): Promise<string> {
     if (!supabaseConfig?.isConfigured)
       throw new Error("Supabase未設定です。環境変数を設定してください。");
+    const { data: s2 } = await supabase.auth.getSession();
+    const uid2 = (s2?.session?.user?.id as string | undefined) || userId;
     const { data: active } = await supabase
       .from("challenges")
       .select("id")
-      .eq("userId", userId)
+      .eq("userId", uid2)
       .eq("status", "active")
       .limit(1)
       .maybeSingle();
@@ -115,10 +120,12 @@ export class ChallengeService {
     userId: string,
   ): Promise<FirestoreChallenge | null> {
     if (!supabaseConfig?.isConfigured) return null;
+    const { data: s3 } = await supabase.auth.getSession();
+    const uid3 = (s3?.session?.user?.id as string | undefined) || userId;
     const { data, error } = await supabase
       .from("challenges")
       .select("*")
-      .eq("userId", userId)
+      .eq("userId", uid3)
       .eq("status", "active")
       .limit(1)
       .maybeSingle();
@@ -140,24 +147,42 @@ export class ChallengeService {
       callback(null);
       return () => {};
     }
-    let cancelled = false;
-    let timer: any;
 
-    const tick = async () => {
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const init = async () => {
       try {
         const ch = await ChallengeService.getActiveChallenge(userId);
-        if (!cancelled) callback(ch);
-      } catch (e) {
-        if (!cancelled) callback(null);
-      } finally {
-        if (!cancelled) timer = setTimeout(tick, 5000);
+        callback(ch);
+      } catch {
+        callback(null);
       }
+
+      channel = supabase
+        .channel(`realtime:challenges:active:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "challenges" },
+          async (payload: any) => {
+            const row = (payload.new || payload.old) as
+              | { userId?: string }
+              | undefined;
+            if (!row) return;
+            if ((row.userId as any) !== userId) return;
+            try {
+              const ch = await ChallengeService.getActiveChallenge(userId);
+              callback(ch);
+            } catch {
+              callback(null);
+            }
+          },
+        )
+        .subscribe();
     };
 
-    void tick();
+    void init();
     return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
+      if (channel) channel.unsubscribe();
     };
   }
 }

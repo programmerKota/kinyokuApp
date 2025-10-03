@@ -5,10 +5,12 @@ import type { FirestoreDiary } from "../firestore/types";
 export class DiaryService {
   static async getUserDiaries(userId: string): Promise<FirestoreDiary[]> {
     if (!supabaseConfig?.isConfigured) return [];
+    const { data: s } = await supabase.auth.getSession();
+    const uid = (s?.session?.user?.id as string | undefined) || userId;
     const { data, error } = await supabase
       .from("diaries")
       .select("*")
-      .eq("userId", userId)
+      .eq("userId", uid)
       .order("createdAt", { ascending: false });
     if (error) throw error;
     return (data || []) as unknown as FirestoreDiary[];
@@ -16,10 +18,12 @@ export class DiaryService {
 
   static async addDiary(userId: string, content: string): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
+    const { data: s } = await supabase.auth.getSession();
+    const uid = (s?.session?.user?.id as string | undefined) || userId;
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("diaries")
-      .insert({ userId, content, createdAt: now, updatedAt: now })
+      .insert({ userId: uid, content, createdAt: now, updatedAt: now })
       .select("id")
       .single();
     if (error) throw error;
@@ -35,7 +39,7 @@ export class DiaryService {
     // 既存のChallengeServiceを利用（移行中のため）
     const ChallengeService = (await import("../firestore/challengeService"))
       .ChallengeService;
-    const active = await ChallengeService.getActiveChallenge(userId).catch(
+    const active = await ChallengeService.getActiveChallenge(uid).catch(
       () => null,
     );
     if (!active) {
@@ -65,7 +69,7 @@ export class DiaryService {
     const { data: dup, error: dupErr } = await supabase
       .from("diaries")
       .select("id")
-      .eq("userId", userId)
+      .eq("userId", uid)
       .eq("challengeId", active.id)
       .eq("day", day)
       .limit(1)
@@ -78,7 +82,7 @@ export class DiaryService {
     const { data, error } = await supabase
       .from("diaries")
       .insert({
-        userId,
+        userId: uid,
         content,
         challengeId: active?.id ?? null,
         day,
@@ -117,16 +121,18 @@ export class DiaryService {
     day: number,
   ): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
+    const { data: s } = await supabase.auth.getSession();
+    const uid = (s?.session?.user?.id as string | undefined) || userId;
     const ChallengeService = (await import("../firestore/challengeService"))
       .ChallengeService;
-    const active = await ChallengeService.getActiveChallenge(userId).catch(
+    const active = await ChallengeService.getActiveChallenge(uid).catch(
       () => null,
     );
     if (!active) return false;
     const { data, error } = await supabase
       .from("diaries")
       .select("id")
-      .eq("userId", userId)
+      .eq("userId", uid)
       .eq("challengeId", active.id)
       .eq("day", day)
       .limit(1)

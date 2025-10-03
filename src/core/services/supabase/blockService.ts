@@ -3,17 +3,17 @@ import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
 export class BlockService {
   static async getBlockDocId(targetUserId: string): Promise<string> {
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     return `${currentUserId}_${targetUserId}`;
   }
 
   static async isBlocked(targetUserId: string): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) return false;
     const id = `${currentUserId}_${targetUserId}`;
     const { data, error } = await supabase
       .from("blocks")
@@ -26,9 +26,9 @@ export class BlockService {
 
   static async block(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase
       .from("blocks")
@@ -39,9 +39,9 @@ export class BlockService {
 
   static async unblock(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
-    const UserService = (await import("../userService")).default;
-    const userService = UserService.getInstance();
-    const currentUserId = await userService.getUserId();
+    const { data: s } = await supabase.auth.getSession();
+    const currentUserId = s?.session?.user?.id as string | undefined;
+    if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase.from("blocks").delete().eq("id", id);
     if (error) throw error;
@@ -60,10 +60,12 @@ export class BlockService {
 
     const tick = async () => {
       try {
+        const { data: s } = await supabase.auth.getSession();
+        const uid = (s?.session?.user?.id as string | undefined) || userId;
         const { data, error } = await supabase
           .from("blocks")
           .select("blockedId")
-          .eq("blockerId", userId);
+          .eq("blockerId", uid);
         if (error) throw error;
         if (!cancelled) callback((data || []).map((r: any) => r.blockedId));
       } catch {

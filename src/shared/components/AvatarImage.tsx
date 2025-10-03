@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { ViewStyle } from "react-native";
-import { Image, View, StyleSheet } from "react-native";
+import { Image, View, StyleSheet, Platform } from "react-native";
 
 interface AvatarImageProps {
   uri?: string;
@@ -11,6 +11,15 @@ interface AvatarImageProps {
 
 // AvatarImage keeps the previous image visible until the next URI is fetched,
 // reducing flicker when props update.
+const isHttpUrl = (v?: string) => typeof v === "string" && /^https?:\/\//i.test(v);
+const canDisplayUri = (v?: string) => {
+  if (!v) return false;
+  if (isHttpUrl(v)) return true;
+  // In native apps, allow local file or asset URIs
+  if (Platform.OS !== "web") return true;
+  return false;
+};
+
 const AvatarImage: React.FC<AvatarImageProps> = ({
   uri,
   size,
@@ -18,7 +27,9 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
   borderRadius,
 }) => {
   // Show current URI immediately (first paint), swap only after next URI is fetched
-  const [displayedUri, setDisplayedUri] = useState<string | undefined>(uri);
+  const [displayedUri, setDisplayedUri] = useState<string | undefined>(
+    canDisplayUri(uri) ? uri : undefined,
+  );
   const [failed, setFailed] = useState(false);
   const prevUriRef = useRef<string | undefined>(uri);
 
@@ -28,6 +39,20 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
       setDisplayedUri(undefined);
       setFailed(false);
       prevUriRef.current = undefined;
+      return;
+    }
+    if (!isHttpUrl(uri)) {
+      if (Platform.OS !== "web") {
+        // On native, render local file/asset URIs immediately
+        setFailed(false);
+        setDisplayedUri(uri);
+        prevUriRef.current = uri;
+      } else {
+        // On web, avoid blob:/file: URIs
+        setDisplayedUri(undefined);
+        setFailed(false);
+        prevUriRef.current = uri;
+      }
       return;
     }
     // Same URI as before -> keep current image

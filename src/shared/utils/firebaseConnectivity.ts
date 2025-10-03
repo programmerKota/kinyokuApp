@@ -12,7 +12,8 @@ export type ConnectivityResult = {
   timestamp: number;
 };
 
-const AUTH_HEALTH_URL = () => `${supabaseConfig.url}/auth/v1/health`;
+// 401 spam を避けるため、/auth/v1/health への直叩きはやめ、
+// supabase-js ベースの軽量チェックに統一する。
 
 export async function pingFirestoreDoc(
   timeoutMs = 4000,
@@ -50,42 +51,23 @@ export async function pingFirestoreRest(
   timeoutMs = 4000,
 ): Promise<ConnectivityResult> {
   const start = Date.now();
-  const controller = new AbortController();
-  const to = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    if (!supabaseConfig?.isConfigured) {
-      return {
-        ok: false,
-        latencyMs: Date.now() - start,
-        errorCode: "not-configured",
-        from: "rest",
-        timestamp: Date.now(),
-      };
-    }
-    const res = await fetch(AUTH_HEALTH_URL(), {
-      signal: controller.signal,
-    });
+    const ok = await SupabaseService.testConnection();
     return {
-      ok: res.ok,
+      ok,
       latencyMs: Date.now() - start,
-      errorCode: res.ok ? undefined : String(res.status),
-      errorMessage: res.ok ? undefined : res.statusText,
       from: "rest",
       timestamp: Date.now(),
     };
   } catch (e) {
-    const err = e as { name?: string; message?: unknown };
-    const code = err?.name === "AbortError" ? "timeout" : undefined;
     return {
       ok: false,
       latencyMs: Date.now() - start,
-      errorCode: code,
-      errorMessage: typeof err?.message === "string" ? err.message : undefined,
+      errorCode: undefined,
+      errorMessage: undefined,
       from: "rest",
       timestamp: Date.now(),
     };
-  } finally {
-    clearTimeout(to);
   }
 }
 

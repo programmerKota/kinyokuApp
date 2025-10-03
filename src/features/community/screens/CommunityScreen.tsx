@@ -23,12 +23,14 @@ import ReplyInputBar from "@shared/components/ReplyInputBar";
 import { colors, spacing, typography, shadows } from "@shared/theme";
 import { uiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
 type Nav = StackNavigationProp<TournamentStackParamList>;
 
 const CommunityScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const [state, actions] = useCommunity();
+  const { requireAuth } = useAuthPrompt();
   const {
     posts,
     likedPosts,
@@ -209,7 +211,10 @@ const CommunityScreen: React.FC = () => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setShowCreateModal(true)}
+        onPress={async () => {
+          const ok = await requireAuth();
+          if (ok) setShowCreateModal(true);
+        }}
       >
         <Ionicons name="add" size={24} color={colors.white} />
       </TouchableOpacity>

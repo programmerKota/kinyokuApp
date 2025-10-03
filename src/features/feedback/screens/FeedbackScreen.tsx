@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   SafeAreaView,
   StatusBar,
@@ -14,6 +14,7 @@ import {
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { FeedbackService } from "@core/services/feedbackService";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import Button from "@shared/components/Button";
 import { colors, spacing, typography } from "@shared/theme";
 
@@ -24,16 +25,19 @@ const FeedbackScreen: React.FC = () => {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const { requireAuth } = useAuthPrompt();
 
   const canSend = useMemo(
     () => subject.trim().length > 0 && message.trim().length > 0,
     [subject, message],
   );
 
-  const handleSubmit = async () => {
+  const doSubmit = useCallback(async () => {
     if (!canSend || sending) return;
     setSending(true);
     try {
+      const ok = await requireAuth();
+      if (!ok) return;
       await FeedbackService.submit({
         userId: user?.uid,
         subject: subject.trim(),
@@ -43,10 +47,12 @@ const FeedbackScreen: React.FC = () => {
       setSent(true);
       setSubject("");
       setMessage("");
+    } catch (e: any) {
+      console.error("Feedback submit failed:", e);
     } finally {
       setSending(false);
     }
-  };
+  }, [canSend, sending, subject, message, user?.uid, requireAuth]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,13 +92,13 @@ const FeedbackScreen: React.FC = () => {
         <View style={{ height: spacing.lg }} />
         <Button
           title={sent ? "送信しました" : "送信"}
-          onPress={() => {
-            void handleSubmit();
-          }}
+          onPress={() => { void doSubmit(); }}
           disabled={!canSend || sent}
           loading={sending}
         />
       </View>
+
+      {/* Auth modal is handled globally by AuthPromptProvider */}
     </SafeAreaView>
   );
 };

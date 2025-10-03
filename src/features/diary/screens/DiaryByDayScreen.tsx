@@ -24,6 +24,7 @@ import DayCard from "@features/diary/components/DayCard";
 import Modal from "@shared/components/Modal";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useBlockedIds } from "@shared/state/blockStore";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { colors, spacing, typography, shadows } from "@shared/theme";
 import { formatDateTimeJP } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
@@ -49,6 +50,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const blockedSet = useBlockedIds();
+  const { requireAuth } = useAuthPrompt();
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [addText, setAddText] = useState<string>("");
   const [activeDay, setActiveDay] = useState<number | null>(null);
@@ -272,7 +274,9 @@ const DiaryByDayScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.title}>みんなの日記</Text>
         <TouchableOpacity
-          onPress={() => {
+          onPress={async () => {
+            const ok = await requireAuth();
+            if (!ok) return;
             if (!canPostForSelectedDay) {
               Alert.alert("投稿できません", postDisabledReason);
               return;
@@ -398,6 +402,8 @@ const DiaryByDayScreen: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={async () => {
+                const ok = await requireAuth();
+                if (!ok) return;
                 if (!user?.uid || !addText.trim()) return;
                 try {
                   await DiaryService.addDiaryForActiveChallenge(
