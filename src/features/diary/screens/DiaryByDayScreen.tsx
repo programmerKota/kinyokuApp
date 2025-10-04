@@ -115,7 +115,7 @@ const DiaryByDayScreen: React.FC = () => {
           } else {
             setProfilesMap(new Map());
           }
-        } catch {}
+        } catch { }
         // prefetch averageDays for ranks
         try {
           const ids = Array.from(new Set(mapped.map((m) => m.userId)));
@@ -135,7 +135,7 @@ const DiaryByDayScreen: React.FC = () => {
             );
           }
           setUserAverageDays(next);
-        } catch {}
+        } catch { }
       } finally {
         setLoading(false);
       }
@@ -201,7 +201,7 @@ const DiaryByDayScreen: React.FC = () => {
           results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
         }
         setUserAverageDays(next);
-      } catch {}
+      } catch { }
     } finally {
       setRefreshing(false);
     }
@@ -411,6 +411,27 @@ const DiaryByDayScreen: React.FC = () => {
                     addText.trim(),
                     { day },
                   );
+
+                  // 日記追加成功後の処理
+                  setShowAdd(false);
+                  setAddText("");
+
+                  // 現在の日のリストをリフレッシュ
+                  try {
+                    const list = await DiaryService.getDiariesByDay(day, 200);
+                    const mapped = list.map((d) => ({
+                      id: d.id,
+                      userId: (d as any).userId,
+                      content: d.content,
+                      createdAt:
+                        (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
+                    }));
+                    setItems(mapped);
+                    if (activeDay !== null && day === activeDay)
+                      setAlreadyPosted(true);
+                  } catch (refreshError) {
+                    console.warn("日記リストのリフレッシュに失敗しました:", refreshError);
+                  }
                 } catch (e: any) {
                   Alert.alert(
                     "投稿できません",
@@ -418,27 +439,11 @@ const DiaryByDayScreen: React.FC = () => {
                   );
                   return;
                 }
-                setShowAdd(false);
-                setAddText("");
-                // refresh current day list
-                try {
-                  const list = await DiaryService.getDiariesByDay(day, 200);
-                  const mapped = list.map((d) => ({
-                    id: d.id,
-                    userId: (d as any).userId,
-                    content: d.content,
-                    createdAt:
-                      (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
-                  }));
-                  setItems(mapped);
-                  if (activeDay !== null && day === activeDay)
-                    setAlreadyPosted(true);
-                } catch {}
               }}
               style={[
                 styles.modalSubmit,
                 (!addText.trim() || !canPostForSelectedDay) &&
-                  styles.modalSubmitDisabled,
+                styles.modalSubmitDisabled,
               ]}
               disabled={!addText.trim() || !canPostForSelectedDay}
             >

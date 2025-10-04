@@ -36,6 +36,8 @@ export class DiaryService {
     options?: { day?: number },
   ): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
+    const { data: s } = await supabase.auth.getSession();
+    const uid = (s?.session?.user?.id as string | undefined) || userId;
     // 既存のChallengeServiceを利用（移行中のため）
     const ChallengeService = (await import("../firestore/challengeService"))
       .ChallengeService;
