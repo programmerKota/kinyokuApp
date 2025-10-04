@@ -48,6 +48,29 @@
         "ctx7sk-b0e26874-8b42-4e91-805c-52a9bb666008"
       ],
       "startup_timeout_ms": 120000
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "codex"
+      ],
+      "startup_timeout_ms": 120000
+    },
+    "figma": {
+      "type": "stdio",
+      "command": "C:/Program Files/nodejs/npx.cmd",
+      "args": [
+        "-y",
+        "figma-mcp",
+        "start"
+      ],
+      "startup_timeout_ms": 120000
     }
   }
 }
