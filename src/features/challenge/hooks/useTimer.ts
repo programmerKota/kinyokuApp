@@ -70,6 +70,8 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
     null,
   );
   const [actualDuration, setActualDuration] = useState<number>(0);
+  const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [isGoalAchieved, setIsGoalAchieved] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -113,23 +115,23 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
   useEffect(() => {
     if (!currentSession) {
       setActualDuration(0);
+      setProgressPercent(0);
+      setIsGoalAchieved(false);
       return;
     }
-    const update = () => setActualDuration(calculateActualDuration());
+    const update = () => {
+      const duration = calculateActualDuration();
+      setActualDuration(duration);
+
+      const totalSeconds = currentSession.goalDays * 24 * 60 * 60;
+      const progress = Math.min((duration / totalSeconds) * 100, 100);
+      setProgressPercent(progress);
+      setIsGoalAchieved(duration >= totalSeconds);
+    };
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [currentSession, calculateActualDuration]);
-
-  const totalSeconds = currentSession
-    ? currentSession.goalDays * 24 * 60 * 60
-    : goalDays * 24 * 60 * 60;
-  const progressPercent = currentSession
-    ? Math.min((actualDuration / totalSeconds) * 100, 100)
-    : 0;
-  const isGoalAchieved = currentSession
-    ? actualDuration >= totalSeconds
-    : false;
 
   const startChallenge = useCallback(
     async (days: number, amount: number) => {

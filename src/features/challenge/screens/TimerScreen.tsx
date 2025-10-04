@@ -9,7 +9,11 @@ import LoadingState from "@shared/components/LoadingState";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
-const TimerScreen: React.FC = () => {
+interface TimerScreenProps {
+  onChallengeStarted?: () => void;
+}
+
+const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
   const [state, actions] = useTimer();
   const { handleError } = useErrorHandler();
   const { requireAuth } = useAuthPrompt();
@@ -40,6 +44,8 @@ const TimerScreen: React.FC = () => {
     try {
       await startChallenge(goalDays, penaltyAmount);
       hideChallengeModal();
+      // チャレンジ開始後にホーム画面を更新
+      onChallengeStarted?.();
     } catch (error) {
       handleError(
         error,

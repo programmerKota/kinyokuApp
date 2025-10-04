@@ -27,6 +27,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
   const [persistingFlag, setPersistingFlag] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (forceProfileModal) {
@@ -85,13 +86,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     await markFlagAsSeen();
   }, [markFlagAsSeen]);
 
+  const refreshHomeScreen = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor={colors.backgroundTertiary}
       />
-      <TimerScreen />
+      <TimerScreen
+        key={refreshKey}
+        onChallengeStarted={refreshHomeScreen}
+      />
 
       <ProfileSetupModal
         visible={
