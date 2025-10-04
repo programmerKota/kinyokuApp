@@ -6,6 +6,9 @@ const BASE_URL = process.env.SMOKE_URL || 'http://localhost:8081/';
 const OUT_DIR = join(process.cwd(), 'smoke-artifacts');
 const SCREEN_HOME = join(OUT_DIR, 'smoke-home.png');
 const SCREEN_RANK = join(OUT_DIR, 'smoke-ranking.png');
+const SCREEN_COMMUNITY = join(OUT_DIR, 'smoke-community.png');
+const SCREEN_PROFILE = join(OUT_DIR, 'smoke-profile.png');
+const SCREEN_DIARY = join(OUT_DIR, 'smoke-diary.png');
 const LOGFILE = join(OUT_DIR, 'console.log');
 
 mkdirSync(OUT_DIR, { recursive: true });
@@ -82,6 +85,37 @@ async function run() {
     log(`Ranking captured -> ${SCREEN_RANK}`);
   } catch (e) {
     log(`Ranking navigation failed: ${e}`);
+  }
+
+  // Navigate to Community tab
+  try {
+    await page.getByText('コミュニティ', { exact: true }).first().click({ force: true });
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: SCREEN_COMMUNITY, fullPage: true });
+    log(`Community captured -> ${SCREEN_COMMUNITY}`);
+  } catch (e) {
+    log(`Community navigation failed: ${e}`);
+  }
+
+  // Navigate to Settings/Profile tab
+  try {
+    await page.getByText('設定', { exact: true }).first().click({ force: true });
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: SCREEN_PROFILE, fullPage: true });
+    log(`Profile captured -> ${SCREEN_PROFILE}`);
+  } catch (e) {
+    log(`Profile navigation failed: ${e}`);
+  }
+
+  // Navigate to Diary via Home quick button
+  try {
+    await page.getByText('ホーム', { exact: true }).first().click({ force: true });
+    await page.getByText('日記', { exact: true }).first().click({ force: true });
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: SCREEN_DIARY, fullPage: true });
+    log(`Diary captured -> ${SCREEN_DIARY}`);
+  } catch (e) {
+    log(`Diary navigation failed: ${e}`);
   }
 
   writeFileSync(LOGFILE, logs.join('\n'), 'utf8');

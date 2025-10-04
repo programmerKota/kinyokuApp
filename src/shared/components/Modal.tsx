@@ -17,9 +17,11 @@ import { colors, spacing, typography, shadows } from "@shared/theme";
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
   showCloseButton?: boolean;
+  hideHeader?: boolean;
+  maxWidth?: number;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -28,6 +30,8 @@ const Modal: React.FC<ModalProps> = ({
   title,
   children,
   showCloseButton = true,
+  hideHeader = false,
+  maxWidth,
 }) => {
   const handleBackdropPress = () => {
     Keyboard.dismiss();
@@ -54,17 +58,19 @@ const Modal: React.FC<ModalProps> = ({
             style={styles.keyboardAvoidingView}
           >
             <TouchableWithoutFeedback onPress={handleContentPress}>
-              <View style={styles.modalContainer}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{title}</Text>
-                  {showCloseButton && (
-                    <TouchableWithoutFeedback onPress={onClose}>
-                      <View style={styles.closeButton}>
-                        <Text style={styles.closeButtonText}>x</Text>
-                      </View>
-                    </TouchableWithoutFeedback>
-                  )}
-                </View>
+              <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
+                {!hideHeader && (
+                  <View style={styles.header}>
+                    <Text style={styles.title}>{title}</Text>
+                    {showCloseButton && (
+                      <TouchableWithoutFeedback onPress={onClose}>
+                        <View style={styles.closeButton}>
+                          <Text style={styles.closeButtonText}>x</Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    )}
+                  </View>
+                )}
                 <ScrollView
                   style={styles.content}
                   keyboardShouldPersistTaps="handled"

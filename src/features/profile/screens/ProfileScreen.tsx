@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
+import { supabase } from "@app/config/supabase.config";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import useProfileScreen from "@features/profile/hooks/useProfileScreen";
 import Button from "@shared/components/Button";
@@ -181,6 +182,14 @@ const ProfileScreen: React.FC = () => {
                   title="プロフィールを編集"
                   description="名前や画像を変更できます"
                   onPress={handleStartEdit}
+                />
+                <ActionCard
+                  icon="log-out-outline"
+                  title="ログアウト"
+                  description="サインアウトしてログイン画面に戻ります"
+                  onPress={async () => {
+                    try { await supabase.auth.signOut(); } catch {}
+                  }}
                 />
               </Section>
               <Section title="プライバシー">

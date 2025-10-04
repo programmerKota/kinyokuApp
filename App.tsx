@@ -6,6 +6,7 @@ import RootNavigator from "@app/navigation/RootNavigator";
 import ErrorBoundary from "@shared/components/ErrorBoundary";
 import { initSupabaseAuthDeepLinks } from "@core/services/supabase/authService";
 import { AuthPromptProvider } from "@shared/auth/AuthPromptProvider";
+import { AuthGate } from "@shared/auth/AuthGate";
 
 const App = () => {
   useEffect(() => {
@@ -16,7 +17,9 @@ const App = () => {
       <ErrorBoundary>
         <AuthPromptProvider>
           <AuthProvider>
-            <RootNavigator />
+            <AuthGate>
+              <RootNavigator />
+            </AuthGate>
           </AuthProvider>
         </AuthPromptProvider>
       </ErrorBoundary>

@@ -64,7 +64,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Persist session in AsyncStorage
     persistSession: true,
     // Detect session from URL (for OAuth flows)
-    detectSessionInUrl: false,
+    // WebではtrueにしてOAuthリダイレクトを処理する
+    detectSessionInUrl: typeof window !== "undefined",
   },
   realtime: {
     // Enable realtime subscriptions

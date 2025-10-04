@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Modal from '@shared/components/Modal';
-import Button from '@shared/components/Button';
-import { colors, spacing } from '@shared/theme';
+import DSButton from '@shared/designSystem/components/DSButton';
+import { colors, spacing, typography } from '@shared/theme';
 import { supabase } from '@app/config/supabase.config';
 import { signInWithEmailPassword, signUpWithEmailPassword, sendMagicLink, resetPassword } from '@core/services/supabase/authService';
 
@@ -29,6 +30,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [password, setPassword] = useState('');
   const [emailHint, setEmailHint] = useState<string | null>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [emailFocus, setEmailFocus] = useState(false);
+  const [passFocus, setPassFocus] = useState(false);
   const resolverRef = useRef<(v: boolean) => void>();
 
   const close = useCallback((v: boolean) => {
@@ -105,6 +108,17 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [email]);
 
+  // OAuth providers (Google / Twitter(X) / Amazon / Facebook)
+  const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
+    try {
+      setAuthing(provider as any);
+      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      await supabase.auth.signInWithOAuth({ provider: provider as any, options: { redirectTo } });
+    } finally {
+      setAuthing(null);
+    }
+  }, []);
+
   const requireAuth = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
     if (data?.session?.user?.id) return true;
@@ -119,10 +133,32 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   return (
     <AuthPromptContext.Provider value={value}>
       {children}
-      <Modal visible={visible} onClose={() => close(false)} title="ログインが必要です">
-        <Text style={{ color: colors.textSecondary, marginBottom: spacing.md }}>
-          続行するにはログインしてください。
-        </Text>
+      <Modal visible={visible} onClose={() => close(false)} hideHeader maxWidth={520}>
+        <View style={{
+          backgroundColor: colors.primary,
+          borderRadius: 14,
+          padding: spacing['2xl'],
+          marginBottom: spacing['2xl'],
+        }}>
+          <Text style={{ color: 'white', fontWeight: '800', fontSize: typography.fontSize['2xl'] }}>ようこそ</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>アカウントにログインしてチャレンジを続けましょう</Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: spacing.lg }}>
+            <DSButton
+              title="ログイン"
+              variant={mode === 'login' ? 'secondary' : 'ghost'}
+              onPress={() => setMode('login')}
+              textColor={mode === 'login' ? undefined : 'white'}
+              style={mode === 'login' ? undefined : { borderColor: 'rgba(255,255,255,0.5)' }}
+            />
+            <DSButton
+              title="新規登録"
+              variant={mode === 'signup' ? 'secondary' : 'ghost'}
+              onPress={() => setMode('signup')}
+              textColor={mode === 'signup' ? undefined : 'white'}
+              style={mode === 'signup' ? undefined : { borderColor: 'rgba(255,255,255,0.5)' }}
+            />
+          </View>
+        </View>
         <View style={{ gap: spacing.md }}>
           <TextInput
             placeholder="email@example.com"
@@ -131,15 +167,17 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             onChangeText={(t) => { setEmail(t); setEmailHint(null); }}
             style={{
               borderWidth: 1,
-              borderColor: colors.borderPrimary,
-              borderRadius: 8,
-              paddingHorizontal: spacing.md,
-              paddingVertical: 10,
+              borderColor: emailFocus ? colors.primary : colors.borderPrimary,
+              borderRadius: 12,
+              paddingHorizontal: spacing['2xl'],
+              paddingVertical: 14,
               color: colors.textPrimary,
-              backgroundColor: 'white',
+              backgroundColor: '#EEF2FF',
             }}
             keyboardType="email-address"
             autoCapitalize="none"
+            onFocus={() => setEmailFocus(true)}
+            onBlur={() => setEmailFocus(false)}
           />
           <TextInput
             placeholder="パスワード"
@@ -148,23 +186,88 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             onChangeText={(t) => setPassword(t)}
             style={{
               borderWidth: 1,
-              borderColor: colors.borderPrimary,
-              borderRadius: 8,
-              paddingHorizontal: spacing.md,
-              paddingVertical: 10,
+              borderColor: passFocus ? colors.primary : colors.borderPrimary,
+              borderRadius: 12,
+              paddingHorizontal: spacing['2xl'],
+              paddingVertical: 14,
               color: colors.textPrimary,
-              backgroundColor: 'white',
+              backgroundColor: '#EEF2FF',
             }}
             secureTextEntry
+            onFocus={() => setPassFocus(true)}
+            onBlur={() => setPassFocus(false)}
           />
           {emailHint ? (
-            <Text style={{ color: colors.textSecondary }}>{emailHint}</Text>
+            <Text style={{ color: colors.error }}>{emailHint}</Text>
           ) : null}
-          <View style={{ gap: spacing.sm }}>
-            <Button title="ログイン" onPress={() => { void doLogin(); }} loading={authing === 'login'} />
-            <Button title="アカウント作成" variant="secondary" onPress={() => { void doSignup(); }} loading={authing === 'signup'} />
-            <Button title="Magic Link を送る" icon="mail" onPress={() => { void handleMagic(); }} loading={authing === 'magic'} />
-            <Button title="パスワードをリセット" variant="secondary" onPress={() => { void doResetPassword(); }} loading={authing === 'reset'} />
+
+          {/* 主ボタンは1つに統合（重複を解消） */}
+          <DSButton
+            title={
+              mode === 'login'
+                ? (authing === 'login' ? 'サインイン中…' : 'ログイン')
+                : (authing === 'signup' ? '作成中…' : '新規登録')
+            }
+            onPress={() => { void (mode === 'login' ? doLogin() : doSignup()); }}
+            loading={authing === (mode === 'login' ? 'login' : 'signup')}
+            style={{ width: '100%' }}
+          />
+
+          {/* テキストリンク（ボタン型はやめ、すっきりとしたリンクに） */}
+          <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
+            {mode === 'login' ? (
+              <Text style={{ color: colors.textSecondary }}>
+                アカウントをお持ちでないですか？{' '}
+                <Text
+                  onPress={() => setMode('signup')}
+                  style={{ color: colors.primary, fontWeight: '700' }}
+                >
+                  新規登録
+                </Text>
+              </Text>
+            ) : (
+              <Text style={{ color: colors.textSecondary }}>
+                すでにアカウントをお持ちですか？{' '}
+                <Text
+                  onPress={() => setMode('login')}
+                  style={{ color: colors.primary, fontWeight: '700' }}
+                >
+                  ログイン
+                </Text>
+              </Text>
+            )}
+          </View>
+
+          <View style={{ alignItems: 'center', marginTop: spacing.sm, gap: 10 }}>
+            <Text style={{ color: colors.textSecondary }}>— または —</Text>
+            <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>連携済みのアカウントでログイン</Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
+              <Pressable
+                onPress={() => { void startOAuth('twitter'); }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+              >
+                <Ionicons name="logo-twitter" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Pressable
+                onPress={() => { void startOAuth('google'); }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+              >
+                <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Pressable
+                onPress={() => { void startOAuth('amazon'); }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+              >
+                <Ionicons name="logo-amazon" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Pressable
+                accessibilityLabel="Sign in with LINE"
+                onPress={() => { void startOAuth('line'); }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: '#06C755', alignItems: 'center', justifyContent: 'center' })}
+              >
+                <Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
