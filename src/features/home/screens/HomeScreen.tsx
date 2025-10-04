@@ -1,6 +1,5 @@
-﻿import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useCallback, useEffect, useState } from "react";
+﻿import type { StackNavigationProp } from "@react-navigation/stack";
+import React, { useCallback, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -8,13 +7,10 @@ import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import TimerScreen from "@features/challenge/screens/TimerScreen";
 import DiaryButton from "@features/diary/components/DiaryButton";
 import HistoryButton from "@features/home/components/HistoryButton";
-import ProfileSetupModal from "@features/home/components/ProfileSetupModalCard";
 import RankingButton from "@features/home/components/RankingButton";
 import { colors, spacing } from "@shared/theme";
 
-const PROFILE_SETUP_SEEN_KEY = "profile_setup_seen_v1";
-// Allow forcing the profile setup modal to stay open (dev convenience) only in __DEV__
-const forceProfileModal = false;
+// プロフィール初期設定モーダルの自動表示は廃止
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
 
@@ -23,68 +19,9 @@ type HomeScreenProps = {
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { user, updateProfile } = useAuth();
-  const [profileModalVisible, setProfileModalVisible] = useState(false);
-  const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
-  const [persistingFlag, setPersistingFlag] = useState(false);
+  const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    if (forceProfileModal) {
-      setProfileModalVisible(true);
-      setCheckingFirstLaunch(false);
-      return;
-    }
-    let active = true;
-    (async () => {
-      try {
-        const seenFlag = await AsyncStorage.getItem(PROFILE_SETUP_SEEN_KEY);
-        if (!seenFlag && active) {
-          setProfileModalVisible(true);
-        }
-      } catch (error) {
-        console.warn("HomeScreen: failed to read profile setup flag", error);
-      } finally {
-        if (active) {
-          setCheckingFirstLaunch(false);
-        }
-      }
-    })();
-    return () => {
-      active = false;
-      // 追加のクリーンアップ処理
-      setProfileModalVisible(false);
-      setCheckingFirstLaunch(false);
-      setPersistingFlag(false);
-    };
-  }, []);
-
-  const markFlagAsSeen = useCallback(async () => {
-    if (persistingFlag) return;
-    setPersistingFlag(true);
-    try {
-      await AsyncStorage.setItem(PROFILE_SETUP_SEEN_KEY, "true");
-    } catch (error) {
-      console.warn("HomeScreen: failed to persist profile setup flag", error);
-    } finally {
-      setPersistingFlag(false);
-    }
-  }, [persistingFlag]);
-
-  const handleProfileSubmit = useCallback(
-    async (nextName: string, avatar?: string) => {
-      await updateProfile(nextName, avatar);
-      await markFlagAsSeen();
-      setProfileModalVisible(false);
-    },
-    [updateProfile, markFlagAsSeen],
-  );
-
-  const handleProfileSkip = useCallback(async () => {
-    if (forceProfileModal) return; // keep open
-    setProfileModalVisible(false);
-    await markFlagAsSeen();
-  }, [markFlagAsSeen]);
 
   const refreshHomeScreen = useCallback(() => {
     setRefreshKey(prev => prev + 1);
@@ -99,16 +36,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <TimerScreen
         key={refreshKey}
         onChallengeStarted={refreshHomeScreen}
-      />
-
-      <ProfileSetupModal
-        visible={
-          (forceProfileModal || profileModalVisible) && !checkingFirstLaunch
-        }
-        initialName={user?.displayName || ""}
-        onSubmit={handleProfileSubmit}
-        initialAvatar={user?.avatarUrl}
-        onSkip={handleProfileSkip}
       />
 
       <View style={styles.buttonContainer}>
@@ -149,4 +76,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
