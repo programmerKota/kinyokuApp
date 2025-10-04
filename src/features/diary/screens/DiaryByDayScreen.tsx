@@ -23,9 +23,10 @@ import { UserStatsService } from "@core/services/userStatsService";
 import DayCard from "@features/diary/components/DayCard";
 import Modal from "@shared/components/Modal";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import DiaryCard from "@features/diary/components/DiaryCard";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
-import { colors, spacing, typography, shadows } from "@shared/theme";
+import { colors, spacing, typography } from "@shared/theme";
 import { formatDateTimeJP } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
@@ -214,26 +215,23 @@ const DiaryByDayScreen: React.FC = () => {
       const prof = profilesMap.get(item.userId);
       const avgDays = userAverageDays.get(item.userId) ?? 0;
       return (
-        <View style={[styles.card, styles.cardShadow]}>
-          <UserProfileWithRank
-            userName={prof?.displayName ?? "ユーザー"}
-            userAvatar={prof?.photoURL}
+        <View style={{ marginBottom: spacing.sm }}>
+          <DiaryCard
+            authorId={item.userId}
+            authorName={prof?.displayName ?? "ユーザー"}
+            authorAvatar={prof?.photoURL}
             averageDays={avgDays}
-            onPress={() => {
+            content={item.content}
+            createdAt={item.createdAt}
+            onAuthorPress={(uid, uname) =>
               navigateToUserDetail(
                 navigation as any,
-                item.userId,
-                prof?.displayName ?? undefined,
+                uid,
+                uname ?? undefined,
                 prof?.photoURL ?? undefined,
-              );
-            }}
-            size="medium"
-            showRank={false}
-            showTitle={true}
-            style={{ marginBottom: spacing.xs }}
+              )
+            }
           />
-          <Text style={styles.content}>{item.content}</Text>
-          <Text style={styles.date}>{formatDateTimeJP(item.createdAt)}</Text>
         </View>
       );
     },
@@ -363,7 +361,6 @@ const DiaryByDayScreen: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.fab,
-          styles.cardShadow,
           !canPostForSelectedDay && { backgroundColor: colors.gray300 },
         ]}
         onPress={() => {
@@ -490,31 +487,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textPrimary,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-  },
-  cardShadow: {
-    shadowColor: shadows.md.shadowColor,
-    shadowOffset: shadows.md.shadowOffset,
-    shadowOpacity: shadows.md.shadowOpacity,
-    shadowRadius: shadows.md.shadowRadius,
-    elevation: shadows.md.elevation,
-  },
-  content: {
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    lineHeight: typography.fontSize.base * 1.6,
-  },
-  date: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
+  // card-related styles removed; use DiaryCard component for consistent look with posts
   cardsRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   fab: {
     position: "absolute",
