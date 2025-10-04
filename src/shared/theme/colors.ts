@@ -1,56 +1,56 @@
 // アプリケーション全体で使用する色の定義
 export const colors = {
-  // Primary colors
-  primary: "#6366F1",
-  primaryDark: "#4F46E5",
-  primaryLight: "#A5B4FC",
+  // Primary brand
+  primary: "#7C3AED", // violet-600
+  primaryDark: "#6D28D9", // violet-700
+  primaryLight: "#C4B5FD", // violet-300
 
-  // Secondary colors
-  secondary: "#8B5CF6",
-  secondaryDark: "#7C3AED",
-  secondaryLight: "#C4B5FD",
+  // Accent / secondary
+  secondary: "#06B6D4", // cyan-500
+  secondaryDark: "#0891B2", // cyan-600
+  secondaryLight: "#A5F3FC", // cyan-200
 
-  // Status colors
-  success: "#10B981",
-  successLight: "#A7F3D0",
+  // Status
+  success: "#22C55E",
+  successLight: "#BBF7D0",
   warning: "#F59E0B",
   warningLight: "#FEF3C7",
   error: "#EF4444",
   errorLight: "#FEE2E2",
-  info: "#3B82F6",
-  infoLight: "#DBEAFE",
+  info: "#0EA5E9",
+  infoLight: "#E0F2FE",
 
-  // Neutral colors
+  // Neutral
   white: "#FFFFFF",
   black: "#000000",
-  gray50: "#F9FAFB",
-  gray100: "#F3F4F6",
-  gray200: "#E5E7EB",
-  gray300: "#D1D5DB",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-  gray700: "#374151",
-  gray800: "#1F2937",
-  gray900: "#111827",
+  gray50: "#F8FAFC", // slate-50
+  gray100: "#F1F5F9", // slate-100
+  gray200: "#E2E8F0", // slate-200
+  gray300: "#CBD5E1", // slate-300
+  gray400: "#94A3B8", // slate-400
+  gray500: "#64748B", // slate-500
+  gray600: "#475569", // slate-600
+  gray700: "#334155", // slate-700
+  gray800: "#1E293B", // slate-800
+  gray900: "#0F172A", // slate-900
 
-  // Text colors
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textTertiary: "#9CA3AF",
+  // Text
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  textTertiary: "#94A3B8",
   textInverse: "#FFFFFF",
 
-  // Background colors
+  // Background
   backgroundPrimary: "#FFFFFF",
-  backgroundSecondary: "#F9FAFB",
-  backgroundTertiary: "#F3F4F6",
+  backgroundSecondary: "#F8FAFC",
+  backgroundTertiary: "#F1F5F9",
 
-  // Border colors
-  borderPrimary: "#E5E7EB",
-  borderSecondary: "#D1D5DB",
-  borderFocus: "#6366F1",
+  // Border
+  borderPrimary: "#E2E8F0",
+  borderSecondary: "#CBD5E1",
+  borderFocus: "#7C3AED",
 
-  // Shadow colors
+  // Shadows (unchanged)
   shadowLight: "rgba(0, 0, 0, 0.1)",
   shadowMedium: "rgba(0, 0, 0, 0.15)",
   shadowDark: "rgba(0, 0, 0, 0.25)",
