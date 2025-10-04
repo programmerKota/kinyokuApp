@@ -1,0 +1,77 @@
+{
+  "timestamp": "2025-10-04T09:18:46.747Z",
+  "summary": {
+    "totalErrors": 1,
+    "totalWarnings": 0,
+    "totalScreenshots": 1,
+    "totalConsoleLogs": 5,
+    "totalTests": 0,
+    "passedTests": 0,
+    "failedTests": 0,
+    "warningTests": 0
+  },
+  "errors": [
+    {
+      "type": "FeedbackTestError",
+      "message": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('[role=\"tab\"]:has-text(\"Settings\")')\n    - locator resolved to <a role=\"tab\" tabindex=\"0\" aria-selected=\"false\" href=\"/MainTabs/Settings\" class=\"css-view-g5y9jx r-touchAction-1otgn73 r-alignItems-1awozwy r-flexDirection-18u37iz r-justifyContent-1777fci r-padding-1uu6nss\">…</a>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div tabindex=\"0\" class=\"css-view-g5y9jx r-alignItems-1awozwy r-backgroundColor-drfeu3 r-flex-13awgt0 r-justifyContent-1777fci r-paddingBlock-dp7rxi r-paddingInline-u9wvl5\">…</div> from <div>…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div tabindex=\"0\" class=\"css-view-g5y9jx r-alignItems-1awozwy r-backgroundColor-drfeu3 r-flex-13awgt0 r-justifyContent-1777fci r-paddingBlock-dp7rxi r-paddingInline-u9wvl5\">…</div> from <div>…</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    57 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div tabindex=\"0\" class=\"css-view-g5y9jx r-alignItems-1awozwy r-backgroundColor-drfeu3 r-flex-13awgt0 r-justifyContent-1777fci r-paddingBlock-dp7rxi r-paddingInline-u9wvl5\">…</div> from <div>…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n",
+      "timestamp": "2025-10-04T09:18:46.747Z"
+    }
+  ],
+  "warnings": [],
+  "screenshots": [
+    "debug-screenshots/feedback-test-initial-1759569495000.png"
+  ],
+  "console": [
+    {
+      "type": "log",
+      "text": "[supabase.config] url= https://tssfhgfkelsuslpwschl.supabase.co isConfigured= true anonKey(prefix)= eyJhbGciOiJIUzI1NiIs...",
+      "timestamp": "2025-10-04T09:18:14.704Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 103400,
+        "columnNumber": 12
+      }
+    },
+    {
+      "type": "warning",
+      "text": "\"shadow*\" style props are deprecated. Use \"boxShadow\".",
+      "timestamp": "2025-10-04T09:18:14.782Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 17938,
+        "columnNumber": 14
+      }
+    },
+    {
+      "type": "log",
+      "text": "Running application \"main\" with appParams:\n {rootTag: #root, hydrate: undefined} \nDevelopment-level warnings: ON.\nPerformance optimizations: OFF.",
+      "timestamp": "2025-10-04T09:18:14.885Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 86306,
+        "columnNumber": 16
+      }
+    },
+    {
+      "type": "warning",
+      "text": "props.pointerEvents is deprecated. Use style.pointerEvents",
+      "timestamp": "2025-10-04T09:18:14.924Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 17938,
+        "columnNumber": 14
+      }
+    },
+    {
+      "type": "warning",
+      "text": "TouchableWithoutFeedback is deprecated. Please use Pressable.",
+      "timestamp": "2025-10-04T09:18:15.235Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 17938,
+        "columnNumber": 14
+      }
+    }
+  ],
+  "testResults": []
+}

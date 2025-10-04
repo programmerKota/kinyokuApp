@@ -139,7 +139,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const normalizePosts = useCallback(
     async (list: CommunityPost[]) => {
       const normalized = normalizeCommunityPosts(list);
-      // 繝悶Ο繝・け縺励◆繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ謚慕ｨｿ繧帝勁螟・
+      // ブロックしたユーザーの投稿を除外
       const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
       const counts = buildReplyCountMapFromPosts(filtered);
       setReplyCounts(counts);
@@ -212,13 +212,13 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     [],
   );
 
-  // 蛻晏屓繝ｭ繝ｼ繝・繧ｿ繝門・譖ｿ: all/following 縺ｯ繝壹・繧ｸ繝ｳ繧ｰ蜿門ｾ励［y 縺ｯ雉ｼ隱ｭ
+  // 初回ロード時の読み込み: all/following はページング対応、my は直接読み込み
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     const run = () => {
       switch (activeTab) {
         case "all":
-          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
+          // キャッシュがあれば即座に表示
           if (cacheRef.current.all?.posts?.length) {
             setPosts(cacheRef.current.all.posts);
             setCursor(cacheRef.current.all.cursor);
@@ -226,7 +226,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.all) return;
-          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
+          // まだキャッシュがない場合は初回読み込みのため不要クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);
@@ -253,7 +253,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           })();
           break;
         case "my":
-          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
+          // キャッシュがあれば即座に表示
           if (cacheRef.current.my?.posts?.length) {
             setPosts(cacheRef.current.my.posts);
             setCursor(undefined);
@@ -261,7 +261,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.my) return;
-          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
+          // まだキャッシュがない場合は初回読み込みのため不要クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(false);
@@ -287,7 +287,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           }
           break;
         case "following":
-          // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠕ｩ蜈・
+          // キャッシュがあれば即座に表示
           if (cacheRef.current.following?.posts?.length) {
             setPosts(cacheRef.current.following.posts);
             setCursor(undefined);
@@ -295,7 +295,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             return;
           }
           if (initRunRef.current.following) return;
-          // 縺ｾ縺繧ｭ繝｣繝・す繝･縺後↑縺・・蝗槭・蜊ｳ譎ょ・譖ｿ縺ｮ縺溘ａ荳譌ｦ繧ｯ繝ｪ繧｢
+          // まだキャッシュがない場合は初回読み込みのため不要クリア
           setPosts([]);
           setCursor(undefined);
           setHasMore(true);

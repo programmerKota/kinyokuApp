@@ -77,3 +77,6 @@ Firebase（本番）接続
 - 追加チェック: Expo ログイン、社内プロキシ設定、FW で `*.exp.direct`/`*.ngrok.io` が遮断されていないか
 
 
+
+
+

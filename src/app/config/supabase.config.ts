@@ -99,3 +99,9 @@ if (__DEV__) {
 }
 
 export default supabase;
+
+// Expose for E2E/browser automation when running on Web (no effect in native)
+try {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).__supabase = supabase;
+} catch {}

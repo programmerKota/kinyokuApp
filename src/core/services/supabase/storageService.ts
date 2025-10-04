@@ -29,15 +29,34 @@ export async function uploadUserAvatar(
 
   const uid = await getUid();
 
-  // Fetch the local file into a Blob/ArrayBuffer
-  const res = await fetch(localUri);
+  // Optionally downscale/compress for cost & perf (when ImageManipulator is available)
+  let toUploadUri = localUri;
+  let forcedContentType: string | undefined;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const ImageManipulator = await import("expo-image-manipulator");
+    const resized = await ImageManipulator.manipulateAsync(
+      localUri,
+      [{ resize: { width: 512 } }],
+      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
+    );
+    if (resized?.uri) {
+      toUploadUri = resized.uri;
+      forcedContentType = "image/jpeg";
+    }
+  } catch {
+    // manipulator not available in some environments — ignore
+  }
+
+  // Fetch the (possibly transformed) file into a Blob/ArrayBuffer
+  const res = await fetch(toUploadUri);
   const blob = await res.blob();
   if (!blob || blob.size === 0) {
     throw new Error(
       "EMPTY_FILE: fetch(localUri) returned 0 bytes. On web, ensure ImagePicker returns a blob/data URL and CORS allows reading.",
     );
   }
-  const contentType = blob.type || "image/jpeg";
+  const contentType = forcedContentType || blob.type || "image/jpeg";
   const ext = extFromType(contentType);
   // Use a stable path to avoid orphan files and reduce storage cost.
   // Cache-busting is handled via ?v= query param on the returned URL.

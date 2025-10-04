@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -8,6 +8,7 @@ import CommunityScreen from "@features/community/screens/CommunityScreen";
 import FeedbackScreen from "@features/feedback/screens/FeedbackScreen";
 import HomeScreen from "@features/home/screens/HomeScreen";
 import BlockedUsersScreen from "@features/profile/screens/BlockedUsersScreen";
+import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import ProfileScreen from "@features/profile/screens/ProfileScreen";
 import { colors } from "@shared/theme";
 
@@ -89,12 +90,12 @@ const MainTabs: React.FC = () => (
     <Tab.Screen
       name="Tournaments"
       component={TournamentStackNavigator}
-      options={{ tabBarLabel: "大会" }}
+      options={{ tabBarLabel: "トーナメント" }}
     />
     <Tab.Screen
       name="Community"
       component={CommunityScreen}
-      options={{ tabBarLabel: "投稿" }}
+      options={{ tabBarLabel: "コミュニティ" }}
     />
     <Tab.Screen
       name="Settings"
@@ -111,9 +112,10 @@ const RootNavigator: React.FC = () => (
       <RootStack.Screen name="History" component={HistoryStackNavigator} />
       <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
       <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
+      <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-      {/* 設定はタブから直接プロフィール編集画面を表示するため、追加のスタックは不要 */}
+      {/* 開発環境でのみ表示されるデバッグ画面のため、本番環境では表示されない */}
       {__DEV__ && DevCrudTestScreen && (
         <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
       )}

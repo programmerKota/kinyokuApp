@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-10-04T08:47:32.752Z",
+  "summary": {
+    "totalErrors": 1,
+    "totalWarnings": 0,
+    "totalScreenshots": 2,
+    "totalNetworkRequests": 0,
+    "totalConsoleLogs": 0
+  },
+  "errors": [
+    {
+      "type": "ApplicationAccessError",
+      "message": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/\nCall log:\n  - navigating to \"http://localhost:8082/\", waiting until \"networkidle\"\n",
+      "timestamp": "2025-10-04T08:47:30.108Z"
+    }
+  ],
+  "warnings": [],
+  "performance": [
+    {
+      "loadTime": 0,
+      "domContentLoaded": 2.9000000953674316,
+      "firstPaint": 116,
+      "firstContentfulPaint": 116
+    },
+    {
+      "memory": {
+        "usedJSHeapSize": 5544182,
+        "totalJSHeapSize": 8017694,
+        "jsHeapSizeLimit": 4294705152
+      }
+    }
+  ],
+  "screenshots": [
+    "debug-screenshots/button-1-1759567651392.png",
+    "debug-screenshots/button-2-1759567652556.png"
+  ],
+  "network": [],
+  "console": []
+}

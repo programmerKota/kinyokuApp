@@ -49,10 +49,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
           </View>
           <View style={styles.goalBannerActive}>
             <View
-              pointerEvents="none"
               style={[
                 styles.progressOverlay,
                 { width: `${Math.min(progressPercent, 100)}%` },
+                // RN Web deprecation: use style.pointerEvents instead of prop
+                { pointerEvents: 'none' as any },
               ]}
             />
             <View style={styles.goalBannerContent}>

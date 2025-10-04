@@ -1,5 +1,5 @@
 type Unsubscribe = () => void;
-import { supabase } from "@app/config/supabase.config";
+import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
 export interface UserProfileLite {
   displayName?: string;
@@ -42,47 +42,66 @@ export class ProfileCache {
 
     // start snapshot if not started
     if (!entry.unsub) {
-      let cancelled = false;
-      let timer: any;
-      const tick = async () => {
+      // initial fetch
+      (async () => {
         try {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from("profiles")
             .select("displayName, photoURL")
             .eq("id", userId)
             .maybeSingle();
-          if (error) throw error;
-          if (!cancelled) {
-            const next = data
-              ? {
-                  displayName: (data as any).displayName ?? undefined,
-                  photoURL: (data as any).photoURL ?? undefined,
-                }
-              : undefined;
-            const prev = entry.data;
-            const changed =
-              !prev ||
-              !next ||
-              prev.displayName !== next?.displayName ||
-              prev.photoURL !== next?.photoURL;
-            if (changed) {
-              entry.data = next;
-              entry.listeners.forEach((l) => l(entry.data));
-            }
-          }
+          const next = data
+            ? {
+                displayName: (data as any).displayName ?? undefined,
+                photoURL: (data as any).photoURL ?? undefined,
+              }
+            : undefined;
+          entry.data = next;
+          entry.listeners.forEach((l) => l(entry.data));
         } catch {
-          // noop
-        } finally {
-          if (!cancelled)
-            timer = setTimeout(() => {
-              void tick();
-            }, 5000);
+          // ignore
         }
-      };
-      void tick();
+      })();
+
+      // realtime subscription
+      let channel: ReturnType<typeof supabase.channel> | undefined;
+      if (supabaseConfig?.isConfigured) {
+        channel = supabase
+          .channel(`realtime:profiles:${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "profiles",
+              filter: `id=eq.${userId}`,
+            },
+            (payload) => {
+              const row = (payload.new || payload.old) as
+                | { displayName?: string; photoURL?: string }
+                | undefined;
+              if (!row) return;
+              const next = {
+                displayName: row.displayName ?? entry.data?.displayName,
+                photoURL: row.photoURL ?? entry.data?.photoURL,
+              } as UserProfileLite;
+              const prev = entry.data;
+              if (
+                !prev ||
+                prev.displayName !== next.displayName ||
+                prev.photoURL !== next.photoURL
+              ) {
+                entry.data = next;
+                entry.listeners.forEach((l) => l(entry.data));
+              }
+            },
+          )
+          .subscribe();
+      }
       entry.unsub = () => {
-        cancelled = true;
-        if (timer) clearTimeout(timer);
+        try {
+          if (channel) channel.unsubscribe();
+        } catch {}
       };
     }
 

@@ -69,7 +69,7 @@ const UserDetailScreen: React.FC = () => {
   const [averageDays, setAverageDays] = useState(0);
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
   const { requireAuth } = useAuthPrompt();
-  // 逕ｻ髱｢繝輔か繝ｼ繧ｫ繧ｹ荳ｭ縺ｯ豈守ｧ貞・謠冗判縺励※逶ｸ蟇ｾ譎る俣繧呈峩譁ｰ
+  // 相対時間表示は各セル内の RelativeTime コンポーネントで個別に更新
   const [nowTick, setNowTick] = useState(0);
 
   useFocusEffect(
@@ -87,7 +87,7 @@ const UserDetailScreen: React.FC = () => {
         try {
           const days = await UserStatsService.getUserCurrentDaysForRank(userId);
           if (mounted) setAverageDays(days);
-        } catch {}
+        } catch { }
       })();
       return () => {
         mounted = false;
@@ -117,7 +117,7 @@ const UserDetailScreen: React.FC = () => {
             likes: p.likes || 0,
           });
         });
-      } catch {}
+      } catch { }
     })();
   }, [likedPosts, postsData]);
   useEffect(() => {
@@ -128,12 +128,12 @@ const UserDetailScreen: React.FC = () => {
       try {
         const isFollowing = await FollowService.isFollowing(userId);
         if (mounted) setFollowing(isFollowing);
-      } catch {}
+      } catch { }
 
       try {
         const isBlocked = await BlockService.isBlocked(userId);
         if (mounted) setBlocked(isBlocked);
-      } catch {}
+      } catch { }
 
       try {
         unsubscribe = CommunityService.subscribeToUserPosts(
@@ -158,13 +158,13 @@ const UserDetailScreen: React.FC = () => {
                     user.uid,
                   );
                   if (likedFlag) liked.add(post.id);
-                } catch {}
+                } catch { }
               }
               setLikedPosts(liked);
             }
           },
         );
-      } catch {}
+      } catch { }
     })();
 
     return () => {
@@ -206,7 +206,7 @@ const UserDetailScreen: React.FC = () => {
         ReplyVisibilityStore,
       } = require("@shared/state/replyVisibilityStore");
       ReplyVisibilityStore.toggle(postId);
-    } catch {}
+    } catch { }
   };
 
   const handleReply = async (postId: string) => {
@@ -229,7 +229,7 @@ const UserDetailScreen: React.FC = () => {
       try {
         const { ReplyCountStore } = await import("@shared/state/replyStore");
         ReplyCountStore.increment(replyingTo, 1);
-      } catch {}
+      } catch { }
       setReplyingTo(null);
       setReplyText("");
     } catch (e) {
@@ -242,7 +242,7 @@ const UserDetailScreen: React.FC = () => {
     setReplyText("");
   };
 
-  // PostList 繧剃ｽｿ逕ｨ縺吶ｋ縺溘ａ蛟句挨繝ｬ繝ｳ繝繝ｩ縺ｯ荳崎ｦ・
+  // PostList が各種描画を担当
 
   const onToggleFollow = async () => {
     try {
@@ -280,7 +280,7 @@ const UserDetailScreen: React.FC = () => {
     }
   };
 
-  // 逶ｸ蟇ｾ譎る俣縺ｯ蜈ｱ騾夐未謨ｰ繧剃ｽｿ逕ｨ
+  // 相対時間は共通関数を使用
 
   return (
     <SafeAreaView style={styles.container}>
@@ -297,7 +297,7 @@ const UserDetailScreen: React.FC = () => {
         <View style={{ width: 32 }} />
       </View>
 
-      {/* 繝励Ο繝輔ぅ繝ｼ繝ｫ繝倥ャ繝繝ｼ */}
+      {/* プロフィールヘッダー */}
       <View>
         <View style={styles.profileTop}>
           <UserProfileWithRank
@@ -372,12 +372,12 @@ const UserDetailScreen: React.FC = () => {
         contentContainerStyle={uiStyles.listContainer}
         onEndReached={() => {
           if (!hasMore || loadingMore || postsData.length === 0) return;
-          // TODO: 繝壹・繧ｸ繝ｳ繧ｰ蜿門ｾ励ｒ螳溯｣・
+          // TODO: ページング対応を実装
         }}
         loadingMore={loadingMore}
       />
 
-      {/* 霑比ｿ｡蜈･蜉帙ヵ繧｣繝ｼ繝ｫ繝・*/}
+      {/* 返信入力フィールド */}
       {replyingTo && (
         <ReplyInputBar
           value={replyText}
@@ -532,8 +532,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: spacing.sm,
     marginLeft: 56,
-  }, // 繧｢繝舌ち繝ｼ40px + 繝槭・繧ｸ繝ｳ16px = 56px
-  postActions: { flexDirection: "row", alignItems: "center", marginLeft: 56 }, // 繧｢繝舌ち繝ｼ40px + 繝槭・繧ｸ繝ｳ16px = 56px
+  }, // アバター40px + マージン16px = 56px
+  postActions: { flexDirection: "row", alignItems: "center", marginLeft: 56 }, // アバター40px + マージン16px = 56px
   postAction: {
     flexDirection: "row",
     alignItems: "center",

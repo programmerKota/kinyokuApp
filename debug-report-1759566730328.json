@@ -1,0 +1,103 @@
+{
+  "timestamp": "2025-10-04T08:32:10.328Z",
+  "summary": {
+    "totalErrors": 3,
+    "totalWarnings": 0,
+    "totalScreenshots": 1,
+    "totalNetworkRequests": 2,
+    "totalConsoleLogs": 2
+  },
+  "errors": [
+    {
+      "type": "NetworkError",
+      "message": "500 http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+      "timestamp": "2025-10-04T08:32:09.628Z"
+    },
+    {
+      "type": "ConsoleError",
+      "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-04T08:32:09.630Z"
+    },
+    {
+      "type": "ConsoleError",
+      "message": "Refused to execute script from 'http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-10-04T08:32:09.630Z"
+    }
+  ],
+  "warnings": [],
+  "performance": [
+    {
+      "loadTime": 0,
+      "domContentLoaded": 0.10000014305114746,
+      "firstPaint": 0,
+      "firstContentfulPaint": 0
+    },
+    {
+      "memory": {
+        "usedJSHeapSize": 3325352,
+        "totalJSHeapSize": 4422828,
+        "jsHeapSizeLimit": 4294705152
+      }
+    }
+  ],
+  "screenshots": [
+    "debug-screenshots/initial-load-1759566730142.png"
+  ],
+  "network": [
+    {
+      "url": "http://localhost:8081/",
+      "status": 200,
+      "statusText": "OK",
+      "headers": {
+        "connection": "keep-alive",
+        "content-length": "1277",
+        "content-type": "text/html",
+        "date": "Sat, 04 Oct 2025 08:32:08 GMT",
+        "keep-alive": "timeout=5"
+      },
+      "timestamp": "2025-10-04T08:32:08.567Z"
+    },
+    {
+      "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+      "status": 500,
+      "statusText": "Internal Server Error",
+      "headers": {
+        "surrogate-control": "no-store",
+        "transfer-encoding": "chunked",
+        "cache-control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "content-encoding": "br",
+        "pragma": "no-cache",
+        "connection": "keep-alive",
+        "x-content-type-options": "nosniff",
+        "expires": "0",
+        "keep-alive": "timeout=5",
+        "date": "Sat, 04 Oct 2025 08:32:09 GMT",
+        "content-type": "application/json; charset=UTF-8",
+        "vary": "Accept-Encoding"
+      },
+      "timestamp": "2025-10-04T08:32:09.628Z"
+    }
+  ],
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "timestamp": "2025-10-04T08:32:09.630Z",
+      "location": {
+        "url": "http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable",
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Refused to execute script from 'http://localhost:8081/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=src%2Fapp&unstable_transformProfile=hermes-stable' because its MIME type ('application/json') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-10-04T08:32:09.630Z",
+      "location": {
+        "url": "http://localhost:8081/",
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ]
+}

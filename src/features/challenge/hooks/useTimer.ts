@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import {
@@ -193,6 +193,12 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
           failedAt: !isCompleted ? now : null,
           totalPenaltyPaid: isCompleted ? 0 : currentSession.penaltyAmount,
         });
+
+        // タイマーの状態をリセット
+        setCurrentSession(null);
+        setActualDuration(0);
+        setProgressPercent(0);
+        setIsGoalAchieved(false);
       } finally {
         setIsLoading(false);
       }

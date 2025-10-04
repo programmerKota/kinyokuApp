@@ -1,4 +1,4 @@
-import { supabase } from "@app/config/supabase.config";
+﻿import { supabase } from "@app/config/supabase.config";
 
 export interface FirestoreUser {
   id: string;
@@ -8,6 +8,11 @@ export interface FirestoreUser {
 
 export class FirestoreUserService {
   static async getCurrentUserId(): Promise<string> {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const suid = data?.session?.user?.id as string | undefined;
+      if (suid) return suid;
+    } catch {}
     const UserService = (await import("../userService")).default;
     const userService = UserService.getInstance();
     return await userService.getUserId();
@@ -66,5 +71,8 @@ export class FirestoreUserService {
 }
 
 export default FirestoreUserService;
+
+
+
 
 

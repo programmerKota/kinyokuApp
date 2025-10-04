@@ -338,6 +338,7 @@ export class TournamentService {
             event: "*",
             schema: "public",
             table: "tournament_join_requests",
+            filter: `tournamentId=eq.${tournamentId}`,
           },
           (payload: any) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
@@ -471,7 +472,12 @@ export class TournamentService {
       .channel(`realtime:tournament_messages:new:${tournamentId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "tournament_messages" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tournament_messages",
+          filter: `tournamentId=eq.${tournamentId}`,
+        },
         (payload: any) => {
           const row = payload.new;
           onInsert(row);
@@ -670,6 +676,7 @@ export class TournamentService {
             event: "*",
             schema: "public",
             table: "tournament_participants",
+            filter: `tournamentId=eq.${tournamentId}`,
           },
           (payload: any) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";

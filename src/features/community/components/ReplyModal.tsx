@@ -69,7 +69,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
           >
             <TouchableWithoutFeedback onPress={handleContentPress}>
               <View style={styles.modalContainer}>
-                {/* 繝倥ャ繝繝ｼ */}
+                {/* ヘッダー */}
                 <View style={[uiStyles.rowBetween, styles.header]}>
                   <TouchableOpacity
                     onPress={handleClose}
@@ -82,7 +82,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                     />
                   </TouchableOpacity>
                   <Text style={styles.headerTitle}>
-                    {postAuthorName}縺ｫ霑比ｿ｡
+                    {postAuthorName}に返信
                   </Text>
                   <TouchableOpacity
                     onPress={handleSubmit}
@@ -99,16 +99,16 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                         !content.trim() && styles.replyButtonTextDisabled,
                       ]}
                     >
-                      霑比ｿ｡
+                      返信
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* 繝｡繧､繝ｳ繧ｳ繝ｳ繝・Φ繝・*/}
+                {/* メインコンテンツ*/}
                 <View style={styles.content}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder={`${postAuthorName}縺ｫ霑比ｿ｡...`}
+                    placeholder={`${postAuthorName}に返信...`}
                     placeholderTextColor={colors.textSecondary}
                     value={content}
                     onChangeText={setContent}
@@ -117,7 +117,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                     autoFocus
                   />
 
-                  {/* 譁・ｭ玲焚繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ */}
+                  {/* 文字数カウンター */}
                   <View style={styles.counterContainer}>
                     <Text
                       style={[

@@ -27,6 +27,7 @@ import ConfirmDialog from "@shared/components/ConfirmDialog";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
 import { colors, spacing, typography, shadows } from "@shared/theme";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import ProfileCache from "@core/services/profileCache";
 
 type TournamentsScreenNavigationProp = StackNavigationProp<
   TournamentStackParamList,
@@ -54,6 +55,8 @@ const TournamentsScreen: React.FC = () => {
   const [, participantsActions] = useTournamentParticipants();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [myIds, setMyIds] = useState<Set<string>>(new Set());
+  const [profilesUnsub, setProfilesUnsub] = useState<(() => void) | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<{
     visible: boolean;
@@ -86,9 +89,7 @@ const TournamentsScreen: React.FC = () => {
                 const participants = participantsActions.getParticipants(
                   tournament.id,
                 );
-                const isJoined =
-                  tournament.ownerId === currentUserId ||
-                  participants.some((p) => p.userId === currentUserId);
+                const isJoined = myIds.has(tournament.ownerId) || participants.some((p) => myIds.has(p.userId));
                 const participantCount = participants.some(
                   (p) => p.userId === tournament.ownerId,
                 )
@@ -140,6 +141,18 @@ const TournamentsScreen: React.FC = () => {
               }),
             );
             setTournaments(convertedTournaments);
+            try {
+              if (profilesUnsub) { profilesUnsub(); setProfilesUnsub(null); }
+              const ownerIds = Array.from(new Set(convertedTournaments.map((t) => t.ownerId)));
+              const unsub = ProfileCache.getInstance().subscribeMany(ownerIds, (map) => {
+                setTournaments((prev) => prev.map((t) => ({
+                  ...t,
+                  ownerName: map.get(t.ownerId)?.displayName ?? t.ownerName,
+                  ownerAvatar: map.get(t.ownerId)?.photoURL ?? t.ownerAvatar,
+                })));
+              });
+              setProfilesUnsub(() => unsub);
+            } catch {}
           } catch (error) {
             handleError(
               error,
@@ -311,7 +324,17 @@ const TournamentsScreen: React.FC = () => {
     [handleError],
   );
 
-  const renderTournament = useCallback(
+    useEffect(() => {
+    const ids = new Set<string>();
+    if (user?.uid) ids.add(user.uid);
+    (async () => {
+      try {
+        const legacy = await (await import('@core/services/supabase/userService')).FirestoreUserService.getCurrentUserId();
+        if (legacy) ids.add(legacy);
+      } catch {}
+      setMyIds(ids);
+    })();
+  }, [user?.uid]);const renderTournament = useCallback(
     ({ item }: { item: Tournament }) => (
       <MemoizedTournamentCard
         tournament={item}
@@ -322,7 +345,7 @@ const TournamentsScreen: React.FC = () => {
         onToggleRecruitment={(id, open) => {
           void handleToggleRecruitment(id, open);
         }}
-        showDelete={user?.uid === item.ownerId}
+        showDelete={myIds.has(item.ownerId)}
         onDelete={(id) => {
           void handleDeleteTournament(id);
         }}

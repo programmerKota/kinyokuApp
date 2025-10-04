@@ -77,12 +77,12 @@ export class CommunityService {
       query = query.lt("createdAt", after.createdAt);
     }
 
-    const { data, error } = await withRetry(() => query, {
+    const result = (await withRetry(async () => await query, {
       retries: 2,
       delayMs: 400,
-    });
-    if (error) throw error;
-    const rows = (data || []) as unknown as SupaPostRow[];
+    })) as { data: any; error: any };
+    if (result.error) throw result.error;
+    const rows = (result.data || []) as unknown as SupaPostRow[];
     const items = rows.map(toFirestoreCommunityPost);
     const nextCursor =
       items.length > 0
@@ -96,17 +96,17 @@ export class CommunityService {
 
   static async getUserPosts(userId: string): Promise<FirestoreCommunityPost[]> {
     if (!supabaseConfig?.isConfigured) return [];
-    const { data, error } = await withRetry(
-      () =>
-        supabase
+    const result = (await withRetry(
+      async () =>
+        await supabase
           .from("community_posts")
           .select("*")
           .eq("authorId", userId)
           .order("createdAt", { ascending: false }),
       { retries: 2, delayMs: 400 },
-    );
-    if (error) throw error;
-    return ((data || []) as unknown as SupaPostRow[]).map(
+    )) as { data: any; error: any };
+    if (result.error) throw result.error;
+    return ((result.data || []) as unknown as SupaPostRow[]).map(
       toFirestoreCommunityPost,
     );
   }
@@ -322,6 +322,7 @@ export class CommunityService {
             event: "*",
             schema: "public",
             table: "community_comments",
+            filter: `postId=eq.${postId}`,
           },
           (payload: any) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
@@ -381,7 +382,9 @@ export class CommunityService {
         const post = toFirestoreCommunityPost(row as SupaPostRow);
         current = [post, ...current]
           .sort((a, b) =>
-            String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+            String(b.createdAt as any).localeCompare(
+              String(a.createdAt as any),
+            ),
           )
           .slice(0, max);
       } else if (type === "UPDATE") {
@@ -503,11 +506,15 @@ export class CommunityService {
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as any;
           current = copy.sort((a, b) =>
-            String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+            String(b.createdAt as any).localeCompare(
+              String(a.createdAt as any),
+            ),
           );
         } else {
           current = [post, ...current].sort((a, b) =>
-            String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+            String(b.createdAt as any).localeCompare(
+              String(a.createdAt as any),
+            ),
           );
         }
       } else if (type === "DELETE") {
@@ -532,7 +539,12 @@ export class CommunityService {
         .channel(`realtime:community_posts:user:${userId}`)
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "community_posts" },
+          {
+            event: "*",
+            schema: "public",
+            table: "community_posts",
+            filter: `authorId=eq.${userId}`,
+          },
           (payload: any) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
             const row =
@@ -613,7 +625,9 @@ export class CommunityService {
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as any;
           current = copy.sort((a, b) =>
-            String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+            String(b.createdAt as any).localeCompare(
+              String(a.createdAt as any),
+            ),
           );
         }
       } else if (type === "DELETE") {

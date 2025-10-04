@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback } from "react";
+import React, { useCallback, memo } from "react";
 import {
   FlatList,
   View,
@@ -125,7 +125,7 @@ const PostList: React.FC<PostListProps> = ({
   );
 };
 
-export default PostList;
+export default memo(PostList);
 
 const PostListRow: React.FC<{
   item: CommunityPost;
@@ -137,7 +137,7 @@ const PostListRow: React.FC<{
   onComment: (postId: string) => void;
   onReply: (postId: string) => void;
   onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
-}> = ({
+}> = memo(({
   item,
   likedPosts,
   authorAverageDays,
@@ -153,8 +153,8 @@ const PostListRow: React.FC<{
     typeof authorAverageDays === "number"
       ? authorAverageDays
       : ((authorAverageDays as Map<string, number>)?.get?.(
-          item.authorId,
-        ) as number) || 0;
+        item.authorId,
+      ) as number) || 0;
   const comments = replyCounts?.get(item.id) ?? item.comments ?? 0;
 
   return (
@@ -197,7 +197,7 @@ const PostListRow: React.FC<{
       )}
     </View>
   );
-};
+});
 
 const rowStyles = StyleSheet.create({
   replyButtonContainer: {

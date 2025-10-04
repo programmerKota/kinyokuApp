@@ -82,7 +82,12 @@ export class FollowService {
         .channel(`realtime:follows:${followerId}`)
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "follows" },
+          {
+            event: "*",
+            schema: "public",
+            table: "follows",
+            filter: `followerId=eq.${followerId}`,
+          },
           async (payload: any) => {
             const row = (payload.new || payload.old) as
               | { followerId?: string }

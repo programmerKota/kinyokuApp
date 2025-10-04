@@ -162,7 +162,12 @@ export class ChallengeService {
         .channel(`realtime:challenges:active:${userId}`)
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "challenges" },
+          {
+            event: "*",
+            schema: "public",
+            table: "challenges",
+            filter: `userId=eq.${userId}`,
+          },
           async (payload: any) => {
             const row = (payload.new || payload.old) as
               | { userId?: string }

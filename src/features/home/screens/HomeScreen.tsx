@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+﻿import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
@@ -13,14 +13,8 @@ import RankingButton from "@features/home/components/RankingButton";
 import { colors, spacing } from "@shared/theme";
 
 const PROFILE_SETUP_SEEN_KEY = "profile_setup_seen_v1";
-const forceProfileModal =
-  String(
-    // Allow forcing the profile setup modal to stay open (dev convenience)
-    (typeof process !== "undefined" &&
-      (process as unknown as { env?: Record<string, string | undefined> }).env
-        ?.EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL) ||
-      "",
-  ).toLowerCase() === "true";
+// Allow forcing the profile setup modal to stay open (dev convenience) only in __DEV__
+const forceProfileModal = false;
 
 type HomeNav = StackNavigationProp<RootStackParamList>;
 
@@ -57,6 +51,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     })();
     return () => {
       active = false;
+      // 追加のクリーンアップ処理
+      setProfileModalVisible(false);
+      setCheckingFirstLaunch(false);
+      setPersistingFlag(false);
     };
   }, []);
 
@@ -75,10 +73,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const handleProfileSubmit = useCallback(
     async (nextName: string, avatar?: string) => {
       await updateProfile(nextName, avatar);
-      if (!forceProfileModal) {
-        await markFlagAsSeen();
-        setProfileModalVisible(false);
-      }
+      await markFlagAsSeen();
+      setProfileModalVisible(false);
     },
     [updateProfile, markFlagAsSeen],
   );
@@ -145,3 +141,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+

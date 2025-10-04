@@ -1,0 +1,53 @@
+# Cursor MCP Configuration
+
+## MCP Servers Configuration
+
+The following MCP servers are configured for this project:
+
+### Enabled Servers:
+
+- **supabase**: Database and backend services
+- **playwright**: Browser automation and testing
+- **chrome-devtools**: Chrome debugging tools
+- **context7**: Context management
+
+### Server Details:
+
+#### Supabase Server
+
+- **Type**: stdio
+- **Command**: npx @supabase/mcp-server-supabase
+- **Project**: tssfhgfkelsuslpwschl
+- **Status**: Active
+
+#### Playwright Server
+
+- **Command**: npx @playwright/mcp@latest
+- **Purpose**: Browser automation and testing
+- **Status**: Active
+
+#### Chrome DevTools Server
+
+- **Command**: npx chrome-devtools-mcp@latest
+- **Mode**: Headless
+- **Viewport**: 1280x900
+- **Status**: Active
+
+#### Context7 Server
+
+- **Command**: npx @upstash/context7-mcp
+- **Purpose**: Context management
+- **Status**: Active
+
+## Usage Instructions
+
+These MCP servers provide enhanced capabilities for:
+
+- Database operations (Supabase)
+- Browser testing and automation (Playwright)
+- Chrome debugging (Chrome DevTools)
+- Context management (Context7)
+
+All servers are configured to start automatically when needed and will timeout after their respective startup periods.
+
+

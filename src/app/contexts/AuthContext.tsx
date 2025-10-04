@@ -70,8 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       try {
         await supabase.from("profiles").delete().eq("id", legacyId);
-      } catch {}
-    } catch {}
+      } catch { }
+    } catch { }
   };
 
   const loadUser = useCallback(async () => {
@@ -88,15 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (suid) {
           uid = suid;
           // Pull latest profile from Supabase if present
-          const { data: prof } = await withRetry(
-            () =>
-              supabase
+          const profResult = await withRetry(
+            async () =>
+              await supabase
                 .from("profiles")
                 .select("displayName, photoURL")
                 .eq("id", uid)
                 .maybeSingle(),
             { retries: 2, delayMs: 400 },
-          );
+          ) as { data: any; error: any };
+          const prof = profResult.data;
           if (prof) {
             displayName = (prof as any).displayName || displayName || "User";
             avatarUrl = (prof as any).photoURL || avatarUrl;

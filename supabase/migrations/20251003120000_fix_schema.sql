@@ -247,7 +247,7 @@ as $$
   update public.community_posts
      set likes = greatest(0, coalesce(likes,0) + p_delta),
          "updatedAt" = now()
-   where id = p_post_id;
+   where id::text = p_post_id::text;
 $$;
 
 drop function if exists public.increment_post_comments(text, integer);
@@ -260,7 +260,7 @@ as $$
   update public.community_posts
      set comments = greatest(0, coalesce(comments,0) + p_delta),
          "updatedAt" = now()
-   where id = p_post_id;
+   where id::text = p_post_id::text;
 $$;
 
 -- ---------------------------------------------------------------------------

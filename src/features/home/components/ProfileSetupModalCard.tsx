@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
@@ -38,7 +38,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const sanitize = (s?: string) =>
-    s && /[\uFFFD]|[繝縺繧蜿螟遏鬟]/.test(s) ? "" : s || "";
+    s && /[\uFFFD]/.test(s) ? "" : s || "";
 
   useEffect(() => {
     if (!visible) return;
@@ -99,7 +99,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       console.error("ProfileSetupModal: save failed", err);
       Alert.alert(
         "エラー",
-        "プロフィールの保存に失敗しました。通信状況をご確認ください。",
+        "プロフィールの保存に失敗しました。通信状況を確認ください。",
       );
       setSaving(false);
       return;
@@ -163,7 +163,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
             if (errorMessage) setErrorMessage(null);
           }}
           autoFocus
-          placeholder="名前"
+          placeholder="ユーザー名"
           placeholderTextColor={colors.textSecondary}
           selectionColor={colors.primary}
           autoCapitalize="none"
@@ -184,7 +184,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         ) : (
           <Text
             style={styles.counter}
-          >{`${Math.min(nameLength, MAX_NAME_LENGTH)}/${MAX_NAME_LENGTH}`}</Text>
+          >{`${Math.min(nameLength, MAX_NAME_LENGTH)} /${MAX_NAME_LENGTH}`}</Text>
         )}
 
         <View style={styles.actions}>
@@ -291,3 +291,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileSetupModal;
+

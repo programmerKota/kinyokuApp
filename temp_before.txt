@@ -1,10 +1,11 @@
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
-// Supabaseサービスのベ�Eスクラス
+// Supabaseサービスのベースクラス
 export class SupabaseService {
   protected static client = supabase;
 
-  // 接続テスチE Auth ヘルスチェチE��に対してGETし、E00なら接続OKと判宁E  static async testConnection(): Promise<boolean> {
+  // 接続テスト: Auth ヘルスチェックエンドポイントに対してGETし、200なら接続OKと判定
+  static async testConnection(): Promise<boolean> {
     try {
       // If env is not configured, don't attempt any network call
       if (!supabaseConfig?.isConfigured) return false;
@@ -38,7 +39,8 @@ export class SupabaseService {
     }
   }
 
-  // チE�Eタベ�Eスの基本惁E��を取征E  static async getDatabaseInfo() {
+  // データベースの基本情報を取得
+  static async getDatabaseInfo() {
     try {
       const { data, error } = await this.client.rpc("version");
 
@@ -56,4 +58,5 @@ export class SupabaseService {
 }
 
 export default SupabaseService;
+
 

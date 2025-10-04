@@ -10,13 +10,14 @@ import {
   Text,
   Platform,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import { FeedbackService } from "@core/services/feedbackService";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import Button from "@shared/components/Button";
 import { colors, spacing, typography } from "@shared/theme";
+import { supabase } from "@app/config/supabase.config";
 
 const FeedbackScreen: React.FC = () => {
   const { user } = useAuth();
@@ -38,17 +39,33 @@ const FeedbackScreen: React.FC = () => {
     try {
       const ok = await requireAuth();
       if (!ok) return;
-      await FeedbackService.submit({
-        userId: user?.uid,
-        subject: subject.trim(),
-        message: message.trim(),
-        platform: `${Platform.OS} ${Platform.Version}`,
+
+      // Supabase Edge Functionを呼び出してメール送信
+      const { data, error } = await supabase.functions.invoke('send-feedback', {
+        body: {
+          subject: subject.trim(),
+          message: message.trim(),
+          platform: `${Platform.OS} ${Platform.Version}`,
+        },
       });
-      setSent(true);
-      setSubject("");
-      setMessage("");
+
+      if (error) {
+        console.error('Feedback submit failed:', error);
+        Alert.alert("エラー", "フィードバックの送信に失敗しました: " + error.message);
+        return;
+      }
+
+      if (data?.success) {
+        setSent(true);
+        setSubject("");
+        setMessage("");
+        Alert.alert("送信完了", "フィードバックを送信しました。ありがとうございます！");
+      } else {
+        Alert.alert("エラー", "フィードバックの送信に失敗しました");
+      }
     } catch (e: any) {
       console.error("Feedback submit failed:", e);
+      Alert.alert("エラー", "フィードバックの送信に失敗しました: " + e.message);
     } finally {
       setSending(false);
     }
@@ -96,6 +113,11 @@ const FeedbackScreen: React.FC = () => {
           disabled={!canSend || sent}
           loading={sending}
         />
+        {sent && (
+          <Text style={styles.successMessage}>
+            ✅ フィードバックを送信しました。ありがとうございます！
+          </Text>
+        )}
       </View>
 
       {/* Auth modal is handled globally by AuthPromptProvider */}
@@ -148,6 +170,13 @@ const styles = StyleSheet.create({
   },
   textarea: {
     minHeight: 160,
+  },
+  successMessage: {
+    marginTop: spacing.md,
+    textAlign: "center",
+    color: colors.success,
+    fontSize: typography.fontSize.sm,
+    fontWeight: "600",
   },
 });
 
