@@ -1,6 +1,5 @@
 import { ChallengeService } from "./firestore";
-import { StatsService } from "./statsService";
-// Firestore依存を廃止。必要ならSupabaseへの保存を別途検討
+// 仕様更新: ランキング/肩書きは履歴の平均ではなく「現在のチャレンジの記録」から算出する
 
 function toDateSafe(v: any): Date | undefined {
   if (!v) return undefined;
@@ -23,43 +22,22 @@ export class UserStatsService {
   >();
 
   static async getUserAverageDays(userId: string): Promise<number> {
-    // キャッシュをチェック
+    // 新仕様: 過去の平均ではなく「現在のアクティブなチャレンジ」から算出
     const cached = this.userStatsCache.get(userId);
     if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
       return cached.averageDays;
     }
-
     try {
-      // ユーザーのチャレンジ履歴を取得
-      const challengesFs = await ChallengeService.getUserChallenges(userId);
-
-      // Firestore型 -> ドメイン型へ正規化
-      const challenges = challengesFs.map((c: any) => ({
-        id: c.id,
-        userId: c.userId,
-        goalDays: c.goalDays,
-        penaltyAmount: c.penaltyAmount,
-        status: c.status,
-        startedAt: toDateSafe(c.startedAt) ?? new Date(),
-        completedAt: toDateSafe(c.completedAt),
-        failedAt: toDateSafe(c.failedAt),
-        totalPenaltyPaid: c.totalPenaltyPaid ?? 0,
-        createdAt: toDateSafe(c.createdAt) ?? new Date(),
-        updatedAt: toDateSafe(c.updatedAt) ?? new Date(),
-      }));
-
-      // 平均時間（秒）を計算
-      const averageTime = StatsService.calculateAverageTime(challenges);
-      // 秒→日
-      const averageDays = averageTime / (24 * 60 * 60);
-
-      // キャッシュに保存
-      this.userStatsCache.set(userId, {
-        averageDays,
-        timestamp: Date.now(),
-      });
-
-      return averageDays;
+      const active = await ChallengeService.getActiveChallenge(userId);
+      if (!active?.startedAt) {
+        this.userStatsCache.set(userId, { averageDays: 0, timestamp: Date.now() });
+        return 0;
+      }
+      const start = toDateSafe((active as any).startedAt) ?? new Date();
+      const now = new Date();
+      const days = Math.max(0, (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+      this.userStatsCache.set(userId, { averageDays: days, timestamp: Date.now() });
+      return days;
     } catch (error) {
       console.error("ユーザーの平均日数取得に失敗:", error);
       return 0;
@@ -91,34 +69,18 @@ export class UserStatsService {
     }
 
     try {
-      // 事前計算の読み込みは未実装（Supabase側での保存が必要なら実装）
+      // 新仕様: 現在のアクティブなチャレンジのみから算出
+      const active = await ChallengeService.getActiveChallenge(userId);
+      if (!active?.startedAt) {
+        this.rankCache.set(userId, { averageDays: 0, timestamp: baseTime.getTime() });
+        return 0;
+      }
+      const start = toDateSafe((active as any).startedAt) ?? new Date();
+      const now = new Date();
+      const days = Math.max(0, (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
 
-      // フォールバック: チャレンジから計算（秒）
-      const challengesFs = await ChallengeService.getUserChallenges(userId);
-      const challenges = challengesFs.map((c: any) => ({
-        id: c.id,
-        userId: c.userId,
-        goalDays: c.goalDays,
-        penaltyAmount: c.penaltyAmount,
-        status: c.status,
-        startedAt: toDateSafe(c.startedAt) ?? new Date(),
-        completedAt: toDateSafe(c.completedAt),
-        failedAt: toDateSafe(c.failedAt),
-        totalPenaltyPaid: c.totalPenaltyPaid ?? 0,
-        createdAt: toDateSafe(c.createdAt) ?? new Date(),
-        updatedAt: toDateSafe(c.updatedAt) ?? new Date(),
-      }));
-      const averageTime = StatsService.calculateAverageTime(challenges);
-      const averageDays = averageTime / (24 * 60 * 60);
-
-      this.rankCache.set(userId, {
-        averageDays,
-        timestamp: baseTime.getTime(),
-      });
-
-      // 保存は未実装（必要に応じてSupabase RPC等で保存）
-
-      return averageDays;
+      this.rankCache.set(userId, { averageDays: days, timestamp: baseTime.getTime() });
+      return days;
     } catch (error) {
       console.error("ユーザーの平均日数取得に失敗:", error);
       return 0;

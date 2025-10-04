@@ -50,17 +50,16 @@ export class RankingService {
 
       const rankings: UserRanking[] = [];
 
+      // Avoid N network calls: profileはUI側のuseProfile(ProfileCache)で解決する
       for (const [userId, active] of latestActiveByUser.entries()) {
         const start = active?.getTime?.() || 0;
         if (!start) continue;
         const duration = Math.max(0, Math.floor((now - start) / 1000)); // 秒
 
-        const userInfo = await FirestoreUserService.getUserById(userId);
-
         rankings.push({
           id: userId,
-          name: userInfo?.displayName || "ユーザー",
-          avatar: userInfo?.photoURL ?? undefined,
+          name: "ユーザー",
+          avatar: undefined,
           averageTime: duration, // フィールド名は互換のためそのまま
           totalChallenges: 1,
           completedChallenges: 0,

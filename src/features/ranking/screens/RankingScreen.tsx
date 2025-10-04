@@ -41,17 +41,12 @@ const RankingScreen: React.FC = () => {
       const rankingsData: UserRanking[] =
         await RankingService.getUserRankings();
       setRankings(rankingsData);
-      // 肩書き表示は全画面で同一ロジック（UserStatsService）に統一
-      const uniqueIds = Array.from(new Set(rankingsData.map((r) => r.id)));
+      // 平均日数（肩書き用）はactive startedAtからの経過で即時計算
       const next = new Map<string, number>();
-      for (const uid of uniqueIds) {
-        try {
-          const days = await UserStatsService.getUserCurrentDaysForRank(uid);
-          next.set(uid, days);
-        } catch {
-          next.set(uid, 0);
-        }
-      }
+      rankingsData.forEach((r) => {
+        const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
+        next.set(r.id, Math.max(0, days));
+      });
       setAvgDaysMap(next);
     } catch {
       // noop
