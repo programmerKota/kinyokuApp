@@ -20,6 +20,7 @@
         "update:preview": "eas update --branch preview",
         "eas:secrets:setup": "node scripts/setupEasSecrets.cjs",
         "web": "expo start --web",
+        "browser:replies": "node scripts/e2e/repliesRealtimeCheck.mjs",
         "check:supabase:schema": "npx tsx scripts/checkSupabaseTables.ts",
         "apply:supabase:migration": "npx tsx scripts/applySupabaseMigration.ts --file supabase/migrations/2025-10-03_fix_schema.sql",
         "typecheck": "tsc --project tsconfig.typecheck.json --noEmit",

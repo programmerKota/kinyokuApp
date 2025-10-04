@@ -6,6 +6,7 @@ import { UserStatsService } from "@core/services/userStatsService";
 import ReplyCard from "@features/community/components/ReplyCard";
 import type { CommunityComment } from "@project-types";
 import { colors, spacing } from "@shared/theme";
+import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface RepliesListProps {
@@ -47,6 +48,29 @@ const RepliesList: React.FC<RepliesListProps> = ({
     );
     return unsubscribe;
   }, [postId, allowBlockedReplies]);
+
+  // Local fallback: if a reply was added from this client but Realtime is delayed,
+  // nudge refresh by fetching the latest replies on emit.
+  useEffect(() => {
+    const unsub = ReplyEventBus.subscribe(postId, () => {
+      void (async () => {
+        try {
+          const list = await CommunityService.getPostReplies(postId);
+          setReplies((prev) => {
+            if (
+              prev.length === list.length &&
+              prev.every((r, i) => r.id === list[i]?.id && r.content === list[i]?.content)
+            ) {
+              return prev;
+            }
+            return list;
+          });
+          void initializeUserAverageDays(list);
+        } catch {}
+      })();
+    });
+    return unsub;
+  }, [postId]);
 
   const initializeUserAverageDays = async (replies: CommunityComment[]) => {
     const averageDaysMap = new Map<string, number>();

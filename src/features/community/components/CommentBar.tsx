@@ -34,6 +34,7 @@ const CommentBar: React.FC<CommentBarProps> = ({
       style={styles.actionButton}
       onPress={handle}
       disabled={busy}
+      testID={`comment-btn-${postId}`}
     >
       <Ionicons name="chatbubble-outline" size={18} color={colors.info} />
       <Text style={[styles.actionText, { color: colors.info }]}>{count}</Text>

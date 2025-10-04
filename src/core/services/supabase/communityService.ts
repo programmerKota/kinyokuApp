@@ -180,6 +180,11 @@ export class CommunityService {
       .single();
     if (error) throw error;
     await this.updatePostReplyCount(postId, 1);
+    try {
+      // Local nudge so UI refreshes instantly even if Realtime is delayed
+      const { ReplyEventBus } = await import("@shared/state/replyEventBus");
+      ReplyEventBus.emit(postId);
+    } catch {}
     return inserted.id as string;
   }
 
