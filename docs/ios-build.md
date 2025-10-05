@@ -11,7 +11,7 @@ This project is Expo (managed). Use EAS to run native builds with real in‑app 
 ## 1) Update identifiers
 
 - Set `ios.bundleIdentifier` in `app.json` (reverse‑DNS).
-- Product IDs must match `src/core/services/payments/products.ts` and App Store / RevenueCat.
+- App Store / Play Console のプロダクトIDと RevenueCat の Offering（例: `penalty`）の紐付けを正しく構成してください。
 
 ## 2) Provide runtime env
 
@@ -22,7 +22,9 @@ Options:
 
 Required envs (public):
 
-- `EXPO_PUBLIC_RC_API_KEY`
+- `EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY`
+- `EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY`
+- (optional fallback) `EXPO_PUBLIC_RC_API_KEY`
 - `EXPO_PUBLIC_FIREBASE_API_KEY`
 - `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`
 - `EXPO_PUBLIC_FIREBASE_PROJECT_ID`
@@ -45,7 +47,8 @@ Install the build on your iPhone from the EAS link.
 ## 4) Run with Metro (Dev Client)
 
 ```powershell
-$env:EXPO_PUBLIC_RC_API_KEY='...'
+$env:EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY='...'
+$env:EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY='...'
 $env:EXPO_PUBLIC_FIREBASE_API_KEY='...'
 $env:EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN='...'
 $env:EXPO_PUBLIC_FIREBASE_PROJECT_ID='...'
@@ -71,4 +74,4 @@ Install on device from the EAS link and test without Metro.
 
 - Real purchases only work in Dev Client/Internal/Production builds.
 - Use App Store Connect Sandbox testers for purchase flows.
-- The app config includes `react-native-purchases` plugin and iOS usage descriptions.
+- iOS builds use static frameworks via `expo-build-properties` (no extra config plugin required for `react-native-purchases`).

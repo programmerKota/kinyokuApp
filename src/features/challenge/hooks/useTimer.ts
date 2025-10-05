@@ -1,11 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import {
-  ChallengeService,
-  PaymentFirestoreService,
-} from "@core/services/firestore";
-import { PaymentService } from "@core/services/payments/paymentService";
+import { ChallengeService } from "@core/services/firestore";
 import { useModal } from "@shared/hooks";
 
 export type ChallengeStatus = "active" | "completed" | "failed" | "paused";
@@ -168,24 +164,7 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
       try {
         const now = new Date();
 
-        // If failed and penalty > 0, request in-app purchase first
-        if (!isCompleted && currentSession.penaltyAmount > 0) {
-          const result = await PaymentService.payPenalty(
-            currentSession.penaltyAmount,
-          );
-          // Record payment (best-effort)
-          try {
-            if (user?.uid) {
-              await PaymentFirestoreService.addPayment({
-                userId: user.uid,
-                amount: currentSession.penaltyAmount,
-                type: "penalty",
-                status: "completed",
-                transactionId: result.transactionId,
-              } as any);
-            }
-          } catch {}
-        }
+        // Purchase flow handled by UI (PenaltyPaywall). Only finalize challenge here.
 
         await ChallengeService.updateChallenge(currentSession.id, {
           status: (isCompleted ? "completed" : "failed") as

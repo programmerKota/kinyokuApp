@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 
 import ChallengeModal from "@features/challenge/components/ChallengeModal";
@@ -8,6 +8,9 @@ import useTimer from "@features/challenge/hooks/useTimer";
 import LoadingState from "@shared/components/LoadingState";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
+import PenaltyPaywall from "@shared/payments/PenaltyPaywall";
+import { useAuth } from "@app/contexts/AuthContext";
+import { PaymentFirestoreService } from "@core/services/firestore";
 
 interface TimerScreenProps {
   onChallengeStarted?: () => void;
@@ -17,6 +20,8 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
   const [state, actions] = useTimer();
   const { handleError } = useErrorHandler();
   const { requireAuth } = useAuthPrompt();
+  const { user } = useAuth();
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const {
     goalDays,
     penaltyAmount,
@@ -62,7 +67,11 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
     const completed = isGoalAchieved;
     try {
       hideStopModal();
-      await stopChallenge(completed);
+      if (!completed) {
+        setPaywallVisible(true);
+        return;
+      }
+      await stopChallenge(true);
       if (completed) {
         console.log("Challenge completed");
       }
@@ -120,6 +129,34 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
         actualDuration={actualDuration}
         isGoalAchieved={isGoalAchieved}
         onConfirm={handleConfirmStop}
+      />
+
+      {/* Penalty payment block */}
+      <PenaltyPaywall
+        amountJPY={currentSession?.penaltyAmount || 0}
+        visible={paywallVisible}
+        onPaid={async () => {
+          try {
+            setPaywallVisible(false);
+            // Record payment best-effort here
+            try {
+              if (user?.uid && currentSession?.penaltyAmount) {
+                await PaymentFirestoreService.addPayment({
+                  userId: user.uid,
+                  amount: currentSession.penaltyAmount,
+                  type: "penalty",
+                  status: "completed",
+                } as any);
+              }
+            } catch {}
+            await stopChallenge(false);
+          } catch (e) {
+            handleError(e, { component: 'TimerScreen', action: 'stopAfterPay' }, { fallbackMessage: 'Failed to finalize challenge.' });
+          }
+        }}
+        onError={(e) => {
+          handleError(e, { component: 'TimerScreen', action: 'purchasePenalty' }, { fallbackMessage: '支払いに失敗しました。' });
+        }}
       />
     </View>
   );

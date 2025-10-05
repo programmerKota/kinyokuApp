@@ -72,6 +72,7 @@ async function main() {
     "profiles",
     "diaries",
     "challenges",
+    "payments",
     "community_posts",
     "community_comments",
     "community_likes",

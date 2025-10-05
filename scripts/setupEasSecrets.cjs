@@ -19,6 +19,9 @@ const REQUIRED = [
 ];
 
 const OPTIONAL = [
+  // Prefer platform-specific RevenueCat keys; keep single-key fallback
+  "EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY",
+  "EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY",
   "EXPO_PUBLIC_RC_API_KEY",
   "EXPO_PUBLIC_PAYMENTS_DEV_MODE",
   "EXPO_PUBLIC_ENABLE_FUNCTIONS",
