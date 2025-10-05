@@ -2,10 +2,11 @@
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
-import { CommunityService, FollowService } from "@core/services/firestore";
+import { CommunityService } from "@core/services/firestore";
 import { UserStatsService } from "@core/services/userStatsService";
 import type { CommunityPost } from "@project-types";
 import { useBlockedIds } from "@shared/state/blockStore";
+import { useFollowingIds } from "@shared/state/followStore";
 import { LikeStore } from "@shared/state/likeStore";
 import {
   buildReplyCountMapFromPosts,
@@ -54,7 +55,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<CommunityTab>("all");
-  const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+  const followingUsers = useFollowingIds();
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(
@@ -351,17 +352,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     initializeUserAverageDays,
   ]);
 
-  // subscribe following ids
-  useEffect(() => {
-    if (!user) return;
-    const unsub = FollowService.subscribeToFollowingUserIds(
-      user.uid,
-      (ids: string[]) => {
-        setFollowingUsers(new Set(ids));
-      },
-    );
-    return unsub;
-  }, [user]);
+  // following user IDs are provided by external store via AuthContext subscription
 
   // reflect block changes from global store immediately
   useEffect(() => {
@@ -396,7 +387,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         setHasMore(false);
         void initializeLikedPosts(normalized);
         void initializeUserAverageDays(normalized);
-        cacheRef.current.my = { posts: normalized };
+        cacheRef.current.my = { posts: normalized, uidKey: user.uid };
         initRunRef.current.my = true;
       } else if (activeTab === "following") {
         if (!user || followingUsers.size === 0) {
@@ -479,7 +470,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         setHasMore(false);
         void initializeLikedPosts(normalized);
         void initializeUserAverageDays(normalized);
-        cacheRef.current.my = { posts: normalized };
+        cacheRef.current.my = { posts: normalized, uidKey: user.uid };
         initRunRef.current.my = true;
       };
 

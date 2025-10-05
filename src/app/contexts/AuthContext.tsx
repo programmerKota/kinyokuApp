@@ -11,6 +11,7 @@ import {
   TournamentService,
 } from "@core/services/firestore";
 import { BlockService } from "@core/services/firestore/blockService";
+import { FollowService } from "@core/services/firestore";
 import { CommunityService } from "@core/services/supabase/communityService";
 import { supabase } from "@app/config/supabase.config";
 import UserService from "@core/services/userService";
@@ -18,6 +19,7 @@ import { uploadUserAvatar } from "@core/services/supabase/storageService";
 import { withRetry } from "@shared/utils/net";
 import type { User } from "@project-types";
 import { BlockStore } from "@shared/state/blockStore";
+import { FollowStore } from "@shared/state/followStore";
 
 interface AuthContextType {
   user: User | null;
@@ -166,6 +168,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const unsub = BlockService.subscribeBlockedIds(user.uid, (ids) => {
       BlockStore.setFromServer(ids);
     });
+    return unsub;
+  }, [user?.uid]);
+
+  // Keep following IDs in a lightweight external store to reflect on Follow tab immediately
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = FollowService.subscribeToFollowingUserIds(
+      user.uid,
+      (ids: string[]) => {
+        FollowStore.setFromServer(ids);
+      },
+    );
     return unsub;
   }, [user?.uid]);
 

@@ -30,6 +30,7 @@ import ReplyInputBar from "@shared/components/ReplyInputBar";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useProfile } from "@shared/hooks/useProfile";
 import { BlockStore } from "@shared/state/blockStore";
+import { FollowStore } from "@shared/state/followStore";
 import { colors, spacing, typography } from "@shared/theme";
 import { uiStyles } from "@shared/ui/styles";
 import {
@@ -251,9 +252,13 @@ const UserDetailScreen: React.FC = () => {
       const ok = await requireAuth();
       if (!ok) return;
       if (following) {
+        // Optimistic update
+        FollowStore.remove(userId);
         await FollowService.unfollow(userId);
         setFollowing(false);
       } else {
+        // Optimistic update
+        FollowStore.add(userId);
         await FollowService.follow(userId);
         setFollowing(true);
       }
@@ -278,6 +283,9 @@ const UserDetailScreen: React.FC = () => {
         setBlocked(true);
         // Also reflect follow state locally; block will unfollow on server
         setFollowing(false);
+        try {
+          FollowStore.remove(userId);
+        } catch {}
       }
     } catch (e) {
       console.warn("block toggle failed", e);
