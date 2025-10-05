@@ -13,6 +13,8 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -379,13 +381,18 @@ const UserDetailScreen: React.FC = () => {
 
       {/* 返信入力フィールド */}
       {replyingTo && (
-        <ReplyInputBar
-          value={replyText}
-          onChangeText={setReplyText}
-          onCancel={handleReplyCancel}
-          onSubmit={handleReplySubmit}
-          autoFocus
-        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 16}
+        >
+          <ReplyInputBar
+            value={replyText}
+            onChangeText={setReplyText}
+            onCancel={handleReplyCancel}
+            onSubmit={handleReplySubmit}
+            autoFocus
+          />
+        </KeyboardAvoidingView>
       )}
     </SafeAreaView>
   );

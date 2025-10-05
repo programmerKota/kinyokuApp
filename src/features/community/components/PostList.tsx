@@ -173,7 +173,7 @@ const PostListRow: React.FC<{
         commentsCount={comments}
       />
 
-      {visible && (
+      {false && visible && (
         <View style={rowStyles.replyButtonContainer}>
           <View style={rowStyles.replyButtonSpacer} />
           <TouchableOpacity
@@ -194,6 +194,21 @@ const PostListRow: React.FC<{
           onUserPress={(uid, uname) => onUserPress(uid, uname)}
           allowBlockedReplies={allowBlockedReplies}
         />
+      )}
+
+      {visible && (
+        <View style={rowStyles.replyButtonContainer}>
+          <View style={rowStyles.replyButtonSpacer} />
+          <TouchableOpacity
+            style={rowStyles.replyButton}
+            onPress={() => onReply(item.id)}
+          >
+            <View style={rowStyles.replyIconContainer}>
+              <Ionicons name="add" size={16} color={colors.white} />
+            </View>
+            <Text style={rowStyles.replyText}>返信を書く</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );

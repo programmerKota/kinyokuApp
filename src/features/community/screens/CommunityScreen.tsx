@@ -10,6 +10,8 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
@@ -198,15 +200,20 @@ const CommunityScreen: React.FC = () => {
       </KeyboardAwareScrollView>
 
       {replyingTo && (
-        <ReplyInputBar
-          value={replyText}
-          onChangeText={setReplyText}
-          onCancel={handleReplyCancel}
-          onSubmit={() => {
-            void handleReplySubmit();
-          }}
-          autoFocus
-        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 16}
+        >
+          <ReplyInputBar
+            value={replyText}
+            onChangeText={setReplyText}
+            onCancel={handleReplyCancel}
+            onSubmit={() => {
+              void handleReplySubmit();
+            }}
+            autoFocus
+          />
+        </KeyboardAvoidingView>
       )}
 
       <TouchableOpacity
