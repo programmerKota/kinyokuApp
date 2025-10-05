@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   RefreshControl,
   TextInput,
   Alert,
+  InteractionManager,
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -141,7 +142,12 @@ const DiaryByDayScreen: React.FC = () => {
         setLoading(false);
       }
     };
-    void fetch();
+    const task = InteractionManager.runAfterInteractions(() => {
+      void fetch();
+    });
+    return () => {
+      try { (task as any)?.cancel?.(); } catch { }
+    };
   }, [day, blockedSet]);
 
   // Keep a ref to unsubscribe profile subscriptions when items change
@@ -256,6 +262,10 @@ const DiaryByDayScreen: React.FC = () => {
           ? "本日は既に投稿済みです。明日また書きましょう。"
           : "";
 
+  // days data for horizontal day selector (virtualized)
+  const daysData = useMemo(() => Array.from({ length: 365 }, (_, i) => i + 1), []);
+  const dayListRef = useRef<FlatList<number>>(null);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -313,25 +323,26 @@ const DiaryByDayScreen: React.FC = () => {
         }
         ListHeaderComponent={
           <View>
-            <ScrollView
+            <FlatList
+              ref={dayListRef}
+              data={daysData}
+              keyExtractor={(d) => String(d)}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.cardsRow}
-            >
-              {Array.from({ length: 365 }, (_, i) => i + 1).map((d) => (
+              renderItem={({ item: d }) => (
                 <DayCard
-                  key={d}
                   day={d}
                   selected={d === day}
-                  posted={
-                    activeDay !== null && d === activeDay && alreadyPosted
-                  }
-                  onPress={(sel) => {
-                    setDay(sel);
-                  }}
+                  posted={activeDay !== null && d === activeDay && alreadyPosted}
+                  onPress={(sel) => setDay(sel)}
                 />
-              ))}
-            </ScrollView>
+              )}
+              contentContainerStyle={styles.cardsRow}
+              initialNumToRender={24}
+              windowSize={5}
+              maxToRenderPerBatch={24}
+              removeClippedSubviews
+            />
             <Text style={styles.helperText}>
               {activeDay === null && "チャレンジを開始すると日記を投稿できます"}
               {activeDay !== null &&
