@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
 // Robust env accessor: prefer EXPO_PUBLIC_* from process.env, then from app.json extra.
@@ -63,9 +64,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     // Persist session in AsyncStorage
     persistSession: true,
+    storage: AsyncStorage,
     // Detect session from URL (for OAuth flows)
-    // WebではtrueにしてOAuthリダイレクトを処理する
-    detectSessionInUrl: typeof window !== "undefined",
+    // WebではtrueにしてOAuthリダイレクトを処理する    detectSessionInUrl: typeof window !== "undefined",
   },
   realtime: {
     // Enable realtime subscriptions
