@@ -174,4 +174,61 @@ export class RankingService {
       return [];
     }
   }
+
+  /**
+   * 指定したユーザーIDのランキングを取得（フォロー中ユーザー向け）。
+   * 対象ユーザーが多すぎない前提で一括取得し、平均時間で降順ソートします。
+   */
+  static async getUserRankingsForUserIds(
+    userIds: string[],
+  ): Promise<UserRanking[]> {
+    try {
+      if (!userIds || userIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("challenges")
+        .select("userId, startedAt, status")
+        .eq("status", "active")
+        .in("userId", userIds);
+      if (error) throw error;
+      type Row = { userId: string; startedAt: string; status: string };
+      const rows = (data || []) as Row[];
+      if (rows.length === 0) return [];
+
+      const now = Date.now();
+      const latestActiveByUser = new Map<string, Date | undefined>();
+      rows.forEach((r) => {
+        const userId = r.userId as string | undefined;
+        const status = r.status as string | undefined;
+        if (!userId || status !== "active") return;
+        const startedAt = toDate(r.startedAt);
+        const prev = latestActiveByUser.get(userId);
+        if (!prev || (prev?.getTime?.() || 0) < (startedAt?.getTime?.() || 0)) {
+          latestActiveByUser.set(userId, startedAt);
+        }
+      });
+
+      const rankings: UserRanking[] = [];
+      for (const [uid, active] of latestActiveByUser.entries()) {
+        const start = active?.getTime?.() || 0;
+        if (!start) continue;
+        const duration = Math.max(0, Math.floor((now - start) / 1000));
+        rankings.push({
+          id: uid,
+          name: "ユーザー",
+          avatar: undefined,
+          averageTime: duration,
+          totalChallenges: 1,
+          completedChallenges: 0,
+          successRate: 0,
+          rank: 0,
+        });
+      }
+      rankings.sort((a, b) => b.averageTime - a.averageTime);
+      rankings.forEach((r, i) => (r.rank = i + 1));
+      return rankings;
+    } catch (error) {
+      console.error("RankingService.getUserRankingsForUserIds error:", error);
+      return [];
+    }
+  }
 }

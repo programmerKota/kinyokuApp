@@ -21,6 +21,8 @@ import type { UserRanking } from "@core/services/rankingService";
 import { UserStatsService } from "@core/services/userStatsService";
 import RankingListItem from "@features/ranking/components/RankingListItem";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import { useFollowingIds } from "@shared/state/followStore";
+import { uiStyles } from "@shared/ui/styles";
 
 const RankingScreen: React.FC = () => {
   const { user } = useAuth();
@@ -32,26 +34,61 @@ const RankingScreen: React.FC = () => {
   const [cursor, setCursor] = useState<{ startedAt: string; userId: string } | undefined>(undefined);
   const [hasMore, setHasMore] = useState(true);
   const [avgDaysMap, setAvgDaysMap] = useState<Map<string, number>>(new Map());
+  const [activeTab, setActiveTab] = useState<"all" | "following">("all");
+  const [showTiers, setShowTiers] = useState(false);
+  const followingIds = useFollowingIds();
 
   useEffect(() => {
     void refreshRankings();
   }, []);
+  useEffect(() => {
+    void refreshRankings();
+  }, [activeTab]);
+  useEffect(() => {
+    if (activeTab === "following") {
+      void refreshRankings();
+    }
+  }, [followingIds, user?.uid, activeTab]);
 
   const PAGE_SIZE = 50;
 
   const refreshRankings = async () => {
     try {
-      const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE);
-      items.forEach((r, i) => (r.rank = i + 1));
-      setRankings(items);
-      setCursor(nextCursor);
-      setHasMore(Boolean(nextCursor));
-      const next = new Map<string, number>();
-      items.forEach((r) => {
-        const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
-        next.set(r.id, Math.max(0, days));
-      });
-      setAvgDaysMap(next);
+      if (activeTab === "all") {
+        const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE);
+        items.forEach((r, i) => (r.rank = i + 1));
+        setRankings(items);
+        setCursor(nextCursor);
+        setHasMore(Boolean(nextCursor));
+        const next = new Map<string, number>();
+        items.forEach((r) => {
+          const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
+          next.set(r.id, Math.max(0, days));
+        });
+        setAvgDaysMap(next);
+      } else {
+        const idsSet = new Set<string>(Array.from(followingIds));
+        if (user?.uid) idsSet.add(user.uid);
+        const ids = Array.from(idsSet);
+        if (ids.length === 0) {
+          setRankings([]);
+          setCursor(undefined);
+          setHasMore(false);
+          setAvgDaysMap(new Map());
+        } else {
+          const list = await RankingService.getUserRankingsForUserIds(ids);
+          list.forEach((r, i) => (r.rank = i + 1));
+          setRankings(list);
+          setCursor(undefined);
+          setHasMore(false);
+          const next = new Map<string, number>();
+          list.forEach((r) => {
+            const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
+            next.set(r.id, Math.max(0, days));
+          });
+          setAvgDaysMap(next);
+        }
+      }
     } catch {
       setRankings([]);
       setCursor(undefined);
@@ -62,6 +99,7 @@ const RankingScreen: React.FC = () => {
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
+    if (activeTab !== "all") return;
     setLoadingMore(true);
     try {
       const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE, cursor);
@@ -172,6 +210,26 @@ const RankingScreen: React.FC = () => {
         <View style={styles.placeholder} />
       </View>
 
+      {/* タブ切り替え */}
+      <View style={uiStyles.tabBar}>
+        <TouchableOpacity
+          style={[uiStyles.tab, activeTab === "all" && uiStyles.tabActive]}
+          onPress={() => {
+            if (activeTab !== "all") setActiveTab("all");
+          }}
+        >
+          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>全体</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[uiStyles.tab, activeTab === "following" && uiStyles.tabActive]}
+          onPress={() => {
+            if (activeTab !== "following") setActiveTab("following");
+          }}
+        >
+          <Text style={[uiStyles.tabText, activeTab === "following" && uiStyles.tabTextActive]}>フォロー</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         style={styles.content}
         data={rankings}
@@ -206,10 +264,19 @@ const RankingScreen: React.FC = () => {
             <View style={styles.descriptionHeader}>
               <Ionicons name="trophy" size={24} color={"#F59E0B"} />
               <Text style={styles.descriptionTitle}>ランキング</Text>
+              <TouchableOpacity
+                onPress={() => setShowTiers((v) => !v)}
+                style={{ marginLeft: 'auto' }}
+              >
+                <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+                  {showTiers ? '説明を非表示' : '説明を表示'}
+                </Text>
+              </TouchableOpacity>
             </View>
             <Text style={styles.descriptionText}>
               現在の継続時間でランキングしています。
             </Text>
+            {showTiers && (
             <View style={styles.tierCard}>
               <Text style={styles.tierTitle}>階級について</Text>
               <Text style={styles.tierText}>
@@ -342,6 +409,7 @@ const RankingScreen: React.FC = () => {
                 階級は「現在の継続日数（挑戦中の記録）」から算出されます。停止・失敗で継続日数はリセットされますが、次の挑戦で少しずつ押し上げましょう。
               </Text>
             </View>
+            )}
             {(() => {
               const currentUserRank = getCurrentUserRank();
               if (currentUserRank) {
@@ -365,7 +433,7 @@ const RankingScreen: React.FC = () => {
             <Ionicons name="trophy-outline" size={64} color={"#9CA3AF"} />
             <Text style={styles.emptyTitle}>ランキングデータがありません</Text>
             <Text style={styles.emptyText}>
-              チャレンジを完了したユーザーがいるとランキングが表示されます
+              {activeTab === 'following' ? 'フォローしているユーザーに対象者がいません' : 'チャレンジを完了したユーザーがいるとランキングが表示されます'}
             </Text>
           </View>
         }
