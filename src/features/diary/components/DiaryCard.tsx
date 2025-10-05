@@ -35,7 +35,7 @@ const DiaryCard: React.FC<Props> = ({
             userAvatar={authorAvatar}
             averageDays={averageDays}
             onPress={() => onAuthorPress?.(authorId, authorName)}
-            size="medium"
+            size="small"
             showRank={false}
             showTitle={true}
             style={styles.userProfileContainer}
@@ -43,8 +43,8 @@ const DiaryCard: React.FC<Props> = ({
           <RelativeTime value={createdAt} style={uiStyles.timestampRight} />
         </View>
 
-        <View style={[styles.content, { marginLeft: getBlockLeftMargin("medium") }]}> 
-          <Text style={[styles.text, getContentStyle("medium")]}> {content} </Text>
+        <View style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}> 
+          <Text style={[styles.text, getContentStyle("small")]}> {content} </Text>
         </View>
       </View>
     </View>
@@ -68,4 +68,3 @@ export default React.memo(DiaryCard, (a, b) =>
   String(a.createdAt) === String(b.createdAt) &&
   a.averageDays === b.averageDays,
 );
-

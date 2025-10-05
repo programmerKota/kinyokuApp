@@ -113,7 +113,7 @@ const BlockedUsersScreen: React.FC = () => {
               userName={item.displayName}
               userAvatar={item.photoURL}
               averageDays={0}
-              size="medium"
+              size="small"
               showRank={false}
               showTitle={false}
             />

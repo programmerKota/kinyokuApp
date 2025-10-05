@@ -206,7 +206,7 @@ const rowStyles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   replyButtonSpacer: {
-    width: spacing.lg + CONTENT_LEFT_MARGIN.medium,
+    width: spacing.lg + CONTENT_LEFT_MARGIN.small,
   },
   replyButton: {
     flexDirection: "row",

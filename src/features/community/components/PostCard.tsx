@@ -55,7 +55,7 @@ const PostCard: React.FC<PostCardProps> = ({
             userAvatar={displayAvatar}
             averageDays={authorAverageDays}
             onPress={handleProfilePress}
-            size="medium"
+            size="small"
             showRank={false}
             showTitle={true}
             style={styles.userProfileContainer}
@@ -67,9 +67,9 @@ const PostCard: React.FC<PostCardProps> = ({
         </View>
 
         <View
-          style={[styles.content, { marginLeft: getBlockLeftMargin("medium") }]}
+          style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}
         >
-          <Text style={[styles.text, getContentStyle("medium")]}>
+          <Text style={[styles.text, getContentStyle("small")]}> 
             {post.content}
           </Text>
           {post.imageUrl && (
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: spacing.xs,
-    marginLeft: getBlockLeftMargin("medium"),
+    marginLeft: getBlockLeftMargin("small"),
   },
   actionButton: {
     flexDirection: "row",

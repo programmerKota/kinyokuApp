@@ -304,7 +304,7 @@ const UserDetailScreen: React.FC = () => {
             userName={live?.displayName ?? name}
             userAvatar={live?.photoURL ?? avatar}
             averageDays={averageDays}
-            size="medium"
+            size="small"
             showRank={false}
             showTitle={true}
             style={styles.userProfileContainer}

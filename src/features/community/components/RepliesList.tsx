@@ -112,11 +112,11 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
     // Align left start with PostCard content start.
-    // PostCard content start = postContent.paddingLeft (spacing.lg) + CONTENT_LEFT_MARGIN.medium.
+    // PostCard content start = postContent.paddingLeft (spacing.lg) + CONTENT_LEFT_MARGIN.small.
     // ReplyCard has paddingHorizontal: spacing.lg, so make
-    //   RepliesList.paddingLeft + spacing.lg = spacing.lg + CONTENT_LEFT_MARGIN.medium
-    // => RepliesList.paddingLeft = CONTENT_LEFT_MARGIN.medium
-    paddingLeft: CONTENT_LEFT_MARGIN.medium,
+    //   RepliesList.paddingLeft + spacing.lg = spacing.lg + CONTENT_LEFT_MARGIN.small
+    // => RepliesList.paddingLeft = CONTENT_LEFT_MARGIN.small
+    paddingLeft: CONTENT_LEFT_MARGIN.small,
     paddingBottom: spacing.sm,
   },
 });
