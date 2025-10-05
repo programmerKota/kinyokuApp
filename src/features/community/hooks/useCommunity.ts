@@ -79,10 +79,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   });
 
   // Per-tab cache to avoid clearing list when switching tabs
+  // following cache also tracks the key of followed user IDs to invalidate when it changes
   const cacheRef = useRef<{
     all?: { posts: CommunityPost[]; cursor?: unknown; hasMore: boolean };
     my?: { posts: CommunityPost[] };
-    following?: { posts: CommunityPost[] };
+    following?: { posts: CommunityPost[]; idsKey: string };
   }>({});
 
   const createPostRequestSeqRef = useRef(0); // Guard to drop stale refresh responses during rapid posts
@@ -286,39 +287,35 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setPosts([]);
           }
           break;
-        case "following":
-          // キャッシュがあれば即座に表示
-          if (cacheRef.current.following?.posts?.length) {
+                case "following": {
+          const idsKey = Array.from(followingUsers).sort().sort().join(",");
+          if (cacheRef.current.following?.posts?.length && cacheRef.current.following.idsKey === idsKey) {
             setPosts(cacheRef.current.following.posts);
             setCursor(undefined);
             setHasMore(false);
             return;
           }
-          if (initRunRef.current.following) return;
-          // まだキャッシュがない場合は初回読み込みのため不要クリア
           setPosts([]);
-          setCursor(undefined);
-          setHasMore(true);
           setCursor(undefined);
           setHasMore(false);
           if (user && followingUsers.size > 0) {
             setRefreshing(true);
             let first = true;
             unsubscribe = CommunityService.subscribeToFollowingPosts(
-              Array.from(followingUsers),
+              Array.from(followingUsers).sort().sort(),
               (list: CommunityPost[]) => {
                 void (async () => {
                   const normalized = await normalizePosts(list);
                   setPosts((prev) => mergePostsById(prev, normalized));
                   void initializeLikedPosts(normalized);
                   void initializeUserAverageDays(normalized);
-                  cacheRef.current.following = { posts: normalized };
+                  cacheRef.current.following = { posts: normalized, idsKey };
                   if (first) {
                     setRefreshing(false);
                     first = false;
                   }
                 })();
-              },
+              }
             );
             initRunRef.current.following = true;
           } else {
@@ -326,6 +323,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setRefreshing(false);
           }
           break;
+        }
       }
     };
     run();
@@ -426,9 +424,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
           setPosts([]);
           setHasMore(false);
         } else {
+          const idsKey = Array.from(followingUsers).sort().join(",");
           await new Promise<void>((resolve) => {
             const unsub = CommunityService.subscribeToFollowingPosts(
-              Array.from(followingUsers),
+              Array.from(followingUsers).sort(),
               async (list) => {
                 const normalized = await normalizePosts(
                   list as CommunityPost[],
@@ -438,7 +437,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                 setHasMore(false);
                 void initializeLikedPosts(normalized);
                 void initializeUserAverageDays(normalized);
-                cacheRef.current.following = { posts: normalized };
+                cacheRef.current.following = { posts: normalized, idsKey };
                 try {
                   unsub();
                 } catch {}
@@ -656,3 +655,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
+
+
+
+
+
+
