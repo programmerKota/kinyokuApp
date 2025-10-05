@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   View,
   TextInput,
@@ -29,7 +29,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder="返信を入力..."
+        placeholder={"\u8fd4\u4fe1\u3092\u5165\u529b..."}
         placeholderTextColor={colors.textSecondary}
         value={value}
         onChangeText={onChangeText}
@@ -51,7 +51,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
           <Text
             style={[styles.submitText, disabled && styles.submitTextDisabled]}
           >
-            返信
+            送信
           </Text>
         </TouchableOpacity>
       </View>
@@ -115,3 +115,5 @@ const styles = StyleSheet.create({
 });
 
 export default ReplyInputBar;
+
+

@@ -368,6 +368,10 @@ export class CommunityService {
           profileUnsub();
         } catch {}
       }
+      // Emit immediately with current post snapshot so UI doesn't wait for profile fetches
+      try {
+        callback([...current]);
+      } catch {}
       const ids = current.map((p) => p.authorId);
       profileUnsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
         const merged = current.map((p) => ({
@@ -475,6 +479,10 @@ export class CommunityService {
           profileUnsub();
         } catch {}
       }
+      // Emit immediately so UI doesn't block on profiles fetch
+      try {
+        callback([...current]);
+      } catch {}
       const ids = current.map((p) => p.authorId);
       profileUnsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
         const merged = current.map((p) => ({

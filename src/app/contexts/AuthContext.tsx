@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   createContext,
   useContext,
   useState,
@@ -80,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       let uid = localProfile.id;
       let displayName = localProfile.name;
       let avatarUrl = localProfile.avatar;
+      let supaSessionUid: string | undefined;
 
       // Prefer Supabase auth/session identity when available
       try {
@@ -87,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const suid = data?.session?.user?.id as string | undefined;
         if (suid) {
           uid = suid;
+          supaSessionUid = suid;
           // Pull latest profile from Supabase if present
           const profResult = await withRetry(
             async () =>
@@ -118,6 +120,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         updatedAt: now,
       } as unknown as User;
       setUser(userData);
+
+      // Best-effort: reflect profile to posts/comments right after login so UI updates without manual edit
+      if (supaSessionUid) {
+        void Promise.allSettled([
+          CommunityService.reflectUserProfile(supaSessionUid, displayName, avatarUrl || undefined),
+          TournamentService.reflectUserProfile(supaSessionUid, displayName, avatarUrl || undefined),
+        ]);
+      }
     } catch (error) {
       console.error("AuthContext: load failed", error);
       const fallbackUser: User = {
@@ -137,6 +147,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     void loadUser();
+  }, [loadUser]);
+
+  // Keep user state in sync with Supabase auth events (sign-in/out, token refresh)
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      void loadUser();
+    });
+    return () => {
+      try {
+        data?.subscription?.unsubscribe();
+      } catch {}
+    };
   }, [loadUser]);
 
   useEffect(() => {
@@ -212,3 +234,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

@@ -82,7 +82,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   // following cache also tracks the key of followed user IDs to invalidate when it changes
   const cacheRef = useRef<{
     all?: { posts: CommunityPost[]; cursor?: unknown; hasMore: boolean };
-    my?: { posts: CommunityPost[] };
+    my?: { posts: CommunityPost[]; uidKey: string };
     following?: { posts: CommunityPost[]; idsKey: string };
   }>({});
 
@@ -253,16 +253,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             }
           })();
           break;
-        case "my":
-          // キャッシュがあれば即座に表示
-          if (cacheRef.current.my?.posts?.length) {
-            setPosts(cacheRef.current.my.posts);
-            setCursor(undefined);
-            setHasMore(false);
-            return;
-          }
-          if (initRunRef.current.my) return;
-          // まだキャッシュがない場合は初回読み込みのため不要クリア
+                case "my":
+          // Always fetch fresh on tab focus
           setPosts([]);
           setCursor(undefined);
           setHasMore(false);
@@ -271,14 +263,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             (async () => {
               try {
                 const list = await CommunityService.getUserPosts(user.uid);
-                const normalized = await normalizePosts(
-                  list as CommunityPost[],
-                );
+                const normalized = await normalizePosts(list as CommunityPost[]);
                 setPosts(normalized);
                 void initializeLikedPosts(normalized);
                 void initializeUserAverageDays(normalized);
-                cacheRef.current.my = { posts: normalized };
-                initRunRef.current.my = true;
+                cacheRef.current.my = { posts: normalized, uidKey: user.uid };
               } finally {
                 setRefreshing(false);
               }
@@ -287,44 +276,36 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setPosts([]);
           }
           break;
-                case "following": {
-          const idsKey = Array.from(followingUsers).sort().sort().join(",");
-          if (cacheRef.current.following?.posts?.length && cacheRef.current.following.idsKey === idsKey) {
-            setPosts(cacheRef.current.following.posts);
-            setCursor(undefined);
-            setHasMore(false);
-            return;
-          }
+                        case "following":
+          // Always fetch fresh on tab focus (one-shot subscribe then unsubscribe)
           setPosts([]);
           setCursor(undefined);
           setHasMore(false);
           if (user && followingUsers.size > 0) {
             setRefreshing(true);
-            let first = true;
-            unsubscribe = CommunityService.subscribeToFollowingPosts(
-              Array.from(followingUsers).sort().sort(),
+            const idsKey = Array.from(followingUsers).sort().join(",");
+            let unsubLocal: undefined | (() => void);
+            unsubLocal = CommunityService.subscribeToFollowingPosts(
+              Array.from(followingUsers).sort(),
               (list: CommunityPost[]) => {
-                void (async () => {
+                (async () => {
                   const normalized = await normalizePosts(list);
-                  setPosts((prev) => mergePostsById(prev, normalized));
+                  setPosts(normalized);
                   void initializeLikedPosts(normalized);
                   void initializeUserAverageDays(normalized);
                   cacheRef.current.following = { posts: normalized, idsKey };
-                  if (first) {
-                    setRefreshing(false);
-                    first = false;
-                  }
+                  setRefreshing(false);
+                  try { if (unsubLocal) unsubLocal(); } catch {}
+                  unsubLocal = undefined;
                 })();
-              }
+              },
             );
-            initRunRef.current.following = true;
           } else {
             setPosts([]);
             setRefreshing(false);
           }
           break;
         }
-      }
     };
     run();
     return () => {
@@ -655,6 +636,8 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
+
+
 
 
 
