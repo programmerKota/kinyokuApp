@@ -66,7 +66,7 @@ const PostCard: React.FC<PostCardProps> = ({
         <View
           style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}
         >
-          <Text style={[styles.text, getContentStyle("small")]}> 
+          <Text style={[styles.text, getContentStyle("small")]}>
             {post.content}
           </Text>
           {post.imageUrl && (
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 0,
+    marginBottom: spacing.sm,
     width: "100%",
     justifyContent: "space-between",
   },

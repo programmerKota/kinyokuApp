@@ -43,7 +43,7 @@ const DiaryCard: React.FC<Props> = ({
           <RelativeTime value={createdAt} style={styles.timestampRight} />
         </View>
 
-        <View style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}> 
+        <View style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}>
           <Text style={[styles.text, getContentStyle("small")]}> {content} </Text>
         </View>
       </View>
@@ -54,7 +54,7 @@ const DiaryCard: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: { backgroundColor: colors.white, marginBottom: 0 },
   inner: { padding: spacing.lg },
-  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: 0, width: "100%", justifyContent: "space-between" },
+  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.sm, width: "100%", justifyContent: "space-between" },
   timestampRight: { marginLeft: spacing.md, color: colors.textSecondary, fontSize: 14, flexShrink: 0 },
   userProfileContainer: { flex: 1 },
   content: { marginBottom: spacing.xs },
