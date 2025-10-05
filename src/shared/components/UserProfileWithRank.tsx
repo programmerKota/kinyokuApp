@@ -19,7 +19,8 @@ import AvatarImage from "./AvatarImage";
 interface UserProfileWithRankProps {
   userName: string;
   userAvatar?: string;
-  averageDays: number;
+  averageDays: number; // 日数（肩書計算用）
+  averageSeconds?: number; // 秒（時間表示用・任意）
   onPress?: () => void;
   showRank?: boolean;
   showAverageTime?: boolean;
@@ -33,6 +34,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   userName,
   userAvatar,
   averageDays,
+  averageSeconds,
   onPress,
   showRank = true,
   showAverageTime = false,
@@ -131,10 +133,13 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
           </Text>
         )}
         {showAverageTime &&
-          averageDays > 0 &&
+          (averageSeconds ?? averageDays * 24 * 60 * 60) > 0 &&
           (() => {
             // StatsService.formatDuration expects seconds
-            const averageTimeSeconds = averageDays * 24 * 60 * 60;
+            const averageTimeSeconds = Math.max(
+              0,
+              Math.floor(averageSeconds ?? averageDays * 24 * 60 * 60),
+            );
             const formatted = StatsService.formatDuration(averageTimeSeconds);
             const { days, time } =
               StatsService.splitFormattedDuration(formatted);
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
   userName: {
     fontWeight: "600",
     color: colors.textPrimary,
-    marginRight: spacing.sm,
+    marginRight: spacing.xs,
     flexShrink: 1,
     lineHeight: 16,
   },
@@ -217,6 +222,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     alignSelf: "flex-start",
+    marginLeft: 0,
   },
   rankText: {
     fontWeight: "500",

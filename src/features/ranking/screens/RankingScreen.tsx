@@ -131,6 +131,7 @@ const RankingScreen: React.FC = () => {
           userName={displayName}
           userAvatar={displayAvatar}
           averageDays={avgDaysMap.get(item.id) ?? 0}
+          averageSeconds={item.averageTime || 0}
           onPress={() => handleUserPress(item.id, displayName, displayAvatar)}
           size="small"
           showRank={false}
