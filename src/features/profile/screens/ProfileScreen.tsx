@@ -71,6 +71,7 @@ const ProfileScreen: React.FC = () => {
   const [state, actions] = useProfileScreen();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { isEditing, editName, editAvatar, loading, showAvatarModal } = state;
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const {
     setShowAvatarModal,
     handleStartEdit,
@@ -187,9 +188,7 @@ const ProfileScreen: React.FC = () => {
                   icon="log-out-outline"
                   title="ログアウト"
                   description="サインアウトしてログイン画面に戻ります"
-                  onPress={async () => {
-                    try { await supabase.auth.signOut(); } catch {}
-                  }}
+                  onPress={() => { setShowLogoutConfirm(true); }}
                 />
               </Section>
               <Section title="プライバシー">
@@ -254,6 +253,30 @@ const ProfileScreen: React.FC = () => {
                 style={styles.editButton}
               />
             ) : null}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ログアウト確認モーダル */}
+      <Modal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title="ログアウトしますか？"
+      >
+        <View>
+          <Text style={{ color: colors.textSecondary, marginBottom: spacing.lg }}>
+            アカウントからサインアウトします。よろしいですか？
+          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+            <Button title="キャンセル" onPress={() => setShowLogoutConfirm(false)} />
+            <Button
+              title="ログアウト"
+              variant="danger"
+              onPress={async () => {
+                try { await supabase.auth.signOut(); } catch {}
+                setShowLogoutConfirm(false);
+              }}
+            />
           </View>
         </View>
       </Modal>
