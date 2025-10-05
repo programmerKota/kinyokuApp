@@ -1,49 +1,107 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
+import Modal from "@shared/components/Modal";
+import Button from "@shared/components/Button";
 import { colors, spacing, typography } from "@shared/theme";
 
-import Button from "./Button";
-import Modal from "./Modal";
+type Tone = "default" | "danger" | "warning" | "info";
 
 interface ConfirmDialogProps {
   visible: boolean;
+  onClose?: () => void;
   title: string;
+  description?: string;
   message?: string;
+  primaryLabel?: string;
   confirmText?: string;
+  secondaryLabel?: string;
   cancelText?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onPrimary?: () => void | Promise<void>;
+  onConfirm?: () => void | Promise<void>;
+  onSecondary?: () => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
   loading?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  tone?: Tone;
 }
+
+const toneColor = (tone: Tone) => {
+  switch (tone) {
+    case "danger":
+      return { fg: colors.error, bg: colors.errorLight };
+    case "warning":
+      return { fg: colors.warning, bg: colors.warningLight };
+    case "info":
+      return { fg: colors.info, bg: colors.infoLight };
+    default:
+      return { fg: colors.primary, bg: colors.primaryLight };
+  }
+};
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   visible,
+  onClose,
   title,
+  description,
   message,
-  confirmText = "OK",
-  cancelText = "キャンセル",
+  primaryLabel,
+  confirmText,
+  secondaryLabel = "キャンセル",
+  cancelText,
+  onPrimary,
   onConfirm,
+  onSecondary,
   onCancel,
-  loading = false,
+  loading,
+  icon = "alert-circle-outline",
+  tone = "default",
 }) => {
+  const close = onClose || (() => {});
+  const c = toneColor(tone);
+  const desc = description || message;
+  const primaryText = primaryLabel || confirmText || "OK";
+  const secondaryText = secondaryLabel || cancelText || "キャンセル";
+  const handlePrimary = async () => {
+    try {
+      if (onPrimary) await onPrimary();
+      else if (onConfirm) await onConfirm();
+    } finally {
+      close();
+    }
+  };
+  const handleSecondary = async () => {
+    try {
+      if (onSecondary) await onSecondary();
+      else if (onCancel) await onCancel();
+    } finally {
+      close();
+    }
+  };
+
   return (
-    <Modal visible={visible} onClose={onCancel} title={title}>
-      <View style={styles.body}>
-        {message ? <Text style={styles.message}>{message}</Text> : null}
+    <Modal visible={visible} onClose={close} hideHeader>
+      <View style={styles.container}>
+        <View style={[styles.iconWrap, { backgroundColor: c.bg }]}> 
+          <Ionicons name={icon} size={28} color={c.fg} />
+        </View>
+        <Text style={styles.title}>{title}</Text>
+        {desc ? (
+          <Text style={styles.desc}>{desc}</Text>
+        ) : null}
         <View style={styles.actions}>
           <Button
-            title={cancelText}
+            title={secondaryText}
             variant="secondary"
-            onPress={onCancel}
-            style={styles.btn}
+            onPress={() => { void handleSecondary(); }}
+            style={styles.secondaryBtn}
           />
           <Button
-            title={confirmText}
-            variant="danger"
-            onPress={onConfirm}
-            loading={loading}
-            style={styles.btn}
+            title={primaryText}
+            variant={tone === "danger" ? "danger" : "primary"}
+            onPress={() => { void handlePrimary(); }}
+            loading={!!loading}
           />
         </View>
       </View>
@@ -52,22 +110,39 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 };
 
 const styles = StyleSheet.create({
-  body: {
-    paddingTop: spacing.sm,
+  container: {
+    alignItems: "center",
+    paddingTop: spacing.xl,
   },
-  message: {
-    fontSize: typography.fontSize.base,
+  iconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    marginTop: spacing.lg,
+    fontSize: typography.fontSize.lg,
+    fontWeight: "700",
+    color: colors.gray800,
+    textAlign: "center",
+  },
+  desc: {
+    marginTop: spacing.sm,
+    fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
-    lineHeight: typography.fontSize.base * 1.5,
-    marginBottom: spacing["2xl"],
+    textAlign: "center",
   },
   actions: {
+    marginTop: spacing["2xl"],
+    width: "100%",
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: spacing.md,
+    gap: 12,
   },
-  btn: {
-    minWidth: 112,
+  secondaryBtn: {
+    backgroundColor: "transparent",
   },
 });
 

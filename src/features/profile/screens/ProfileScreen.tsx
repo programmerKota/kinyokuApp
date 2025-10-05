@@ -20,6 +20,7 @@ import useProfileScreen from "@features/profile/hooks/useProfileScreen";
 import Button from "@shared/components/Button";
 import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
+import ConfirmDialog from "@shared/components/ConfirmDialog";
 import { colors, spacing, typography, shadows } from "@shared/theme";
 
 const ActionCard = ({
@@ -257,29 +258,21 @@ const ProfileScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* ログアウト確認モーダル */}
-      <Modal
+      {/* ログアウト確認モーダル（Figmaスタイル） */}
+      <ConfirmDialog
         visible={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         title="ログアウトしますか？"
-      >
-        <View>
-          <Text style={{ color: colors.textSecondary, marginBottom: spacing.lg }}>
-            アカウントからサインアウトします。よろしいですか？
-          </Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
-            <Button title="キャンセル" onPress={() => setShowLogoutConfirm(false)} />
-            <Button
-              title="ログアウト"
-              variant="danger"
-              onPress={async () => {
-                try { await supabase.auth.signOut(); } catch {}
-                setShowLogoutConfirm(false);
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
+        description="アカウントからサインアウトします。よろしいですか？"
+        icon="log-out-outline"
+        tone="danger"
+        secondaryLabel="キャンセル"
+        primaryLabel="ログアウト"
+        onSecondary={() => setShowLogoutConfirm(false)}
+        onPrimary={async () => {
+          try { await supabase.auth.signOut(); } catch {}
+        }}
+      />
     </SafeAreaView>
   );
 };

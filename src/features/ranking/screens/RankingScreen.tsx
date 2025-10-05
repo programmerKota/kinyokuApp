@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,8 +19,7 @@ import type { TournamentStackParamList } from "@app/navigation/TournamentStackNa
 import { RankingService } from "@core/services/rankingService";
 import type { UserRanking } from "@core/services/rankingService";
 import { UserStatsService } from "@core/services/userStatsService";
-import UserProfileWithRank from "@shared/components/UserProfileWithRank";
-import { useProfile } from "@shared/hooks/useProfile";
+import RankingListItem from "@features/ranking/components/RankingListItem";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
 const RankingScreen: React.FC = () => {
@@ -137,51 +136,23 @@ const RankingScreen: React.FC = () => {
     navigateToUserDetail(navigation, userId, userName, userAvatar);
   };
 
-  const RankingListItem: React.FC<{ item: UserRanking }> = ({ item }) => {
-    const isCurrentUser = user?.uid === item.id;
-    const live = useProfile(item.id);
-    const displayName = live?.displayName ?? item.name;
-    const displayAvatar = live?.photoURL ?? item.avatar;
+  const onUserPress = useCallback(
+    (userId: string, userName: string, userAvatar?: string) => {
+      navigateToUserDetail(navigation, userId, userName, userAvatar);
+    },
+    [navigation],
+  );
 
-    return (
-      <View
-        style={[styles.rankingItem, isCurrentUser && styles.currentUserItem]}
-      >
-        {isCurrentUser && (
-          <View style={styles.youBadgeContainer}>
-            <Text style={styles.youBadgeText}>You</Text>
-          </View>
-        )}
-        <View style={styles.rankContainer}>
-          <Ionicons
-            name={getRankIcon(item.rank) as any}
-            size={24}
-            color={getRankColor(item.rank)}
-          />
-          <Text style={[styles.rankNumber, { color: getRankColor(item.rank) }]}>
-            {item.rank}
-          </Text>
-        </View>
-
-        <UserProfileWithRank
-          userName={displayName}
-          userAvatar={displayAvatar}
-          averageDays={avgDaysMap.get(item.id) ?? 0}
-          averageSeconds={item.averageTime || 0}
-          onPress={() => handleUserPress(item.id, displayName, displayAvatar)}
-          size="small"
-          showRank={false}
-          showTitle={true}
-          showAverageTime={true}
-          style={styles.userProfileContainer}
-          textStyle={isCurrentUser ? styles.currentUserName : styles.userName}
-        />
-      </View>
-    );
-  };
-
-  const renderRankingItem = ({ item }: { item: UserRanking }) => (
-    <RankingListItem item={item} />
+  const renderRankingItem = useCallback(
+    ({ item }: { item: UserRanking }) => (
+      <RankingListItem
+        item={item}
+        avgDays={avgDaysMap.get(item.id) ?? 0}
+        currentUserId={user?.uid}
+        onPress={onUserPress}
+      />
+    ),
+    [avgDaysMap, user?.uid, onUserPress],
   );
 
   return (
