@@ -29,33 +29,69 @@ const RankingScreen: React.FC = () => {
     useNavigation<StackNavigationProp<TournamentStackParamList>>();
   const [rankings, setRankings] = useState<UserRanking[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState<{ startedAt: string; userId: string } | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(true);
   const [avgDaysMap, setAvgDaysMap] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
-    void fetchRankings();
+    void refreshRankings();
   }, []);
 
-  const fetchRankings = async () => {
+  const PAGE_SIZE = 50;
+
+  const refreshRankings = async () => {
     try {
-      // 現在の挑戦中データに基づくランキングを毎回取得
-      const rankingsData: UserRanking[] =
-        await RankingService.getUserRankings();
-      setRankings(rankingsData);
-      // 平均日数（肩書き用）はactive startedAtからの経過で即時計算
+      const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE);
+      items.forEach((r, i) => (r.rank = i + 1));
+      setRankings(items);
+      setCursor(nextCursor);
+      setHasMore(Boolean(nextCursor));
       const next = new Map<string, number>();
-      rankingsData.forEach((r) => {
+      items.forEach((r) => {
         const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
         next.set(r.id, Math.max(0, days));
       });
       setAvgDaysMap(next);
     } catch {
-      // noop
+      setRankings([]);
+      setCursor(undefined);
+      setHasMore(false);
+      setAvgDaysMap(new Map());
+    }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE, cursor);
+      const offset = rankings.length;
+      items.forEach((r, i) => (r.rank = offset + i + 1));
+      const mergedIds = new Set(rankings.map((r) => r.id));
+      const dedup = [...rankings];
+      for (const r of items) {
+        if (!mergedIds.has(r.id)) dedup.push(r);
+      }
+      setRankings(dedup);
+      setCursor(nextCursor);
+      setHasMore(Boolean(nextCursor));
+      setAvgDaysMap((prev) => {
+        const next = new Map(prev);
+        items.forEach((r) => {
+          const days = Math.floor((r.averageTime || 0) / (24 * 60 * 60));
+          next.set(r.id, Math.max(0, days));
+        });
+        return next;
+      });
+    } finally {
+      setLoadingMore(false);
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchRankings();
+    await refreshRankings();
     setRefreshing(false);
   };
 
@@ -170,6 +206,12 @@ const RankingScreen: React.FC = () => {
         data={rankings}
         renderItem={renderRankingItem}
         keyExtractor={(item) => item.id}
+        onEndReachedThreshold={0.5}
+        onEndReached={() => { void loadMore(); }}
+        removeClippedSubviews
+        windowSize={5}
+        maxToRenderPerBatch={24}
+        initialNumToRender={12}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -180,6 +222,13 @@ const RankingScreen: React.FC = () => {
             colors={["#2563EB"]}
             tintColor={"#2563EB"}
           />
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ padding: 16, alignItems: "center" }}>
+              <Text style={{ color: "#6B7280" }}>読み込み中...</Text>
+            </View>
+          ) : null
         }
         ListHeaderComponent={
           <View style={styles.descriptionCard}>

@@ -18,6 +18,67 @@ export interface UserRanking {
 
 export class RankingService {
   /**
+   * ページング取得: 現在アクティブな挑戦を startedAt 昇順（古い=継続長い）で取得。
+   * nextCursor は { startedAt, userId }。ページング時は startedAt が前ページ末尾より新しいものを取得します。
+   */
+  static async getUserRankingsPage(
+    pageSize: number,
+    after?: { startedAt?: string; userId?: string },
+  ): Promise<{
+    items: UserRanking[];
+    nextCursor?: { startedAt: string; userId: string };
+  }> {
+    try {
+      // 進行中の挑戦のみ対象
+      let query = supabase
+        .from("challenges")
+        .select("userId, startedAt, status")
+        .eq("status", "active")
+        .order("startedAt", { ascending: true })
+        .limit(pageSize);
+
+      if (after?.startedAt) {
+        // 前ページの末尾より新しい startedAt を続きとして取得
+        query = query.gt("startedAt", after.startedAt);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      type Row = { userId: string; startedAt: string; status: string };
+      const rows = (data || []) as Row[];
+
+      const now = Date.now();
+      const items: UserRanking[] = rows
+        .filter((r) => r.userId && r.startedAt)
+        .map((r) => {
+          const start = new Date(r.startedAt).getTime();
+          const duration = Math.max(0, Math.floor((now - start) / 1000));
+          return {
+            id: r.userId,
+            name: "ユーザー",
+            avatar: undefined,
+            averageTime: duration,
+            totalChallenges: 1,
+            completedChallenges: 0,
+            successRate: 0,
+            rank: 0, // 画面側で通し順位を付与
+          } as UserRanking;
+        });
+
+      const nextCursor = rows.length
+        ? {
+            startedAt: rows[rows.length - 1].startedAt,
+            userId: rows[rows.length - 1].userId,
+          }
+        : undefined;
+
+      return { items, nextCursor };
+    } catch (error) {
+      console.error("RankingService.getUserRankingsPage error:", error);
+      return { items: [], nextCursor: undefined };
+    }
+  }
+  /**
    * ユーザーのランキングを計算
    */
   static async getUserRankings(): Promise<UserRanking[]> {
