@@ -97,10 +97,17 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
-        base64: false,
+        base64: true,
       });
       if (!result.canceled && result.assets[0]) {
-        setEditAvatar(result.assets[0].uri);
+        const asset = result.assets[0] as any;
+        const mime = asset.mimeType || 'image/jpeg';
+        if (asset.base64) {
+          // Use data URL to ensure iOS(ph://) is handled without relying on fetch(file://)
+          setEditAvatar(`data:${mime};base64,${asset.base64}`);
+        } else {
+          setEditAvatar(asset.uri);
+        }
       }
     } catch (error) {
       console.error("画像選択に失敗しました:", error);
