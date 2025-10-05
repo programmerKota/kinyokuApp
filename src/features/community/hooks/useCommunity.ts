@@ -276,17 +276,17 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setPosts([]);
           }
           break;
-                        case "following":
-          // Always fetch fresh on tab focus (one-shot subscribe then unsubscribe)
+        case "following":
+          // Keep a live subscription while on the tab; re-init on dependency change.
           setPosts([]);
           setCursor(undefined);
           setHasMore(false);
           if (user && followingUsers.size > 0) {
             setRefreshing(true);
-            const idsKey = Array.from(followingUsers).sort().join(",");
-            let unsubLocal: undefined | (() => void);
-            unsubLocal = CommunityService.subscribeToFollowingPosts(
-              Array.from(followingUsers).sort(),
+            const ids = Array.from(followingUsers).sort();
+            const idsKey = ids.join(",");
+            unsubscribe = CommunityService.subscribeToFollowingPosts(
+              ids,
               (list: CommunityPost[]) => {
                 (async () => {
                   const normalized = await normalizePosts(list);
@@ -295,8 +295,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
                   void initializeUserAverageDays(normalized);
                   cacheRef.current.following = { posts: normalized, idsKey };
                   setRefreshing(false);
-                  try { if (unsubLocal) unsubLocal(); } catch {}
-                  unsubLocal = undefined;
                 })();
               },
             );
@@ -636,7 +634,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
-
 
 
 

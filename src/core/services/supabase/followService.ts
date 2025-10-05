@@ -69,35 +69,44 @@ export class FollowService {
     let channel: ReturnType<typeof supabase.channel> | undefined;
 
     const init = async () => {
+      // Determine the effective follower ID from the current Supabase session first.
+      let effectiveFollowerId = followerId;
       try {
         const { data: s } = await supabase.auth.getSession();
-        const uid = (s?.session?.user?.id as string | undefined) || followerId;
-        const userIds = await FollowService.getFollowingUserIds(uid);
+        const suid = s?.session?.user?.id as string | undefined;
+        if (suid) effectiveFollowerId = suid;
+      } catch {}
+
+      // Initial emit
+      try {
+        const userIds = await FollowService.getFollowingUserIds(effectiveFollowerId);
         callback(userIds);
       } catch {
         callback([]);
       }
 
+      // Subscribe to changes for the effective follower ID so follow/unfollow reflects immediately
       channel = supabase
-        .channel(`realtime:follows:${followerId}`)
+        .channel(`realtime:follows:${effectiveFollowerId}`)
         .on(
           "postgres_changes",
           {
             event: "*",
             schema: "public",
             table: "follows",
-            filter: `followerId=eq.${followerId}`,
+            filter: `followerId=eq.${effectiveFollowerId}`,
           },
           async (payload: any) => {
             const row = (payload.new || payload.old) as
               | { followerId?: string }
               | undefined;
             if (!row) return;
-            const { data: s2 } = await supabase.auth.getSession();
-            const uid = (s2?.session?.user?.id as string | undefined) || followerId;
-            if ((row.followerId as any) !== uid) return;
+            // Extra guard: confirm event corresponds to the same effective follower
+            if ((row.followerId as any) !== effectiveFollowerId) return;
             try {
-              const userIds = await FollowService.getFollowingUserIds(uid);
+              const userIds = await FollowService.getFollowingUserIds(
+                effectiveFollowerId,
+              );
               callback(userIds);
             } catch {
               // ignore
