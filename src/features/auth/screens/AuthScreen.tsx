@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   tabText: { color: colors.textSecondary, fontWeight: '600' },
   tabTextActive: { color: colors.primary },
   label: { color: colors.textSecondary, fontWeight: '700', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing['2xl'], paddingVertical: 14, backgroundColor: colors.white },
+  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing.lg, paddingVertical: 14, backgroundColor: colors.white },
   inputError: { borderColor: colors.error },
   hint: { color: colors.textSecondary, fontSize: 12, marginTop: 6 },
   hintError: { color: colors.error, fontSize: 12, marginTop: 6 },
