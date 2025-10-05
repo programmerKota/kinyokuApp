@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import {
   View,
   TextInput,
@@ -8,7 +8,6 @@ import {
 } from "react-native";
 
 import { colors, spacing, typography } from "@shared/theme";
-import { ReplyUiStore } from "@shared/state/replyUiStore";
 
 interface ReplyInputBarProps {
   value: string;
@@ -26,14 +25,8 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
   autoFocus = false,
 }) => {
   const disabled = !value.trim();
-  const onLayout = useCallback((e: any) => {
-    try {
-      const h = e?.nativeEvent?.layout?.height as number | undefined;
-      if (h && h > 0) ReplyUiStore.setInputBarHeight(h);
-    } catch {}
-  }, []);
   return (
-    <View style={styles.container} onLayout={onLayout}>
+    <View style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder={"\u8fd4\u4fe1\u3092\u5165\u529b..."}
@@ -46,7 +39,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
       />
       <View style={styles.actions}>
         <TouchableOpacity onPress={onCancel} style={styles.cancelBtn}>
-          <Text style={styles.cancelText}>ã‚­ãƒ£ãƒ³ã‚»ãƒ«</Text>
+          <Text style={styles.cancelText}>ƒLƒƒƒ“ƒZƒ‹</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
@@ -58,7 +51,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
           <Text
             style={[styles.submitText, disabled && styles.submitTextDisabled]}
           >
-            é€ä¿¡
+            ‘—M
           </Text>
         </TouchableOpacity>
       </View>
@@ -122,4 +115,6 @@ const styles = StyleSheet.create({
 });
 
 export default ReplyInputBar;
+
+
 

@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, memo } from "react";
+import React, { useCallback, memo, useRef } from "react";
+import { Dimensions } from "react-native";
+import ReplyUiStore from "@shared/state/replyUiStore";
 import {
   FlatList,
   View,
@@ -61,6 +63,50 @@ const PostList: React.FC<PostListProps> = ({
   refreshControl,
   ListEmptyComponent: emptyComponent,
 }) => {
+  const listRef = useRef<FlatList<any>>(null);
+  const scrollYRef = useRef(0);
+  const viewportHRef = useRef(Dimensions.get("window").height);
+
+  const scrollToReplyButton = useCallback(
+    (postId: string, btnRef: React.RefObject<any>) => {
+      const node = (btnRef?.current as any) || null;
+      if (!node) return;
+      try {
+        node.measureInWindow?.((x: number, y: number, w: number, h: number) => {
+          const viewportH = viewportHRef.current || Dimensions.get("window").height;
+          const inputH = ReplyUiStore.getInputBarHeight();
+          const targetTop = Math.max(0, viewportH - inputH - 8 - h);
+          const delta = y - targetTop;
+          const newOffset = Math.max(0, scrollYRef.current + delta);
+          try {
+            listRef.current?.scrollToOffset({ offset: newOffset, animated: true });
+          } catch {}
+          // Re-adjust shortly after in case input bar height changes due to keyboard
+          setTimeout(() => {
+            try {
+              node.measureInWindow?.((x2: number, y2: number, w2: number, h2: number) => {
+                const vh = viewportHRef.current || Dimensions.get("window").height;
+                const ih = ReplyUiStore.getInputBarHeight();
+                const tTop = Math.max(0, vh - ih - 8 - h2);
+                const d = y2 - tTop;
+                const off = Math.max(0, scrollYRef.current + d);
+                listRef.current?.scrollToOffset({ offset: off, animated: true });
+              });
+            } catch {}
+          }, 160);
+        });
+      } catch {
+        // fallback: best-effort align item near bottom
+        try {
+          const index = posts.findIndex((p) => p.id === postId);
+          if (index >= 0)
+            listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.9 });
+        } catch {}
+      }
+    },
+    [posts],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: CommunityPost }) => (
       <PostListRow
@@ -72,6 +118,7 @@ const PostList: React.FC<PostListProps> = ({
         onLike={onLike}
         onComment={onComment}
         onReply={onReply}
+        onScrollToReplyButton={scrollToReplyButton}
         onUserPress={onUserPress}
       />
     ),
@@ -83,12 +130,14 @@ const PostList: React.FC<PostListProps> = ({
       onLike,
       onComment,
       onReply,
+      scrollToReplyButton,
       onUserPress,
     ],
   );
 
   return (
     <FlatList
+      ref={listRef}
       extraData={{
         likedPosts,
         replyCounts,
@@ -96,6 +145,17 @@ const PostList: React.FC<PostListProps> = ({
         loadingMore,
         hasMore,
       }}
+      onLayout={(e) => {
+        try {
+          viewportHRef.current = e?.nativeEvent?.layout?.height || viewportHRef.current;
+        } catch {}
+      }}
+      onScroll={(e) => {
+        try {
+          scrollYRef.current = e?.nativeEvent?.contentOffset?.y || 0;
+        } catch {}
+      }}
+      scrollEventThrottle={16}
       style={listStyle}
       data={posts}
       renderItem={renderItem}
@@ -110,6 +170,17 @@ const PostList: React.FC<PostListProps> = ({
         loadingMore && hasMore ? <ListFooterSpinner loading /> : null
       }
       refreshControl={refreshControl}
+      onScrollToIndexFailed={(info) => {
+        setTimeout(() => {
+          try {
+            listRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+              viewPosition: 1,
+            });
+          } catch {}
+        }, 80);
+      }}
       ListEmptyComponent={() => {
         const isRefreshing = (refreshControl as any)?.props?.refreshing;
         if (isRefreshing && (posts?.length ?? 0) === 0) {
@@ -136,6 +207,7 @@ const PostListRow: React.FC<{
   onLike: (postId: string) => void | Promise<void>;
   onComment: (postId: string) => void;
   onReply: (postId: string) => void;
+  onScrollToReplyButton: (postId: string, ref: React.RefObject<any>) => void;
   onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
 }> = memo(({
   item,
@@ -146,8 +218,10 @@ const PostListRow: React.FC<{
   onLike,
   onComment,
   onReply,
+  onScrollToReplyButton,
   onUserPress,
 }) => {
+  const replyBtnRef = React.useRef<any>(null);
   const visible = useReplyVisibility(item.id, false);
   const avgDays =
     typeof authorAverageDays === "number"
@@ -178,7 +252,11 @@ const PostListRow: React.FC<{
           <View style={rowStyles.replyButtonSpacer} />
           <TouchableOpacity
             style={rowStyles.replyButton}
-            onPress={() => onReply(item.id)}
+            onPress={() => {
+              onReply(item.id);
+              setTimeout(() => onScrollToReplyButton(item.id, replyBtnRef), 80);
+            }}
+            ref={replyBtnRef}
           >
             <View style={rowStyles.replyIconContainer}>
               <Ionicons name="add" size={16} color={colors.white} />
@@ -201,7 +279,11 @@ const PostListRow: React.FC<{
           <View style={rowStyles.replyButtonSpacer} />
           <TouchableOpacity
             style={rowStyles.replyButton}
-            onPress={() => onReply(item.id)}
+            onPress={() => {
+              onReply(item.id);
+              setTimeout(() => onScrollToReplyButton(item.id, replyBtnRef), 80);
+            }}
+            ref={replyBtnRef}
           >
             <View style={rowStyles.replyIconContainer}>
               <Ionicons name="add" size={16} color={colors.white} />
@@ -256,4 +338,3 @@ const stylesEmpty = StyleSheet.create({
     paddingVertical: spacing["5xl"],
   },
 });
-
