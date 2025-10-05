@@ -7,7 +7,7 @@ interface MemoizedTournamentCardProps {
   tournament: UITournament;
   onJoin: (tournamentId: string) => void;
   onView: (idOrUserKey: string) => void;
-  onToggleRecruitment: (id: string, open: boolean) => Promise<void>;
+  onToggleRecruitment: (id: string, open: boolean) => void | Promise<void>;
   showDelete: boolean;
   onDelete: (id: string) => void;
 }

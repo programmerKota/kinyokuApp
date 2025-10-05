@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 import Button from "@shared/components/Button";
@@ -36,7 +36,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   showDelete = false,
   onToggleRecruitment,
 }) => {
-  const canJoin = !tournament.isJoined && tournament.status === "active";
+  const canJoin = !tournament.isJoined;
   const isPending = tournament.requestPending === true;
 
   return (
@@ -250,3 +250,4 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(TournamentCard);
+

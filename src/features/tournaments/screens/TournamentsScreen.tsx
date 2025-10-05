@@ -152,7 +152,7 @@ const TournamentsScreen: React.FC = () => {
                 })));
               });
               setProfilesUnsub(() => unsub);
-            } catch {}
+            } catch { }
           } catch (error) {
             handleError(
               error,
@@ -201,8 +201,8 @@ const TournamentsScreen: React.FC = () => {
           }),
         );
         Alert.alert(
-          "申請完了",
-          "参加申請を送信しました。主催者の承認をお待ちください。",
+          "申請しました",
+          "参加申請を送信しました。オーナーの承認をお待ちください。",
         );
       } catch (error) {
         handleError(
@@ -324,17 +324,17 @@ const TournamentsScreen: React.FC = () => {
     [handleError],
   );
 
-    useEffect(() => {
+  useEffect(() => {
     const ids = new Set<string>();
     if (user?.uid) ids.add(user.uid);
     (async () => {
       try {
         const legacy = await (await import('@core/services/supabase/userService')).FirestoreUserService.getCurrentUserId();
         if (legacy) ids.add(legacy);
-      } catch {}
+      } catch { }
       setMyIds(ids);
     })();
-  }, [user?.uid]);const renderTournament = useCallback(
+  }, [user?.uid]); const renderTournament = useCallback(
     ({ item }: { item: Tournament }) => (
       <MemoizedTournamentCard
         tournament={item}
