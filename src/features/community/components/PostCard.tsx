@@ -60,10 +60,7 @@ const PostCard: React.FC<PostCardProps> = ({
             showTitle={true}
             style={styles.userProfileContainer}
           />
-          <RelativeTime
-            value={post.createdAt}
-            style={uiStyles.timestampRight}
-          />
+          <RelativeTime value={post.createdAt} style={styles.timestampRight} />
         </View>
 
         <View
@@ -111,6 +108,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 0,
     width: "100%",
+    justifyContent: "space-between",
+  },
+  timestampRight: {
+    marginLeft: spacing.md,
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.sm,
+    flexShrink: 0,
   },
   userProfileContainer: {
     flex: 1,

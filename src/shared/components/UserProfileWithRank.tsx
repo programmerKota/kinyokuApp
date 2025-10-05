@@ -68,8 +68,8 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
 
   const sizeConfig = getSizeConfig();
 
-  const ProfileContent = () => (
-    <View style={[styles.container, style]}>
+  const ProfileContent: React.FC<{ containerStyle?: { [key: string]: unknown } }> = ({ containerStyle }) => (
+    <View style={[styles.container, containerStyle]}>
       {userAvatar ? (
         <AvatarImage
           uri={userAvatar}
@@ -168,13 +168,17 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        style={[style as any, { flex: 1 }]}
+      >
         <ProfileContent />
       </TouchableOpacity>
     );
   }
 
-  return <ProfileContent />;
+  return <ProfileContent containerStyle={style} />;
 };
 
 const styles = StyleSheet.create({
@@ -193,6 +197,7 @@ const styles = StyleSheet.create({
   userInfo: {
     marginLeft: spacing.sm,
     flex: 1,
+    minWidth: 0,
   },
   nameRow: {
     flexDirection: "row",
