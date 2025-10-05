@@ -149,58 +149,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateProfile = async (displayName: string, avatarUrl?: string) => {
     try {
+      // Determine current Supabase user ID (required for DB write with RLS)
+      const { data } = await supabase.auth.getSession();
+      const suid = (data?.session?.user?.id as string | undefined) || undefined;
+      if (!suid) {
+        throw new Error("AUTH_REQUIRED: no Supabase session");
+      }
+
       // Normalize avatarUrl: upload local uri to Supabase Storage in production
       let finalAvatar: string | undefined = avatarUrl?.trim() || undefined;
       try {
         if (finalAvatar && !/^https?:\/\//i.test(finalAvatar)) {
-          // Prefer Supabase uid if available
-          const { data } = await supabase.auth.getSession();
-          const suid = (data?.session?.user?.id as string | undefined) || user?.uid || (await userService.getUserId());
           finalAvatar = await uploadUserAvatar(finalAvatar, suid);
         }
       } catch (e) {
         console.warn("avatar upload failed; keeping previous http(s) avatar if any", e);
-        // Keep previous http(s) avatar to avoid resetting to default
         const prev = user?.avatarUrl;
         finalAvatar = prev && /^https?:\/\//i.test(prev) ? prev : undefined;
       }
 
+      // Persist to local profile cache
       await userService.updateProfile(displayName, finalAvatar);
-      try {
-        // Keep AuthContext uid in sync with Supabase uid when available
-        const { data } = await supabase.auth.getSession();
-        const suid = (data?.session?.user?.id as string | undefined) || user?.uid || (await userService.getUserId());
-        setUser((prev) => ({
-          uid: suid,
-          displayName,
-          avatarUrl: finalAvatar,
-          avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
-          createdAt: prev?.createdAt || new Date(),
-          updatedAt: new Date(),
-        } as User));
-      } catch {
-        setUser((prev) => ({
-          ...(prev as User),
-          displayName,
-          avatarUrl: finalAvatar,
-          avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
-          updatedAt: new Date(),
-        } as User));
-      }
-      try {
-        const { data } = await supabase.auth.getSession();
-        const uid = (data?.session?.user?.id as string | undefined) || user?.uid || (await userService.getUserId());
-        await FirestoreUserService.setUserProfile(uid, {
-          displayName,
-          photoURL: finalAvatar,
-        });
-        void Promise.allSettled([
-          CommunityService.reflectUserProfile(uid, displayName, finalAvatar),
-          TournamentService.reflectUserProfile(uid, displayName, finalAvatar),
-        ]);
-      } catch (e) {
-        console.warn("Firestore reflect failed", e);
-      }
+
+      // Persist to Supabase (throws on RLS failure)
+      await FirestoreUserService.setUserProfile(suid, {
+        displayName,
+        photoURL: finalAvatar,
+      });
+
+      // Update local AuthContext state immediately
+      setUser((prev) => ({
+        uid: suid,
+        displayName,
+        avatarUrl: finalAvatar,
+        avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
+        createdAt: prev?.createdAt || new Date(),
+        updatedAt: new Date(),
+      } as User));
+
+      // Best-effort reflection to related tables
+      void Promise.allSettled([
+        CommunityService.reflectUserProfile(suid, displayName, finalAvatar),
+        TournamentService.reflectUserProfile(suid, displayName, finalAvatar),
+      ]);
     } catch (error) {
       console.error("AuthContext: updateProfile failed", error);
       throw error;
