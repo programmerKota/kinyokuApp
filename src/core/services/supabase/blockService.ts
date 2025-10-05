@@ -1,5 +1,6 @@
 type Unsubscribe = () => void;
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { FollowService } from "./followService";
 
 export class BlockService {
   static async getBlockDocId(targetUserId: string): Promise<string> {
@@ -35,6 +36,13 @@ export class BlockService {
       .upsert({ id, blockerId: currentUserId, blockedId: targetUserId })
       .single();
     if (error) throw error;
+
+    // Best-effort: when blocking a user, also unfollow them to keep UI/feeds consistent
+    try {
+      await FollowService.unfollow(targetUserId);
+    } catch {
+      // ignore follow-unfollow errors; block should still succeed
+    }
   }
 
   static async unblock(targetUserId: string): Promise<void> {

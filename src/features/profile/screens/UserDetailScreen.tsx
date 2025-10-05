@@ -276,6 +276,8 @@ const UserDetailScreen: React.FC = () => {
         BlockStore.add(userId);
         await BlockService.block(userId);
         setBlocked(true);
+        // Also reflect follow state locally; block will unfollow on server
+        setFollowing(false);
       }
     } catch (e) {
       console.warn("block toggle failed", e);
