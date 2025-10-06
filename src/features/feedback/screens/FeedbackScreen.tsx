@@ -11,13 +11,13 @@ import {
   Platform,
   TouchableOpacity,
   Alert,
+  Linking,
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import Button from "@shared/components/Button";
 import { colors, spacing, typography } from "@shared/theme";
-import { supabase } from "@app/config/supabase.config";
+import * as MailComposer from "expo-mail-composer";
 
 const FeedbackScreen: React.FC = () => {
   const { user } = useAuth();
@@ -26,7 +26,10 @@ const FeedbackScreen: React.FC = () => {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const { requireAuth } = useAuthPrompt();
+  // 送信先メールアドレス（EXPO_PUBLIC_FEEDBACK_EMAIL があれば優先）
+  const FEEDBACK_EMAIL =
+    (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) ||
+    "support@example.com"; // TODO: 本番用に置き換え/環境変数で設定
 
   const canSend = useMemo(
     () => subject.trim().length > 0 && message.trim().length > 0,
@@ -37,39 +40,47 @@ const FeedbackScreen: React.FC = () => {
     if (!canSend || sending) return;
     setSending(true);
     try {
-      const ok = await requireAuth();
-      if (!ok) return;
+      const subj = subject.trim();
+      const body = `${message.trim()}\n\n---\nPlatform: ${Platform.OS} ${Platform.Version}`;
 
-      // Supabase Edge Functionを呼び出してメール送信
-      const { data, error } = await supabase.functions.invoke('send-feedback', {
-        body: {
-          subject: subject.trim(),
-          message: message.trim(),
-          platform: `${Platform.OS} ${Platform.Version}`,
-        },
-      });
-
-      if (error) {
-        console.error('Feedback submit failed:', error);
-        Alert.alert("エラー", "フィードバックの送信に失敗しました: " + error.message);
+      // 1) Expo MailComposer（対応端末）
+      const available = await MailComposer.isAvailableAsync();
+      if (available) {
+        const result = await MailComposer.composeAsync({
+          recipients: [FEEDBACK_EMAIL],
+          subject: subj,
+          body,
+        });
+        if (result.status === MailComposer.MailComposerStatus.SENT) {
+          setSent(true);
+          setSubject("");
+          setMessage("");
+          Alert.alert("送信完了", "メールアプリから送信しました。ありがとうございます！");
+          return;
+        }
+        // cancelled などの場合も特にエラーにはしない
         return;
       }
 
-      if (data?.success) {
+      // 2) Web/未対応端末: mailto にフォールバック
+      const url = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
+        subj,
+      )}&body=${encodeURIComponent(body)}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
         setSent(true);
-        setSubject("");
-        setMessage("");
-        Alert.alert("送信完了", "フィードバックを送信しました。ありがとうございます！");
-      } else {
-        Alert.alert("エラー", "フィードバックの送信に失敗しました");
+        return;
       }
+
+      Alert.alert("エラー", "端末のメール機能にアクセスできませんでした。");
     } catch (e: any) {
-      console.error("Feedback submit failed:", e);
-      Alert.alert("エラー", "フィードバックの送信に失敗しました: " + e.message);
+      console.error("Feedback mail compose failed:", e);
+      Alert.alert("エラー", "メールの作成に失敗しました: " + e.message);
     } finally {
       setSending(false);
     }
-  }, [canSend, sending, subject, message, user?.uid, requireAuth]);
+  }, [canSend, sending, subject, message]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -108,7 +119,7 @@ const FeedbackScreen: React.FC = () => {
         />
         <View style={{ height: spacing.lg }} />
         <Button
-          title={sent ? "送信しました" : "送信"}
+          title={sent ? "送信しました" : "メールで送信"}
           onPress={() => { void doSubmit(); }}
           disabled={!canSend || sent}
           loading={sending}
