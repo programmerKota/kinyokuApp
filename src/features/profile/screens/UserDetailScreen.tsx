@@ -333,97 +333,7 @@ const UserDetailScreen: React.FC = () => {
         <View style={{ width: 32 }} />
       </View>
 
-      {/* プロフィールヘッダー（アイコン → 名前 → 階級） */}
-      <View>
-        <View style={styles.profileHeaderCenter}>
-          <AvatarImage
-            uri={live?.photoURL ?? avatar}
-            size={88}
-            style={styles.profileAvatar}
-          />
-          <Text style={styles.profileName} numberOfLines={1}>
-            {live?.displayName ?? name}
-          </Text>
-          <Text style={styles.profileRank} numberOfLines={1}>
-            {getRankDisplayByDays(averageDays)}
-          </Text>
-        </View>
-
-        {user?.uid !== userId && (
-          <View style={styles.ctaRow}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={onToggleFollow}
-              style={[styles.primaryCta, following && styles.primaryCtaActive]}
-            >
-              <Ionicons
-                name={following ? "checkmark" : "person-add-outline"}
-                size={18}
-                color={colors.black}
-                style={styles.ctaIcon}
-              />
-              <Text style={styles.primaryCtaText}>
-                {following ? "フォロー中" : "フォロー"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={onToggleBlock}
-              style={[styles.ghostCta, blocked && styles.ghostCtaActive]}>
-              <Ionicons
-                name={blocked ? "close-circle" : "remove-circle-outline"}
-                size={18}
-                color={blocked ? colors.gray800 : colors.textSecondary}
-                style={styles.ctaIcon}
-              />
-              <Text
-                style={[styles.ghostCtaText, blocked && styles.ghostCtaTextActive]}
-              >
-                {blocked ? "ブロック中" : "ブロック"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        {/* 投稿/フォロー/フォロワー カウント */}
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{postsData.length}</Text>
-            <Text style={styles.statLabel}>投稿</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <TouchableOpacity
-            style={styles.statItem}
-            activeOpacity={0.8}
-            onPress={() =>
-              (navigation as any).navigate("FollowList", {
-                userId,
-                userName: live?.displayName ?? name,
-                mode: "following",
-              })
-            }
-          >
-            <Text style={styles.statNumber}>{followingCount}</Text>
-            <Text style={styles.statLabel}>フォロー</Text>
-          </TouchableOpacity>
-          <View style={styles.statDivider} />
-          <TouchableOpacity
-            style={styles.statItem}
-            activeOpacity={0.8}
-            onPress={() =>
-              (navigation as any).navigate("FollowList", {
-                userId,
-                userName: live?.displayName ?? name,
-                mode: "followers",
-              })
-            }
-          >
-            <Text style={styles.statNumber}>{followersCount}</Text>
-            <Text style={styles.statLabel}>フォロワー</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.divider} />
-      </View>
+      {/* プロフィールヘッダーは PostList の ListHeaderComponent に移動し、スクロールに追従させる */}
 
       {/* 投稿一覧 */}
       <PostList
@@ -434,6 +344,102 @@ const UserDetailScreen: React.FC = () => {
         replyCounts={replyCounts}
         authorAverageDays={averageDays}
         allowBlockedReplies={true}
+        headerComponent={(
+          <View>
+            <View style={styles.profileHeaderCenter}>
+              <AvatarImage
+                uri={live?.photoURL ?? avatar}
+                size={88}
+                style={styles.profileAvatar}
+              />
+              <Text style={styles.profileName} numberOfLines={1}>
+                {live?.displayName ?? name}
+              </Text>
+              <Text style={styles.profileRank} numberOfLines={1}>
+                {getRankDisplayByDays(averageDays)}
+              </Text>
+            </View>
+
+            {user?.uid !== userId && (
+              <View style={styles.ctaRow}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={onToggleFollow}
+                  style={[styles.primaryCta, following && styles.primaryCtaActive]}
+                >
+                  <Ionicons
+                    name={following ? "checkmark" : "person-add-outline"}
+                    size={18}
+                    color={colors.black}
+                    style={styles.ctaIcon}
+                  />
+                  <Text style={styles.primaryCtaText}>
+                    {following ? "フォロー中" : "フォロー"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={onToggleBlock}
+                  style={[styles.ghostCta, blocked && styles.ghostCtaActive]}
+                >
+                  <Ionicons
+                    name={blocked ? "close-circle" : "remove-circle-outline"}
+                    size={18}
+                    color={blocked ? colors.gray800 : colors.textSecondary}
+                    style={styles.ctaIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.ghostCtaText,
+                      blocked && styles.ghostCtaTextActive,
+                    ]}
+                  >
+                    {blocked ? "ブロック中" : "ブロック"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* 投稿/フォロー/フォロワー カウント（余計な隙間を作らないため Divider は置かない） */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{postsData.length}</Text>
+                <Text style={styles.statLabel}>投稿</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <TouchableOpacity
+                style={styles.statItem}
+                activeOpacity={0.8}
+                onPress={() =>
+                  (navigation as any).navigate("FollowList", {
+                    userId,
+                    userName: live?.displayName ?? name,
+                    mode: "following",
+                  })
+                }
+              >
+                <Text style={styles.statNumber}>{followingCount}</Text>
+                <Text style={styles.statLabel}>フォロー</Text>
+              </TouchableOpacity>
+              <View style={styles.statDivider} />
+              <TouchableOpacity
+                style={styles.statItem}
+                activeOpacity={0.8}
+                onPress={() =>
+                  (navigation as any).navigate("FollowList", {
+                    userId,
+                    userName: live?.displayName ?? name,
+                    mode: "followers",
+                  })
+                }
+              >
+                <Text style={styles.statNumber}>{followersCount}</Text>
+                <Text style={styles.statLabel}>フォロワー</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
         onLike={(id) => {
           void handleLike(id);
         }}
