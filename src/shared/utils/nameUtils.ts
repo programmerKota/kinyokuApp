@@ -74,15 +74,18 @@ export const getContentStyle = (
   size: "small" | "medium" | "large" = "medium",
 ): TextStyle => {
   const fontSizeMap = {
-    small: 14,
-    medium: 16,
-    large: 18,
-  };
+    small: 16,
+    medium: 18,
+    large: 20,
+  } as const;
+
+  const fs = fontSizeMap[size];
+  const lh = Math.round(fs * 1.6); // 可読性の良い行間
 
   return {
-    fontSize: fontSizeMap[size],
+    fontSize: fs,
     color: "#1a1a1a",
-    lineHeight: 20,
+    lineHeight: lh,
   };
 };
 
