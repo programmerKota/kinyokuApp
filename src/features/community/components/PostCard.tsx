@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from "react";
+import React, { useCallback } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 
 import CommentBar from "@features/community/components/CommentBar";

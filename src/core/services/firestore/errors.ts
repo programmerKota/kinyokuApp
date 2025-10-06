@@ -1,4 +1,4 @@
-﻿export class FirestoreError extends Error {
+export class FirestoreError extends Error {
   constructor(
     message: string,
     public code?: string,

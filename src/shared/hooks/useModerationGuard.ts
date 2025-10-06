@@ -1,4 +1,4 @@
-﻿export type GuardResult = {
+export type GuardResult = {
   decision: null;
   checking: boolean;
   canSend: boolean;

@@ -1,1 +1,1 @@
-﻿export { BlockService } from "../supabase/blockService";
+export { BlockService } from "../supabase/blockService";

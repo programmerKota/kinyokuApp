@@ -1,1 +1,1 @@
-﻿export { ChallengeService } from "../supabase/challengeService";
+export { ChallengeService } from "../supabase/challengeService";

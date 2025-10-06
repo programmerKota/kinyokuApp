@@ -1,17 +1,8 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { supabase } from "@app/config/supabase.config";
@@ -22,6 +13,7 @@ import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import { colors, spacing, typography, shadows } from "@shared/theme";
+import { PurchasesService } from "@core/services/payments/purchasesService";
 
 const ActionCard = ({
   icon,
@@ -209,6 +201,19 @@ const ProfileScreen: React.FC = () => {
                   description="不具合報告・改善提案を送信"
                   onPress={() => {
                     void navigation.navigate("Feedback");
+                  }}
+                />
+                <ActionCard
+                  icon="refresh"
+                  title="購入の復元"
+                  description="機種変更などで購入が反映されない場合"
+                  onPress={async () => {
+                    try {
+                      await PurchasesService.restore();
+                      Alert.alert("復元完了", "購入情報を復元しました。");
+                    } catch (e: any) {
+                      Alert.alert("エラー", e?.message || "復元に失敗しました");
+                    }
                   }}
                 />
               </Section>

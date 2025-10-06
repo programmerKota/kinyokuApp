@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";

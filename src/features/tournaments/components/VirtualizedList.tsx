@@ -1,4 +1,4 @@
-﻿import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import type { ReactElement } from "react";
 import {
   FlatList,

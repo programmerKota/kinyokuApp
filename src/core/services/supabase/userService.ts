@@ -1,4 +1,4 @@
-﻿import { supabase } from "@app/config/supabase.config";
+import { supabase } from "@app/config/supabase.config";
 
 export interface FirestoreUser {
   id: string;

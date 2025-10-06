@@ -1,4 +1,4 @@
-﻿import type { StackNavigationProp } from "@react-navigation/stack";
+import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useState } from "react";
 import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
 

@@ -1,4 +1,4 @@
-﻿import { supabase } from "@app/config/supabase.config";
+import { supabase } from "@app/config/supabase.config";
 import { toDate } from "@shared/utils/date";
 // import type { Challenge } from "@project-types";
 
