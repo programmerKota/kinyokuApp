@@ -85,6 +85,9 @@ export interface FirestoreCommunityPost {
   updatedAt: Date;
 }
 
+// Firebase依存を排除するための簡易型エイリアス
+type Timestamp = Date;
+
 export interface FirestoreFollow {
   id: string;
   followerId: string;

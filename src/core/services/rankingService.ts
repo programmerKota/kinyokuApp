@@ -163,7 +163,6 @@ export class RankingService {
         updatedAt: string;
       };
       return ((data || []) as CRow[]).map((row) => ({
-        id: row.id,
         ...row,
         startedAt: toDate(row.startedAt),
         completedAt: row.completedAt ? toDate(row.completedAt) : null,

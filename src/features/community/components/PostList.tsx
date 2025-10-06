@@ -73,62 +73,77 @@ const PostList: React.FC<PostListProps> = ({
       const list = listRef.current as any;
       if (!list || !node) return;
 
-      const keyboardTopRef = { current: null as number | null };
+      let done = false;
+      let kbTop: number | null = null;
+      const needHeight = () => (ReplyUiStore.getInputBarHeight?.() || 0) > 60;
 
-      const tryMeasureAndScroll = (remaining: number) => {
-        if (remaining <= 0) return;
+      const cleanupAll = (subs: { remove?: () => void }[], extra: (() => void)[] = []) => {
+        for (const s of subs) { try { s?.remove?.(); } catch {} }
+        for (const f of extra) { try { f(); } catch {} }
+      };
+
+      const tryScroll = () => {
+        if (done) return;
+        if (!needHeight()) return; // wait until input bar height is measured
+        done = true;
         requestAnimationFrame(() => {
           try {
             node.measureInWindow?.((x: number, y: number, w: number, h: number) => {
               const viewportH = viewportHRef.current || Dimensions.get("window").height;
-              const kbTop = (keyboardTopRef.current as number | null) ?? viewportH;
+              const keyboardTop = kbTop ?? viewportH;
               const inputH = ReplyUiStore.getInputBarHeight();
-              const gap = 8; // small visual breathing room
-              // Align the BUTTON BOTTOM to INPUT TOP (= keyboardTop - inputH)
-              const targetBottom = Math.max(0, kbTop - inputH - gap);
+              const gap = 8;
+              const targetBottom = Math.max(0, keyboardTop - inputH - gap);
               const buttonBottom = (y || 0) + (h || 0);
               const delta = (buttonBottom || 0) - targetBottom;
               const newOffset = Math.max(0, (scrollYRef.current || 0) + (delta || 0));
-              try {
-                list.scrollToOffset({ offset: newOffset, animated: true });
-              } catch {}
-              setTimeout(() => tryMeasureAndScroll(remaining - 1), 120);
+              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch {}
             });
           } catch {
-            // Fallback: approximate using index alignment
             try {
               const index = posts.findIndex((p) => p.id === postId);
-              if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.95 });
+              if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.98 });
             } catch {}
           }
         });
       };
 
-      const kick = () => tryMeasureAndScroll(4);
+      const subs: { remove?: () => void }[] = [];
+      const extra: (() => void)[] = [];
 
-      const onDidShow = Keyboard.addListener("keyboardDidShow", (e: any) => {
-        const sy = e?.endCoordinates?.screenY;
-        if (typeof sy === "number" && sy > 0) keyboardTopRef.current = sy;
-        setTimeout(kick, 20);
-        try { onDidShow.remove(); } catch {}
+      // Subscribe to input bar height updates; fire once when height is ready
+      const unsubHeight = ReplyUiStore.subscribe?.(() => {
+        if (needHeight()) {
+          tryScroll();
+        }
       });
+      if (unsubHeight) extra.push(unsubHeight);
+
+      // Keyboard events to capture top coordinate
+      const did = Keyboard.addListener("keyboardDidShow", (e: any) => {
+        const sy = e?.endCoordinates?.screenY as number | undefined;
+        if (typeof sy === "number") kbTop = sy;
+        tryScroll();
+      });
+      subs.push(did);
 
       if (Platform.OS === "ios") {
-        const onWillShow = Keyboard.addListener("keyboardWillShow", (e: any) => {
-          const sy = e?.endCoordinates?.screenY;
-          if (typeof sy === "number" && sy > 0) keyboardTopRef.current = sy;
-          setTimeout(kick, 50);
-          try { onWillShow.remove(); } catch {}
+        const will = Keyboard.addListener("keyboardWillShow", (e: any) => {
+          const sy = e?.endCoordinates?.screenY as number | undefined;
+          if (typeof sy === "number") kbTop = sy;
+          // Don't scroll yet if height not ready; tryScroll will guard
+          tryScroll();
         });
-        // Safety: if not fired, still attempt after interactions
-        setTimeout(() => {
-          try { onWillShow.remove(); } catch {}
-          InteractionManager.runAfterInteractions(kick);
-        }, 350);
-      } else {
-        // Android safety fallback
-        setTimeout(() => InteractionManager.runAfterInteractions(kick), 250);
+        subs.push(will);
       }
+
+      // Fallback: if no events fire, attempt once after a short delay
+      const t = setTimeout(() => tryScroll(), 320);
+      extra.push(() => clearTimeout(t));
+
+      // Final cleanup (prevent leaks)
+      const end = setTimeout(() => cleanupAll(subs, extra), 1600);
+      extra.push(() => clearTimeout(end));
     },
     [posts],
   );

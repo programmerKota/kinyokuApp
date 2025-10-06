@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   View,
   TextInput,
@@ -34,11 +34,25 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
       if (h && h > 0) ReplyUiStore.setInputBarHeight(h);
     } catch {}
   }, []);
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    // Focus reliably after mount/layout; try twice to avoid race with KAV/keyboard animations
+    const t1 = setTimeout(() => inputRef.current?.focus(), 0);
+    const t2 = setTimeout(() => inputRef.current?.focus(), 180);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [autoFocus]);
+
   return (
     <View style={styles.container} onLayout={onLayout}>
       <TextInput
+        ref={inputRef}
         style={styles.input}
-        placeholder={"\u8fd4\u4fe1\u3092\u5165\u529b..."}
+        placeholder={"返信を入力..."}
         placeholderTextColor={colors.textSecondary}
         value={value}
         onChangeText={onChangeText}

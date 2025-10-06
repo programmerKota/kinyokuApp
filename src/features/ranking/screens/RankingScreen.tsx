@@ -40,9 +40,6 @@ const RankingScreen: React.FC = () => {
 
   useEffect(() => {
     void refreshRankings();
-  }, []);
-  useEffect(() => {
-    void refreshRankings();
   }, [activeTab]);
   useEffect(() => {
     if (activeTab === "following") {

@@ -35,9 +35,10 @@ export const PurchasesService = {
     const off = (offerings?.current as any) ?? (offerings?.all as any)?.penalty ?? null;
     const list = off?.availablePackages ?? [];
     if (!list.length) return null;
-    const candidates = list.map((p: any) => ({ id: p.identifier, price: p.product.price, raw: p }));
-    const sorted = candidates.sort((a, b) => a.price - b.price);
-    const found = sorted.find((p) => p.price >= targetJPY) ?? sorted[sorted.length - 1];
+    type Candidate = { id: string; price: number; raw: any };
+    const candidates: Candidate[] = list.map((pkg: any) => ({ id: pkg.identifier, price: pkg.product.price, raw: pkg }));
+    const sorted = candidates.sort((a: Candidate, b: Candidate) => a.price - b.price);
+    const found = sorted.find((c: Candidate) => c.price >= targetJPY) ?? sorted[sorted.length - 1];
     return { identifier: found.id, price: found.price, raw: found.raw };
   },
 
