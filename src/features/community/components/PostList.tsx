@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, memo, useRef } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, InteractionManager, Keyboard, Platform } from "react-native";
 import ReplyUiStore from "@shared/state/replyUiStore";
 import {
   FlatList,
@@ -70,38 +70,64 @@ const PostList: React.FC<PostListProps> = ({
   const scrollToReplyButton = useCallback(
     (postId: string, btnRef: React.RefObject<any>) => {
       const node = (btnRef?.current as any) || null;
-      if (!node) return;
-      try {
-        node.measureInWindow?.((x: number, y: number, w: number, h: number) => {
-          const viewportH = viewportHRef.current || Dimensions.get("window").height;
-          const inputH = ReplyUiStore.getInputBarHeight();
-          const targetTop = Math.max(0, viewportH - inputH - 8 - h);
-          const delta = y - targetTop;
-          const newOffset = Math.max(0, scrollYRef.current + delta);
+      const list = listRef.current as any;
+      if (!list || !node) return;
+
+      const keyboardTopRef = { current: null as number | null };
+
+      const tryMeasureAndScroll = (remaining: number) => {
+        if (remaining <= 0) return;
+        requestAnimationFrame(() => {
           try {
-            listRef.current?.scrollToOffset({ offset: newOffset, animated: true });
-          } catch {}
-          // Re-adjust shortly after in case input bar height changes due to keyboard
-          setTimeout(() => {
+            node.measureInWindow?.((x: number, y: number, w: number, h: number) => {
+              const viewportH = viewportHRef.current || Dimensions.get("window").height;
+              const kbTop = (keyboardTopRef.current as number | null) ?? viewportH;
+              const inputH = ReplyUiStore.getInputBarHeight();
+              const gap = 8; // small visual breathing room
+              // Align the BUTTON BOTTOM to INPUT TOP (= keyboardTop - inputH)
+              const targetBottom = Math.max(0, kbTop - inputH - gap);
+              const buttonBottom = (y || 0) + (h || 0);
+              const delta = (buttonBottom || 0) - targetBottom;
+              const newOffset = Math.max(0, (scrollYRef.current || 0) + (delta || 0));
+              try {
+                list.scrollToOffset({ offset: newOffset, animated: true });
+              } catch {}
+              setTimeout(() => tryMeasureAndScroll(remaining - 1), 120);
+            });
+          } catch {
+            // Fallback: approximate using index alignment
             try {
-              node.measureInWindow?.((x2: number, y2: number, w2: number, h2: number) => {
-                const vh = viewportHRef.current || Dimensions.get("window").height;
-                const ih = ReplyUiStore.getInputBarHeight();
-                const tTop = Math.max(0, vh - ih - 8 - h2);
-                const d = y2 - tTop;
-                const off = Math.max(0, scrollYRef.current + d);
-                listRef.current?.scrollToOffset({ offset: off, animated: true });
-              });
+              const index = posts.findIndex((p) => p.id === postId);
+              if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.95 });
             } catch {}
-          }, 160);
+          }
         });
-      } catch {
-        // fallback: best-effort align item near bottom
-        try {
-          const index = posts.findIndex((p) => p.id === postId);
-          if (index >= 0)
-            listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.9 });
-        } catch {}
+      };
+
+      const kick = () => tryMeasureAndScroll(4);
+
+      const onDidShow = Keyboard.addListener("keyboardDidShow", (e: any) => {
+        const sy = e?.endCoordinates?.screenY;
+        if (typeof sy === "number" && sy > 0) keyboardTopRef.current = sy;
+        setTimeout(kick, 20);
+        try { onDidShow.remove(); } catch {}
+      });
+
+      if (Platform.OS === "ios") {
+        const onWillShow = Keyboard.addListener("keyboardWillShow", (e: any) => {
+          const sy = e?.endCoordinates?.screenY;
+          if (typeof sy === "number" && sy > 0) keyboardTopRef.current = sy;
+          setTimeout(kick, 50);
+          try { onWillShow.remove(); } catch {}
+        });
+        // Safety: if not fired, still attempt after interactions
+        setTimeout(() => {
+          try { onWillShow.remove(); } catch {}
+          InteractionManager.runAfterInteractions(kick);
+        }, 350);
+      } else {
+        // Android safety fallback
+        setTimeout(() => InteractionManager.runAfterInteractions(kick), 250);
       }
     },
     [posts],
@@ -254,7 +280,8 @@ const PostListRow: React.FC<{
             style={rowStyles.replyButton}
             onPress={() => {
               onReply(item.id);
-              setTimeout(() => onScrollToReplyButton(item.id, replyBtnRef), 80);
+              // 入力欄とキーボード表示に合わせて自動調整
+              onScrollToReplyButton(item.id, replyBtnRef);
             }}
             ref={replyBtnRef}
           >
@@ -281,7 +308,8 @@ const PostListRow: React.FC<{
             style={rowStyles.replyButton}
             onPress={() => {
               onReply(item.id);
-              setTimeout(() => onScrollToReplyButton(item.id, replyBtnRef), 80);
+              // 入力欄とキーボード表示に合わせて自動調整
+              onScrollToReplyButton(item.id, replyBtnRef);
             }}
             ref={replyBtnRef}
           >

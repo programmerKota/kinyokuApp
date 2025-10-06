@@ -16,6 +16,7 @@ interface ReplyInputBarProps {
   onSubmit: () => void | Promise<void>;
   onCancel: () => void;
   autoFocus?: boolean;
+  onFocus?: () => void;
 }
 
 const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
@@ -24,6 +25,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
   onSubmit,
   onCancel,
   autoFocus = false,
+  onFocus,
 }) => {
   const disabled = !value.trim();
   const onLayout = useCallback((e: any) => {
@@ -43,6 +45,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
         multiline
         maxLength={280}
         autoFocus={autoFocus}
+        onFocus={onFocus}
       />
       <View style={styles.actions}>
         <TouchableOpacity onPress={onCancel} style={styles.cancelBtn}>
@@ -122,4 +125,3 @@ const styles = StyleSheet.create({
 });
 
 export default ReplyInputBar;
-
