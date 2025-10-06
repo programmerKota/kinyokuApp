@@ -57,6 +57,46 @@ export class FollowService {
     return (data || []).map((r: any) => r.followeeId as string);
   }
 
+  static async getFollowerUserIds(followeeId: string): Promise<string[]> {
+    if (!supabaseConfig?.isConfigured) return [];
+    const { data, error } = await supabase
+      .from("follows")
+      .select("followerId")
+      .eq("followeeId", followeeId);
+    if (error) throw error;
+    return (data || []).map((r: any) => r.followerId as string);
+  }
+
+  // 指定ユーザーのフォロー数/フォロワー数を取得
+  static async getCounts(
+    userId: string,
+  ): Promise<{ following: number; followers: number }> {
+    if (!supabaseConfig?.isConfigured) return { following: 0, followers: 0 };
+    // following: ユーザーがフォローしている人数（followerId = userId）
+    const followingQuery = supabase
+      .from("follows")
+      .select("id", { count: "exact", head: true })
+      .eq("followerId", userId);
+    // followers: ユーザーをフォローしている人数（followeeId = userId）
+    const followersQuery = supabase
+      .from("follows")
+      .select("id", { count: "exact", head: true })
+      .eq("followeeId", userId);
+
+    const [followingRes, followersRes] = await Promise.all([
+      followingQuery,
+      followersQuery,
+    ]);
+    if (followingRes.error) throw followingRes.error;
+    if (followersRes.error) throw followersRes.error;
+
+    // count は number | null
+    return {
+      following: (followingRes.count ?? 0) as number,
+      followers: (followersRes.count ?? 0) as number,
+    };
+  }
+
   static subscribeToFollowingUserIds(
     followerId: string,
     callback: (userIds: string[]) => void,
@@ -107,6 +147,54 @@ export class FollowService {
               const userIds = await FollowService.getFollowingUserIds(
                 effectiveFollowerId,
               );
+              callback(userIds);
+            } catch {
+              // ignore
+            }
+          },
+        )
+        .subscribe();
+    };
+
+    void init();
+    return () => {
+      if (channel) channel.unsubscribe();
+    };
+  }
+
+  static subscribeToFollowerUserIds(
+    followeeId: string,
+    callback: (userIds: string[]) => void,
+  ): Unsubscribe {
+    if (!supabaseConfig?.isConfigured) {
+      callback([]);
+      return () => {};
+    }
+
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const init = async () => {
+      // Initial emit
+      try {
+        const userIds = await FollowService.getFollowerUserIds(followeeId);
+        callback(userIds);
+      } catch {
+        callback([]);
+      }
+
+      channel = supabase
+        .channel(`realtime:follows:followers:${followeeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "follows",
+            filter: `followeeId=eq.${followeeId}`,
+          },
+          async () => {
+            try {
+              const userIds = await FollowService.getFollowerUserIds(followeeId);
               callback(userIds);
             } catch {
               // ignore

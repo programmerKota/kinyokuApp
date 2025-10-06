@@ -8,6 +8,7 @@ import CommunityScreen from "@features/community/screens/CommunityScreen";
 import FeedbackScreen from "@features/feedback/screens/FeedbackScreen";
 import HomeScreen from "@features/home/screens/HomeScreen";
 import BlockedUsersScreen from "@features/profile/screens/BlockedUsersScreen";
+import FollowListScreen from "@features/profile/screens/FollowListScreen";
 import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import ProfileScreen from "@features/profile/screens/ProfileScreen";
 import { colors } from "@shared/theme";
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Diary: undefined;
   Ranking: undefined;
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
+  FollowList: { userId: string; userName?: string; mode: "following" | "followers" };
   BlockedUsers: undefined;
   Feedback: undefined;
   DevCrud?: undefined;
@@ -113,6 +115,7 @@ const RootNavigator: React.FC = () => (
       <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
       <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
       <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
+      <RootStack.Screen name="FollowList" component={FollowListScreen} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <RootStack.Screen name="Feedback" component={FeedbackScreen} />
       {/* 開発環境でのみ表示されるデバッグ画面のため、本番環境では表示されない */}

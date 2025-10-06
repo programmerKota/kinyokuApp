@@ -27,7 +27,8 @@ import type { FirestoreCommunityPost } from "@core/services/firestore";
 import { UserStatsService } from "@core/services/userStatsService";
 import PostList from "@features/community/components/PostList";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
-import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import AvatarImage from "@shared/components/AvatarImage";
+import { getRankDisplayByDays } from "@core/services/rankService";
 import { useProfile } from "@shared/hooks/useProfile";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
@@ -71,6 +72,8 @@ const UserDetailScreen: React.FC = () => {
   );
   const [averageDays, setAverageDays] = useState(0);
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const { requireAuth } = useAuthPrompt();
   // 相対時間表示は各セル内の RelativeTime コンポーネントで個別に更新
   const [nowTick, setNowTick] = useState(0);
@@ -90,6 +93,13 @@ const UserDetailScreen: React.FC = () => {
         try {
           const days = await UserStatsService.getUserCurrentDaysForRank(userId);
           if (mounted) setAverageDays(days);
+        } catch { }
+        try {
+          const c = await FollowService.getCounts(userId);
+          if (mounted) {
+            setFollowingCount(c.following);
+            setFollowersCount(c.followers);
+          }
         } catch { }
       })();
       return () => {
@@ -136,6 +146,14 @@ const UserDetailScreen: React.FC = () => {
       try {
         const isBlocked = await BlockService.isBlocked(userId);
         if (mounted) setBlocked(isBlocked);
+      } catch { }
+
+      try {
+        const c = await FollowService.getCounts(userId);
+        if (mounted) {
+          setFollowingCount(c.following);
+          setFollowersCount(c.followers);
+        }
       } catch { }
 
       try {
@@ -256,11 +274,13 @@ const UserDetailScreen: React.FC = () => {
         FollowStore.remove(userId);
         await FollowService.unfollow(userId);
         setFollowing(false);
+        setFollowersCount((n) => Math.max(0, n - 1));
       } else {
         // Optimistic update
         FollowStore.add(userId);
         await FollowService.follow(userId);
         setFollowing(true);
+        setFollowersCount((n) => n + 1);
       }
     } catch (e) {
       console.warn("follow toggle failed", e);
@@ -271,6 +291,7 @@ const UserDetailScreen: React.FC = () => {
     try {
       const ok = await requireAuth();
       if (!ok) return;
+      const wasFollowing = following;
       if (blocked) {
         // Optimistic
         BlockStore.remove(userId);
@@ -286,6 +307,9 @@ const UserDetailScreen: React.FC = () => {
         try {
           FollowStore.remove(userId);
         } catch {}
+        if (wasFollowing) {
+          setFollowersCount((n) => Math.max(0, n - 1));
+        }
       }
     } catch (e) {
       console.warn("block toggle failed", e);
@@ -309,56 +333,94 @@ const UserDetailScreen: React.FC = () => {
         <View style={{ width: 32 }} />
       </View>
 
-      {/* プロフィールヘッダー */}
+      {/* プロフィールヘッダー（アイコン → 名前 → 階級） */}
       <View>
-        <View style={styles.profileTop}>
-          <UserProfileWithRank
-            userName={live?.displayName ?? name}
-            userAvatar={live?.photoURL ?? avatar}
-            averageDays={averageDays}
-            size="small"
-            showRank={false}
-            showTitle={true}
-            style={styles.userProfileContainer}
+        <View style={styles.profileHeaderCenter}>
+          <AvatarImage
+            uri={live?.photoURL ?? avatar}
+            size={88}
+            style={styles.profileAvatar}
           />
-          {user?.uid !== userId && (
-            <View style={styles.actionsRow}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={onToggleFollow}
-                style={[
-                  styles.followBtn,
-                  following ? styles.following : styles.follow,
-                ]}
+          <Text style={styles.profileName} numberOfLines={1}>
+            {live?.displayName ?? name}
+          </Text>
+          <Text style={styles.profileRank} numberOfLines={1}>
+            {getRankDisplayByDays(averageDays)}
+          </Text>
+        </View>
+
+        {user?.uid !== userId && (
+          <View style={styles.ctaRow}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onToggleFollow}
+              style={[styles.primaryCta, following && styles.primaryCtaActive]}
+            >
+              <Ionicons
+                name={following ? "checkmark" : "person-add-outline"}
+                size={18}
+                color={colors.black}
+                style={styles.ctaIcon}
+              />
+              <Text style={styles.primaryCtaText}>
+                {following ? "フォロー中" : "フォロー"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onToggleBlock}
+              style={[styles.ghostCta, blocked && styles.ghostCtaActive]}>
+              <Ionicons
+                name={blocked ? "close-circle" : "remove-circle-outline"}
+                size={18}
+                color={blocked ? colors.gray800 : colors.textSecondary}
+                style={styles.ctaIcon}
+              />
+              <Text
+                style={[styles.ghostCtaText, blocked && styles.ghostCtaTextActive]}
               >
-                <Text
-                  style={[
-                    styles.followText,
-                    following ? styles.followingText : styles.followText,
-                  ]}
-                >
-                  {following ? "フォロー中" : "フォロー"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={onToggleBlock}
-                style={[
-                  styles.blockBtn,
-                  blocked ? styles.blocking : styles.block,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.blockText,
-                    blocked ? styles.blockingText : styles.blockText,
-                  ]}
-                >
-                  {blocked ? "ブロック中" : "ブロック"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+                {blocked ? "ブロック中" : "ブロック"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {/* 投稿/フォロー/フォロワー カウント */}
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{postsData.length}</Text>
+            <Text style={styles.statLabel}>投稿</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <TouchableOpacity
+            style={styles.statItem}
+            activeOpacity={0.8}
+            onPress={() =>
+              (navigation as any).navigate("FollowList", {
+                userId,
+                userName: live?.displayName ?? name,
+                mode: "following",
+              })
+            }
+          >
+            <Text style={styles.statNumber}>{followingCount}</Text>
+            <Text style={styles.statLabel}>フォロー</Text>
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <TouchableOpacity
+            style={styles.statItem}
+            activeOpacity={0.8}
+            onPress={() =>
+              (navigation as any).navigate("FollowList", {
+                userId,
+                userName: live?.displayName ?? name,
+                mode: "followers",
+              })
+            }
+          >
+            <Text style={styles.statNumber}>{followersCount}</Text>
+            <Text style={styles.statLabel}>フォロワー</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.divider} />
       </View>
@@ -440,14 +502,81 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.textSecondary,
   },
-  profileTop: {
-    flexDirection: "row",
+  // 新しいプロフィールヘッダー（縦並び: アイコン → 名前 → 階級）
+  profileHeaderCenter: {
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
+    paddingTop: spacing["2xl"],
+    paddingBottom: spacing.lg,
     backgroundColor: colors.white,
   },
+  profileAvatar: {
+    marginBottom: spacing.md,
+  },
+  profileName: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: "700",
+    color: colors.gray800,
+  },
+  profileRank: {
+    marginTop: 6,
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    fontWeight: "500",
+  },
+  // CTA 行（左: フォロー[黄塗り] 右: ブロック[枠線のみ]）
+  ctaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.white,
+  },
+  primaryCta: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FACC15", // amber-400 に近い黄
+    borderRadius: 28,
+    paddingVertical: 10,
+  },
+  primaryCtaActive: {
+    backgroundColor: "#FDE047", // amber-300 っぽい薄黄（フォロー中）
+  },
+  primaryCtaText: {
+    color: colors.black,
+    fontSize: typography.fontSize.base,
+    fontWeight: "700",
+  },
+  ghostCta: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderPrimary,
+    borderRadius: 28,
+    paddingVertical: 10,
+  },
+  ghostCtaActive: {
+    backgroundColor: "#E5E7EB",
+    borderColor: "#CBD5E1",
+  },
+  ghostCtaText: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.base,
+    fontWeight: "700",
+  },
+  ghostCtaTextActive: {
+    color: colors.gray800,
+  },
+  ctaIcon: {
+    marginRight: 8,
+  },
+  // 旧スタイル（参照用）
   actionsRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   userProfileContainer: {
     flex: 1,
@@ -605,6 +734,39 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold as any,
   },
   replySubmitTextDisabled: { color: colors.gray500 },
+  // stats
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.white,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.borderPrimary,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: "700",
+    color: colors.gray800,
+  },
+  statLabel: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    alignSelf: "stretch",
+    backgroundColor: colors.borderPrimary,
+    marginHorizontal: spacing.lg,
+    opacity: 0.6,
+  },
 });
 
 export default UserDetailScreen;

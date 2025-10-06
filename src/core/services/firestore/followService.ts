@@ -1,1 +1,1 @@
-﻿export { FollowService } from "../supabase/followService";
+export { FollowService } from "../supabase/followService";

@@ -1,4 +1,4 @@
-﻿export { DISABLE_FIRESTORE, COLLECTIONS } from "./firestore/constants";
+export { DISABLE_FIRESTORE, COLLECTIONS } from "./firestore/constants";
 export type {
   FirestoreUser,
   FirestoreChallenge,
