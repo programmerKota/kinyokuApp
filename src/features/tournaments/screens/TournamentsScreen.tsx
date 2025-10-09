@@ -2,13 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 // Firebase Timestamp は使用せず Date を利用
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Alert,
+  Text,
+  View,
 } from "react-native";
 
 import { supabase } from "@app/config/supabase.config";
@@ -26,6 +28,7 @@ import useTournamentParticipants from "@features/tournaments/hooks/useTournament
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
 import { colors, spacing, typography, shadows } from "@shared/theme";
+import { uiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import ProfileCache from "@core/services/profileCache";
 
@@ -65,6 +68,13 @@ const TournamentsScreen: React.FC = () => {
     onConfirm?: () => void;
     loading?: boolean;
   }>({ visible: false });
+
+  // 表示フィルター: すべて / 参加中
+  const [filter, setFilter] = useState<"all" | "joined">("all");
+  const visibleTournaments = useMemo(
+    () => (filter === "joined" ? tournaments.filter((t) => t.isJoined) : tournaments),
+    [filter, tournaments],
+  );
 
   // トーナメント一覧の購読
   useEffect(() => {
@@ -369,14 +379,20 @@ const TournamentsScreen: React.FC = () => {
 
       {/* ヘッダー削除（リクエストにより非表示） */}
 
+      {/* フィルター: 参加中 / すべて */}
+      <FilterTabs
+        active={filter}
+        onChange={(v) => setFilter(v)}
+      />
+
       <VirtualizedList
-        data={tournaments}
+        data={visibleTournaments}
         renderItem={renderTournament}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         loading={loading}
         hasMore={false} // 今はページング未対応
-        emptyMessage="トーナメントがありません"
+        emptyMessage={filter === "joined" ? "参加中のトーナメントがありません" : "トーナメントがありません"}
         itemHeight={200} // カード高さの目安
         maxToRenderPerBatch={5}
         windowSize={10}
@@ -450,3 +466,36 @@ const styles = StyleSheet.create({
 });
 
 export default TournamentsScreen;
+
+// 投稿画面と同じデザインのタブ（参加中 / すべて）
+const FilterTabs: React.FC<{
+  active: "all" | "joined";
+  onChange: (v: "all" | "joined") => void;
+}> = ({ active, onChange }) => {
+  return (
+    <SafeAreaView style={{ backgroundColor: colors.backgroundTertiary }}>
+      <View style={uiStyles.tabBar}>
+        <TouchableOpacity
+          style={[uiStyles.tab, active === "joined" && uiStyles.tabActive]}
+          onPress={() => onChange("joined")}
+        >
+          <Text
+            style={[uiStyles.tabText, active === "joined" && uiStyles.tabTextActive]}
+          >
+            参加中
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[uiStyles.tab, active === "all" && uiStyles.tabActive]}
+          onPress={() => onChange("all")}
+        >
+          <Text
+            style={[uiStyles.tabText, active === "all" && uiStyles.tabTextActive]}
+          >
+            すべて
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
