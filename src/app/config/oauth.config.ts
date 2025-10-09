@@ -12,11 +12,10 @@ const readBool = (key: string, def = true) => {
 };
 
 export const oauthConfig = {
-  google: readBool('EXPO_PUBLIC_OAUTH_GOOGLE', true),
-  twitter: readBool('EXPO_PUBLIC_OAUTH_TWITTER', true),
-  amazon: readBool('EXPO_PUBLIC_OAUTH_AMAZON', true),
-  line: readBool('EXPO_PUBLIC_OAUTH_LINE', true),
+  google: readBool('EXPO_PUBLIC_OAUTH_GOOGLE', false),
+  twitter: readBool('EXPO_PUBLIC_OAUTH_TWITTER', false),
+  amazon: readBool('EXPO_PUBLIC_OAUTH_AMAZON', false),
+  line: readBool('EXPO_PUBLIC_OAUTH_LINE', false),
 } as const;
 
 export default oauthConfig;
-

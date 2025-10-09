@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo, useRef, useStat
 import { View, Text, TextInput, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Modal from '@shared/components/Modal';
+import { oauthConfig } from '@app/config/oauth.config';
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
 import { supabase } from '@app/config/supabase.config';
@@ -131,6 +132,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const value = useMemo<Ctx>(() => ({ requireAuth }), [requireAuth]);
 
+  const anyOAuth = oauthConfig.twitter || oauthConfig.google || oauthConfig.amazon || oauthConfig.line;
+
   return (
     <AuthPromptContext.Provider value={value}>
       {children}
@@ -239,37 +242,47 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             )}
           </View>
 
-          <View style={{ alignItems: 'center', marginTop: spacing.sm, gap: 10 }}>
-            <Text style={{ color: colors.textSecondary }}>または</Text>
-            <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>他のアカウントでログイン</Text>
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
-              <Pressable
-                onPress={() => { void startOAuth('twitter'); }}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
-              >
-                <Ionicons name="logo-twitter" size={20} color={colors.textPrimary} />
-              </Pressable>
-              <Pressable
-                onPress={() => { void startOAuth('google'); }}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
-              >
-                <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
-              </Pressable>
-              <Pressable
-                onPress={() => { void startOAuth('amazon'); }}
-                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
-              >
-                <Ionicons name="logo-amazon" size={20} color={colors.textPrimary} />
-              </Pressable>
-              <Pressable
-                accessibilityLabel="Sign in with LINE"
-                onPress={() => { void startOAuth('line'); }}
-                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: '#06C755', alignItems: 'center', justifyContent: 'center' })}
-              >
-                <Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text>
-              </Pressable>
+          {anyOAuth ? (
+            <View style={{ alignItems: 'center', marginTop: spacing.sm, gap: 10 }}>
+              <Text style={{ color: colors.textSecondary }}>または</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>他のアカウントでログイン</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
+                {oauthConfig.twitter && (
+                  <Pressable
+                    onPress={() => { void startOAuth('twitter'); }}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                  >
+                    <Ionicons name="logo-twitter" size={20} color={colors.textPrimary} />
+                  </Pressable>
+                )}
+                {oauthConfig.google && (
+                  <Pressable
+                    onPress={() => { void startOAuth('google'); }}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                  >
+                    <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
+                  </Pressable>
+                )}
+                {oauthConfig.amazon && (
+                  <Pressable
+                    onPress={() => { void startOAuth('amazon'); }}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                  >
+                    <Ionicons name="logo-amazon" size={20} color={colors.textPrimary} />
+                  </Pressable>
+                )}
+                {oauthConfig.line && (
+                  <Pressable
+                    accessibilityLabel="Sign in with LINE"
+                    onPress={() => { void startOAuth('line'); }}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: '#06C755', alignItems: 'center', justifyContent: 'center' })}
+                  >
+                    <Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
-          </View>
+          ) : null}
         </View>
       </Modal>
     </AuthPromptContext.Provider >

@@ -78,6 +78,8 @@ const AuthScreen: React.FC = () => {
     } finally { setSubmitting(null); }
   }, [email, validateEmail]);
 
+  const anyOAuth = oauthConfig.twitter || oauthConfig.google || oauthConfig.amazon || oauthConfig.line;
+
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.card}>
@@ -137,24 +139,26 @@ const AuthScreen: React.FC = () => {
             style={{ width: '100%', marginTop: spacing.lg }}
           />
 
-          <View style={{ alignItems: 'center', marginTop: spacing.lg }}>
-            <Text style={{ color: colors.textSecondary }}>— または —</Text>
-            <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 6 }}>連携済みのアカウントでログイン</Text>
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-              {oauthConfig.twitter && (
-                <Pressable onPress={() => { void startOAuth('twitter'); }} style={styles.iconBtn}><Ionicons name="logo-twitter" size={20} color={colors.textPrimary} /></Pressable>
-              )}
-              {oauthConfig.google && (
-                <Pressable onPress={() => { void startOAuth('google'); }} style={styles.iconBtn}><Ionicons name="logo-google" size={20} color={colors.textPrimary} /></Pressable>
-              )}
-              {oauthConfig.amazon && (
-                <Pressable onPress={() => { void startOAuth('amazon'); }} style={styles.iconBtn}><Ionicons name="logo-amazon" size={20} color={colors.textPrimary} /></Pressable>
-              )}
-              {oauthConfig.line && (
-                <Pressable onPress={() => { void startOAuth('line'); }} style={[styles.iconBtn, { backgroundColor: '#06C755', borderColor: '#06C755' }]}><Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text></Pressable>
-              )}
+          {anyOAuth ? (
+            <View style={{ alignItems: 'center', marginTop: spacing.lg }}>
+              <Text style={{ color: colors.textSecondary }}>— または —</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 6 }}>連携済みのアカウントでログイン</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                {oauthConfig.twitter && (
+                  <Pressable onPress={() => { void startOAuth('twitter'); }} style={styles.iconBtn}><Ionicons name="logo-twitter" size={20} color={colors.textPrimary} /></Pressable>
+                )}
+                {oauthConfig.google && (
+                  <Pressable onPress={() => { void startOAuth('google'); }} style={styles.iconBtn}><Ionicons name="logo-google" size={20} color={colors.textPrimary} /></Pressable>
+                )}
+                {oauthConfig.amazon && (
+                  <Pressable onPress={() => { void startOAuth('amazon'); }} style={styles.iconBtn}><Ionicons name="logo-amazon" size={20} color={colors.textPrimary} /></Pressable>
+                )}
+                {oauthConfig.line && (
+                  <Pressable onPress={() => { void startOAuth('line'); }} style={[styles.iconBtn, { backgroundColor: '#06C755', borderColor: '#06C755' }]}><Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text></Pressable>
+                )}
+              </View>
             </View>
-          </View>
+          ) : null}
         </View>
       </View>
     </ScrollView>
