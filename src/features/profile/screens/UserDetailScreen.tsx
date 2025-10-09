@@ -525,8 +525,8 @@ const styles = StyleSheet.create({
     color: colors.gray800,
   },
   profileRank: {
-    marginTop: 6,
-    fontSize: typography.fontSize.base,
+    marginTop: 4,
+    fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
     fontWeight: "500",
   },
