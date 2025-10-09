@@ -109,19 +109,14 @@ export class FollowService {
     let channel: ReturnType<typeof supabase.channel> | undefined;
 
     const init = async () => {
-      // Determine the effective follower ID from the current Supabase session first.
-      let effectiveFollowerId = followerId;
-      try {
-        const { data: s } = await supabase.auth.getSession();
-        const suid = s?.session?.user?.id as string | undefined;
-        if (suid) effectiveFollowerId = suid;
-      } catch {}
+      // Always respect the followerId argument (閲覧対象のユーザー)
+      const effectiveFollowerId = followerId;
 
       // Initial emit
       try {
         const userIds = await FollowService.getFollowingUserIds(effectiveFollowerId);
         callback(userIds);
-      } catch {
+      } catch (_e) {
         callback([]);
       }
 
@@ -148,7 +143,7 @@ export class FollowService {
                 effectiveFollowerId,
               );
               callback(userIds);
-            } catch {
+            } catch (_e) {
               // ignore
             }
           },
