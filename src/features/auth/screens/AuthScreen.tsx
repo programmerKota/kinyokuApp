@@ -41,7 +41,8 @@ const AuthScreen: React.FC = () => {
     const s = v || '';
     if (!s) return 'パスワードを入力してください。';
     if (s.length < 8) return 'パスワードは8文字以上で入力してください。';
-    if (!/^[A-Za-z0-9]+$/.test(s)) return 'パスワードは半角英数字のみで入力してください。';
+    // 英数字・記号（ASCII） のみ許可（日本語・全角は不可）
+    if (!/^[\x21-\x7E]+$/.test(s)) return 'パスワードは英数字・記号のみで入力してください。';
     return null;
   }, []);
 
@@ -122,7 +123,7 @@ const AuthScreen: React.FC = () => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPass}
-              placeholder="半角英数字のみ・8文字以上"
+              placeholder="英数字・記号のみ・8文字以上"
               placeholderTextColor={colors.textSecondary}
               onBlur={() => setPassTouched(true)}
             />
@@ -130,7 +131,7 @@ const AuthScreen: React.FC = () => {
               <Ionicons name={showPass ? 'eye-off' : 'eye'} size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>半角英数字のみ・8文字以上</Text>
+          <Text style={styles.hint}>英数字・記号のみ・8文字以上</Text>
           {(passTouched || triedSubmit) && passErr ? <Text style={styles.hintError}>{passErr}</Text> : null}
 
           <View style={styles.linksRow}>
