@@ -19,6 +19,9 @@ const AuthScreen: React.FC = () => {
   const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [emailErr, setEmailErr] = useState<string | null>(null);
   const [passErr, setPassErr] = useState<string | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passTouched, setPassTouched] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
   const [submitting, setSubmitting] = useState<null | 'login' | 'signup' | 'reset' | 'oauth'>(null);
 
   useEffect(() => {
@@ -35,8 +38,10 @@ const AuthScreen: React.FC = () => {
   }, []);
 
   const validatePass = useCallback((v: string) => {
-    if (!v) return 'パスワードを入力してください。';
-    if (v.length < 8) return 'パスワードは8文字以上の英数字で入力してください。';
+    const s = v || '';
+    if (!s) return 'パスワードを入力してください。';
+    if (s.length < 8) return 'パスワードは8文字以上で入力してください。';
+    if (!/^[A-Za-z0-9]+$/.test(s)) return 'パスワードは半角英数字のみで入力してください。';
     return null;
   }, []);
 
@@ -46,7 +51,12 @@ const AuthScreen: React.FC = () => {
   const canSubmit = useMemo(() => !emailErr && !passErr && !!email && !!password, [emailErr, passErr, email, password]);
 
   const submit = useCallback(async () => {
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      setTriedSubmit(true);
+      setEmailTouched(true);
+      setPassTouched(true);
+      return;
+    }
     try {
       setSubmitting(tab);
       if (tab === 'login') {
@@ -71,7 +81,7 @@ const AuthScreen: React.FC = () => {
   }, []);
 
   const doReset = useCallback(async () => {
-    if (validateEmail(email)) { setEmailErr(validateEmail(email)); return; }
+    if (validateEmail(email)) { setEmailErr(validateEmail(email)); setEmailTouched(true); return; }
     try {
       setSubmitting('reset');
       await resetPassword(email.trim());
@@ -98,9 +108,10 @@ const AuthScreen: React.FC = () => {
             autoCapitalize="none"
             placeholder="sample@example.com"
             placeholderTextColor={colors.textSecondary}
-            style={[styles.input, emailErr ? styles.inputError : null]}
+            onBlur={() => setEmailTouched(true)}
+            style={[styles.input, (emailTouched || triedSubmit) && emailErr ? styles.inputError : null]}
           />
-          {emailErr ? <Text style={styles.hintError}>{emailErr}</Text> : null}
+          {(emailTouched || triedSubmit) && emailErr ? <Text style={styles.hintError}>{emailErr}</Text> : null}
 
           <View style={{ height: spacing.md }} />
 
@@ -113,13 +124,14 @@ const AuthScreen: React.FC = () => {
               secureTextEntry={!showPass}
               placeholder="半角英数字のみ・8文字以上"
               placeholderTextColor={colors.textSecondary}
+              onBlur={() => setPassTouched(true)}
             />
             <TouchableOpacity onPress={() => setShowPass((v) => !v)}>
               <Ionicons name={showPass ? 'eye-off' : 'eye'} size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <Text style={styles.hint}>半角英数字のみ・8文字以上</Text>
-          {passErr ? <Text style={styles.hintError}>{passErr}</Text> : null}
+          {(passTouched || triedSubmit) && passErr ? <Text style={styles.hintError}>{passErr}</Text> : null}
 
           <View style={styles.linksRow}>
             <Pressable onPress={doReset}><Text style={styles.link}>パスワードを忘れた方</Text></Pressable>
@@ -136,6 +148,7 @@ const AuthScreen: React.FC = () => {
             title={tab==='login' ? (submitting==='login' ? 'サインイン中…' : 'ログイン') : (submitting==='signup' ? '作成中…' : '新規登録')}
             onPress={submit}
             loading={submitting === tab}
+            disabled={!canSubmit || !!submitting}
             style={{ width: '100%', marginTop: spacing.lg }}
           />
 
