@@ -14,16 +14,17 @@ import {
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import { ChallengeService } from "@core/services/firestore";
+import { ChallengeService, PaymentFirestoreService } from "@core/services/firestore";
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
-import type { Challenge } from "@project-types";
+import type { Challenge, Payment } from "@project-types";
 import { colors, spacing, typography } from "@shared/theme";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   // 画面表示中のみ1秒ごとに再描画して、進行中チャレンジの時間・統計をリアルタイム更新
   const [, setNowTick] = useState(0);
@@ -80,6 +81,24 @@ const HistoryScreen: React.FC = () => {
               : new Date(challenge.updatedAt as any),
         }));
         setChallenges(challengesData);
+
+        // 支払い履歴を取得（ベストエフォート）
+        try {
+          const list = await PaymentFirestoreService.getUserPayments(user.uid);
+          const mapped: Payment[] = list.map((p) => ({
+            id: p.id,
+            userId: p.userId,
+            amount: p.amount,
+            type: p.type as Payment["type"],
+            status: p.status as Payment["status"],
+            transactionId: p.transactionId ?? undefined,
+            createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any),
+            updatedAt: p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt as any),
+          }));
+          setPayments(mapped);
+        } catch {
+          setPayments([]);
+        }
       } catch (error) {
         console.error("データの取得に失敗しました:", error);
       }
@@ -133,6 +152,24 @@ const HistoryScreen: React.FC = () => {
             : new Date(challenge.updatedAt as any),
       }));
       setChallenges(challengesData);
+
+      // 支払い履歴を再取得
+      try {
+        const list = await PaymentFirestoreService.getUserPayments(user.uid);
+        const mapped: Payment[] = list.map((p) => ({
+          id: p.id,
+          userId: p.userId,
+          amount: p.amount,
+          type: p.type as Payment["type"],
+          status: p.status as Payment["status"],
+          transactionId: p.transactionId ?? undefined,
+          createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any),
+          updatedAt: p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt as any),
+        }));
+        setPayments(mapped);
+      } catch {
+        setPayments([]);
+      }
     } catch (error) {
       console.error("データの再取得に失敗しました:", error);
     } finally {
@@ -275,6 +312,40 @@ const HistoryScreen: React.FC = () => {
               <Text style={styles.emptyText}>
                 最初のチャレンジを始めましょう！
               </Text>
+            </View>
+          )}
+        </View>
+
+        {/* 支払い履歴セクション */}
+        <View style={styles.pastRecordsSection}>
+          <View style={styles.pastRecordsHeader}>
+            <Ionicons name="card" size={20} color={colors.textSecondary} />
+            <Text style={styles.pastRecordsTitle}>支払い履歴</Text>
+          </View>
+
+          {payments.length > 0 ? (
+            <FlatList
+              data={payments}
+              renderItem={({ item }) => (
+                <HistoryCard
+                  item={item}
+                  type="payment"
+                  onPress={() => {
+                    /* noop */
+                  }}
+                />
+              )}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <View style={styles.leafIcon}>
+                <Ionicons name="cash" size={32} color={colors.gray300} />
+              </View>
+              <Text style={styles.emptyTitle}>支払い履歴はありません</Text>
+              <Text style={styles.emptyText}>ペナルティ支払いがここに表示されます</Text>
             </View>
           )}
         </View>

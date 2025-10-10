@@ -14,6 +14,8 @@ export const revenuecatConfig = {
     pick('EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY') || pick('EXPO_PUBLIC_RC_API_KEY'),
   androidPublicApiKey:
     pick('EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY') || pick('EXPO_PUBLIC_RC_API_KEY'),
+  // Offering key used for penalty purchase flow (fallback: 'penalty')
+  penaltyOfferingKey: pick('EXPO_PUBLIC_RC_PENALTY_OFFERING') || 'penalty',
 } as const;
 
 export default revenuecatConfig;

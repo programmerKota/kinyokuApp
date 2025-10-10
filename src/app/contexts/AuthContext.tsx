@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { Platform } from "react-native";
 
 import {
   FirestoreUserService,
@@ -16,6 +17,7 @@ import { CommunityService } from "@core/services/supabase/communityService";
 import { supabase } from "@app/config/supabase.config";
 import UserService from "@core/services/userService";
 import { uploadUserAvatar } from "@core/services/supabase/storageService";
+import { PurchasesService } from "@core/services/payments/purchasesService";
 import { withRetry } from "@shared/utils/net";
 import type { User } from "@project-types";
 import { BlockStore } from "@shared/state/blockStore";
@@ -123,6 +125,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } as unknown as User;
       setUser(userData);
 
+      // RevenueCat 登録（ベストエフォート）
+      try {
+        if (supaSessionUid) {
+          await PurchasesService.registerUser({
+            uid: supaSessionUid,
+            displayName,
+            // Supabaseのユーザー情報に email がある場合は反映（ないケースもある）
+            email: (await supabase.auth.getUser()).data?.user?.email || undefined,
+            platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
+          });
+        }
+      } catch { /* ignore */ }
+
       // Best-effort: reflect profile to posts/comments right after login so UI updates without manual edit
       if (supaSessionUid) {
         void Promise.allSettled([
@@ -222,6 +237,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         createdAt: prev?.createdAt || new Date(),
         updatedAt: new Date(),
       } as User));
+
+      // RevenueCat へプロフィール属性を反映（ベストエフォート）
+      try {
+        await PurchasesService.registerUser({
+          uid: suid,
+          displayName,
+          email: (await supabase.auth.getUser()).data?.user?.email || undefined,
+          platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
+        });
+      } catch { /* ignore */ }
 
       // Best-effort reflection to related tables
       void Promise.allSettled([

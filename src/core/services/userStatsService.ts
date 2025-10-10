@@ -1,4 +1,5 @@
 import { ChallengeService } from "./firestore";
+import { supabase } from "@app/config/supabase.config";
 // 仕様更新: ランキング/肩書きは履歴の平均ではなく「現在のチャレンジの記録」から算出する
 
 function toDateSafe(v: any): Date | undefined {
@@ -91,11 +92,23 @@ export class UserStatsService {
   // 開始から24時間未満は0日（訓練兵）として扱う
   static async getUserCurrentDaysForRank(userId: string): Promise<number> {
     try {
+      // Prefer RPC to bypass RLS for cross-user reads (secured as SECURITY DEFINER)
+      const { data, error } = await supabase.rpc(
+        "get_user_current_days_for_rank",
+        { p_user_id: userId },
+      );
+      if (!error && typeof data === "number") {
+        return Math.max(0, Math.floor(data));
+      }
+    } catch (_e) {
+      // ignore and fallback
+    }
+
+    try {
       const active = await ChallengeService.getActiveChallenge(userId);
       if (!active) return 0;
       const started = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
-      // 0-based 経過日数（開始直後は0日）
       const days = Math.floor(
         (now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000),
       );

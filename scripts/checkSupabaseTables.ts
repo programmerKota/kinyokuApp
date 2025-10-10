@@ -73,6 +73,7 @@ async function main() {
     "diaries",
     "challenges",
     "payments",
+    "payment_logs",
     "community_posts",
     "community_comments",
     "community_likes",

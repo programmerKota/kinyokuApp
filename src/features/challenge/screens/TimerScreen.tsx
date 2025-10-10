@@ -135,7 +135,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
       <PenaltyPaywall
         amountJPY={currentSession?.penaltyAmount || 0}
         visible={paywallVisible}
-        onPaid={async () => {
+        onPaid={async (info) => {
           try {
             setPaywallVisible(false);
             // Record payment best-effort here
@@ -146,6 +146,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
                   amount: currentSession.penaltyAmount,
                   type: "penalty",
                   status: "completed",
+                  transactionId: info?.transactionId || info?.productIdentifier || undefined,
                 } as any);
               }
             } catch {}

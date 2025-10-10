@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
 import { PurchasesService, PenaltyPackage } from '@core/services/payments/purchasesService';
+import { PaymentFirestoreService } from '@core/services/firestore';
 
-export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onPaid: () => void; onError?: (e: any) => void; }>
+export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onPaid: (info?: { transactionId?: string; productIdentifier?: string }) => void; onError?: (e: any) => void; }>
 = ({ amountJPY, visible, onPaid, onError }) => {
   const [loading, setLoading] = useState(true);
   const [pkg, setPkg] = useState<PenaltyPackage | null>(null);
@@ -15,10 +16,13 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
     setLoading(true);
     (async () => {
       try {
+        // log paywall shown
+        try { await PaymentFirestoreService.addPaymentLog({ event: 'show', status: 'ok', amount: amountJPY, platform: Platform.OS, }); } catch {}
         const p = await PurchasesService.getPenaltyPackage(amountJPY);
         setPkg(p);
       } catch (e) {
         onError?.(e);
+        try { await PaymentFirestoreService.addPaymentLog({ event: 'purchase', status: 'error', amount: amountJPY, platform: Platform.OS, errorMessage: String((e as any)?.message || e) }); } catch {}
       } finally {
         setLoading(false);
       }
@@ -36,14 +40,17 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
           <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.lg }} />
         ) : pkg ? (
           <>
-            <Text style={styles.amount}>¥{amountJPY.toLocaleString()}</Text>
+            {/* 実際のストア価格を優先表示（ターゲット額と差がある場合の混乱を避ける） */}
+            <Text style={styles.amount}>¥{(pkg.price ?? amountJPY).toLocaleString()}</Text>
             <DSButton title={purchasing ? '処理中...' : '支払う'} onPress={async () => {
               try {
                 setPurchasing(true);
-                const ok = await PurchasesService.purchase(pkg);
-                if (ok) onPaid();
+                const res = await PurchasesService.purchase(pkg);
+                try { await PaymentFirestoreService.addPaymentLog({ event: 'purchase', status: res?.success ? 'success' : 'error', amount: pkg.price, productId: res?.productIdentifier, platform: Platform.OS, transactionId: res?.transactionId, raw: res }); } catch {}
+                if (res?.success) onPaid({ transactionId: res.transactionId, productIdentifier: res.productIdentifier });
               } catch (e) {
                 onError?.(e);
+                try { await PaymentFirestoreService.addPaymentLog({ event: 'purchase', status: 'error', amount: pkg?.price, productId: pkg?.identifier, platform: Platform.OS, errorMessage: String((e as any)?.message || e), raw: e }); } catch {}
               } finally { setPurchasing(false); }
             }} loading={purchasing} style={{ width: '100%', marginTop: spacing.md }} />
           </>
@@ -64,4 +71,3 @@ const styles = StyleSheet.create({
 });
 
 export default PenaltyPaywall;
-

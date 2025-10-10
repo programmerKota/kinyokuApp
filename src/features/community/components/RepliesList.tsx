@@ -7,6 +7,8 @@ import ReplyCard from "@features/community/components/ReplyCard";
 import type { CommunityComment } from "@project-types";
 import { colors, spacing } from "@shared/theme";
 import { ReplyEventBus } from "@shared/state/replyEventBus";
+import { useBlockedIds } from "@shared/state/blockStore";
+import { ReplyCountStore } from "@shared/state/replyStore";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface RepliesListProps {
@@ -21,6 +23,7 @@ const RepliesList: React.FC<RepliesListProps> = ({
   allowBlockedReplies = false,
 }) => {
   const [replies, setReplies] = useState<CommunityComment[]>([]);
+  const blockedSet = useBlockedIds();
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
@@ -29,25 +32,25 @@ const RepliesList: React.FC<RepliesListProps> = ({
     const unsubscribe = CommunityService.subscribeToPostReplies(
       postId,
       (repliesList: CommunityComment[]) => {
+        const visible = allowBlockedReplies
+          ? repliesList
+          : repliesList.filter((r) => !blockedSet.has(r.authorId));
         setReplies((prev) => {
-          // Avoid needless state updates when identical
           if (
-            prev.length === repliesList.length &&
-            prev.every(
-              (r, i) =>
-                r.id === repliesList[i]?.id &&
-                r.content === repliesList[i]?.content,
-            )
+            prev.length === visible.length &&
+            prev.every((r, i) => r.id === visible[i]?.id && r.content === visible[i]?.content)
           ) {
             return prev;
           }
-          return repliesList;
+          return visible;
         });
-        void initializeUserAverageDays(repliesList);
+        // keep bubble count in sync with visible items
+        try { ReplyCountStore.set(postId, visible.length); } catch {}
+        void initializeUserAverageDays(visible);
       },
     );
     return unsubscribe;
-  }, [postId, allowBlockedReplies]);
+  }, [postId, allowBlockedReplies, blockedSet]);
 
   // Local fallback: if a reply was added from this client but Realtime is delayed,
   // nudge refresh by fetching the latest replies on emit.
@@ -56,21 +59,25 @@ const RepliesList: React.FC<RepliesListProps> = ({
       void (async () => {
         try {
           const list = await CommunityService.getPostReplies(postId);
+          const visible = allowBlockedReplies
+            ? list
+            : list.filter((r) => !blockedSet.has(r.authorId));
           setReplies((prev) => {
             if (
-              prev.length === list.length &&
-              prev.every((r, i) => r.id === list[i]?.id && r.content === list[i]?.content)
+              prev.length === visible.length &&
+              prev.every((r, i) => r.id === visible[i]?.id && r.content === visible[i]?.content)
             ) {
               return prev;
             }
-            return list;
+            return visible;
           });
-          void initializeUserAverageDays(list);
+          try { ReplyCountStore.set(postId, visible.length); } catch {}
+          void initializeUserAverageDays(visible);
         } catch {}
       })();
     });
     return unsub;
-  }, [postId]);
+  }, [postId, allowBlockedReplies, blockedSet]);
 
   const initializeUserAverageDays = async (replies: CommunityComment[]) => {
     const averageDaysMap = new Map<string, number>();

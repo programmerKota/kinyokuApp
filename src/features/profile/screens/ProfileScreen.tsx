@@ -210,8 +210,10 @@ const ProfileScreen: React.FC = () => {
                   onPress={async () => {
                     try {
                       await PurchasesService.restore();
+                      try { await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'success', platform: 'ios' as any }); } catch {}
                       Alert.alert("復元完了", "購入情報を復元しました。");
                     } catch (e: any) {
+                      try { await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'error', platform: 'ios' as any, errorMessage: e?.message || String(e) }); } catch {}
                       Alert.alert("エラー", e?.message || "復元に失敗しました");
                     }
                   }}
