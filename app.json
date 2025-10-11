@@ -28,7 +28,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            { "scheme": "abstinence" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -50,6 +60,7 @@
       "EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY": "appl_SByWcqIzkLsDEETgniNtsinAFip",
       "EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY": "",
       "EXPO_PUBLIC_PAYMENTS_DEV_MODE": "false",
+      "EXPO_PUBLIC_OAUTH_GOOGLE": "true",
       "EXPO_PUBLIC_RC_PENALTY_OFFERING": "penalty",
       "eas": {
         "projectId": "3f92a554-fe34-4984-921b-a6d807c9730b"

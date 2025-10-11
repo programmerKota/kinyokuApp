@@ -42,7 +42,7 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
           <>
             {/* 実際のストア価格を優先表示（ターゲット額と差がある場合の混乱を避ける） */}
             <Text style={styles.amount}>¥{(pkg.price ?? amountJPY).toLocaleString()}</Text>
-            <DSButton title={purchasing ? '処理中...' : '支払う'} onPress={async () => {
+            <DSButton testID="pay-btn" title={purchasing ? '処理中...' : '支払う'} onPress={async () => {
               try {
                 setPurchasing(true);
                 const res = await PurchasesService.purchase(pkg);

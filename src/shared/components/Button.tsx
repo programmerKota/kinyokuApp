@@ -16,6 +16,7 @@ interface ButtonProps {
   textStyle?: StyleProp<TextStyle>;
   icon?: keyof typeof Ionicons.glyphMap;
   loading?: boolean;
+  testID?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -28,6 +29,7 @@ const Button: React.FC<ButtonProps> = ({
   textStyle,
   icon,
   loading = false,
+  testID,
 }) => {
   const buttonStyle = [
     createButtonStyle(variant, size),
@@ -73,6 +75,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
       style={buttonStyle}
       onPress={onPress}
       disabled={disabled || loading}

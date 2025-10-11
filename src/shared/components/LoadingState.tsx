@@ -11,6 +11,7 @@ interface LoadingStateProps {
   size?: "small" | "large";
   color?: string;
   style?: any;
+  testID?: string;
 }
 
 const LoadingState: React.FC<LoadingStateProps> = ({
@@ -19,6 +20,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   size = "large",
   color = colors.primary,
   style,
+  testID,
 }) => {
   const containerStyle = [styles.container, styles[variant], style];
 
@@ -26,7 +28,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
 
   return (
     <View style={containerStyle}>
-      <ActivityIndicator size={size} color={color} />
+      <ActivityIndicator testID={testID || "loading-activity-indicator"} size={size} color={color} />
       {message && <Text style={textStyle}>{message}</Text>}
     </View>
   );

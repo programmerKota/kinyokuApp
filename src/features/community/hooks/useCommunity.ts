@@ -502,8 +502,27 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       if (likingIds.has(postId)) return;
       setLikingIds((prev) => new Set(prev).add(postId));
       try {
-        // Perform server toggle only; UI was updated optimistically.
-        await CommunityService.toggleLike(postId);
+        // Reconcile optimistic UI with server result
+        const prevState = (() => {
+          try { return (require("@shared/state/likeStore") as any).LikeStore.get(postId); } catch { return undefined; }
+        })() as { isLiked: boolean; likes: number } | undefined;
+
+        const liked = await CommunityService.toggleLike(postId);
+
+        try {
+          const { LikeStore } = require("@shared/state/likeStore");
+          const cur = LikeStore.get(postId) || prevState || { isLiked: false, likes: 0 };
+          const needsAdjust = cur.isLiked !== liked;
+          const nextLikes = needsAdjust ? Math.max(0, (cur.likes || 0) + (liked ? 1 : -1)) : cur.likes;
+          LikeStore.set(postId, { isLiked: liked, likes: nextLikes });
+        } catch {}
+      } catch (e) {
+        // Rollback optimistic change on failure
+        try {
+          const { LikeStore } = require("@shared/state/likeStore");
+          const cur = LikeStore.get(postId) || { isLiked: false, likes: 0 };
+          LikeStore.set(postId, { isLiked: !cur.isLiked, likes: Math.max(0, (cur.likes || 0) + (cur.isLiked ? 1 : -1)) });
+        } catch {}
       } finally {
         setLikingIds((prev) => {
           const next = new Set(prev);

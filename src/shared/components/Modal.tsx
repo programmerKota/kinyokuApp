@@ -57,8 +57,8 @@ const Modal: React.FC<ModalProps> = ({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
           >
-            <TouchableWithoutFeedback onPress={handleContentPress}>
-              <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
+            {/* Do not intercept presses inside content; it blocks nested buttons (OAuth, etc.) */}
+            <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
                 {!hideHeader && (
                   <View style={styles.header}>
                     <Text style={styles.title}>{title}</Text>
@@ -78,8 +78,7 @@ const Modal: React.FC<ModalProps> = ({
                 >
                   {children}
                 </ScrollView>
-              </View>
-            </TouchableWithoutFeedback>
+            </View>
           </KeyboardAvoidingView>
         </View>
       </TouchableWithoutFeedback>

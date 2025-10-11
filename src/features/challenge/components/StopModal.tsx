@@ -71,7 +71,7 @@ const StopModal: React.FC<StopModalProps> = ({
               variant="secondary"
               style={styles.modalButton}
             />
-            <Button title="OK" onPress={onConfirm} style={styles.modalButton} />
+            <Button testID="confirm-btn" title="OK" onPress={onConfirm} style={styles.modalButton} />
           </View>
         </View>
       ) : (

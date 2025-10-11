@@ -15,9 +15,10 @@ type Props = {
   icon?: keyof typeof Ionicons.glyphMap;
   loading?: boolean;
   textColor?: string;
+  testID?: string;
 };
 
-const DSButton: React.FC<Props> = ({ title, onPress, disabled, style, variant = "primary", icon, loading, textColor }) => {
+const DSButton: React.FC<Props> = ({ title, onPress, disabled, style, variant = "primary", icon, loading, textColor, testID }) => {
   const bg = variant === "primary"
     ? colors.primary
     : variant === "secondary"
@@ -29,6 +30,7 @@ const DSButton: React.FC<Props> = ({ title, onPress, disabled, style, variant = 
   const borderColor = variant === "ghost" ? colors.borderPrimary : "transparent";
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       style={({ pressed }) => [
         styles.base,

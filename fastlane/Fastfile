@@ -1,0 +1,31 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Run Playwright E2E on Expo Web"
+  lane :e2e_web do
+    sh "npx playwright test -c playwright.config.ts"
+  end
+
+  desc "OTA update to production branch with message"
+  lane :ota_update do |options|
+    msg = options[:message] || "Automated OTA update"
+    sh "CI=1 npx eas update --branch production --message \"#{msg}\""
+  end
+
+  desc "Build iOS store binary via EAS"
+  lane :build_store do
+    sh "npx eas build -p ios --profile production --non-interactive"
+  end
+
+  desc "Submit latest build to App Store Connect via EAS"
+  lane :submit_store do
+    sh "npx eas submit -p ios --latest --profile production --non-interactive"
+  end
+
+  desc "Build and Submit (store)"
+  lane :release do
+    build_store
+    submit_store
+  end
+end
+

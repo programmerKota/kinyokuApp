@@ -36,7 +36,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
             <Text style={styles.dayLabel}>日</Text>
             <Text style={styles.timeText}>{timeText}</Text>
           </View>
-          <TouchableOpacity style={styles.startButton} onPress={onStartPress}>
+          <TouchableOpacity testID="start-btn" style={styles.startButton} onPress={onStartPress}>
             <Text style={styles.startButtonText}>禁欲開始</Text>
           </TouchableOpacity>
         </View>
@@ -63,7 +63,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.stopButton} onPress={onStopPress}>
+          <TouchableOpacity testID="stop-btn" style={styles.stopButton} onPress={onStopPress}>
             <Text style={styles.stopButtonText}>停止</Text>
           </TouchableOpacity>
         </View>

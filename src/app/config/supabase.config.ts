@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
@@ -65,9 +66,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Persist session in AsyncStorage
     persistSession: true,
     storage: AsyncStorage,
+    // Use PKCE flow for native OAuth
+    flowType: 'pkce',
     // Detect session from URL (for OAuth flows)
     // Webでは true にして OAuth リダイレクトを処理する
-    detectSessionInUrl: typeof window !== "undefined",
+    detectSessionInUrl: Platform.OS === 'web',
   },
   realtime: {
     // Enable realtime subscriptions

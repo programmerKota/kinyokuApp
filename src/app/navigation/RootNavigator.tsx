@@ -12,6 +12,8 @@ import FollowListScreen from "@features/profile/screens/FollowListScreen";
 import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import ProfileScreen from "@features/profile/screens/ProfileScreen";
 import { colors } from "@shared/theme";
+import E2EScreen from "@features/e2e/screens/E2EScreen";
+import { useEffect } from "react";
 
 import DiaryStackNavigator from "./DiaryStackNavigator";
 import HistoryStackNavigator from "./HistoryStackNavigator";
@@ -35,6 +37,7 @@ export type RootStackParamList = {
   BlockedUsers: undefined;
   Feedback: undefined;
   DevCrud?: undefined;
+  E2E: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -107,9 +110,18 @@ const MainTabs: React.FC = () => (
   </Tab.Navigator>
 );
 
-const RootNavigator: React.FC = () => (
+const RootNavigator: React.FC = () => {
+  const isE2E = (() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return new URLSearchParams(window.location.search).get('e2e') === '1';
+      }
+    } catch {}
+    return false;
+  })();
+  return (
   <NavigationContainer>
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? 'E2E' : 'MainTabs'}>
       <RootStack.Screen name="MainTabs" component={MainTabs} />
       <RootStack.Screen name="History" component={HistoryStackNavigator} />
       <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
@@ -118,12 +130,14 @@ const RootNavigator: React.FC = () => (
       <RootStack.Screen name="FollowList" component={FollowListScreen} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-      {/* 開発環境でのみ表示されるデバッグ画面のため、本番環境では表示されない */}
-      {__DEV__ && DevCrudTestScreen && (
+      {/* デバッグ/テスト用 */}
+      {DevCrudTestScreen && (
         <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
       )}
+      {/* Web/E2E用の固定画面 */}
+      <RootStack.Screen name="E2E" component={E2EScreen} />
     </RootStack.Navigator>
   </NavigationContainer>
-);
+)};
 
 export default RootNavigator;

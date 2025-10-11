@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
-import { supabase } from '@app/config/supabase.config';
+import { supabase, supabaseConfig } from '@app/config/supabase.config';
 import { signInWithEmailPassword, signUpWithEmailPassword, resetPassword, getRedirectTo } from '@core/services/supabase/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { oauthConfig } from '@app/config/oauth.config';
@@ -26,7 +27,7 @@ const AuthScreen: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      try { const v = await AsyncStorage.getItem(KNOWN_USER_KEY); setTab(v === '1' ? 'login' : 'signup'); } catch {}
+      try { const v = await AsyncStorage.getItem(KNOWN_USER_KEY); setTab(v === '1' ? 'login' : 'signup'); } catch { }
     })();
   }, []);
 
@@ -72,10 +73,31 @@ const AuthScreen: React.FC = () => {
   }, [tab, canSubmit, email, password]);
 
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
+    console.log('startOAuth called with provider:', provider);
     try {
       setSubmitting('oauth');
-      const redirectTo = typeof window !== 'undefined' ? window.location.origin : getRedirectTo();
-      await supabase.auth.signInWithOAuth({ provider: provider as any, options: { redirectTo } });
+      const redirectTo = (typeof window !== 'undefined' && Platform.OS === 'web')
+        ? window.location.origin
+        : getRedirectTo();
+      console.log('OAuth redirectTo:', redirectTo);
+      console.log('Starting OAuth with provider:', provider);
+      const result = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo,
+          skipBrowserRedirect: Platform.OS !== 'web',
+        },
+      });
+      console.log('OAuth result:', result);
+      if (Platform.OS !== 'web') {
+        const url = result?.data?.url || `${supabaseConfig.url}/auth/v1/authorize?provider=${encodeURIComponent(provider)}&redirect_to=${encodeURIComponent(redirectTo)}&flow_type=pkce`;
+        await Linking.openURL(url);
+      } else if (result?.data?.url) {
+        try { window.location.href = result.data.url; } catch {}
+      }
+    } catch (error) {
+      console.error('OAuth error:', error);
+      // エラーが発生してもsubmitting状態をリセット
     } finally {
       setSubmitting(null);
     }
@@ -91,18 +113,24 @@ const AuthScreen: React.FC = () => {
 
   const anyOAuth = oauthConfig.twitter || oauthConfig.google || oauthConfig.amazon || oauthConfig.line;
 
+  // デバッグ用ログ
+  console.log('OAuth Config:', oauthConfig);
+  console.log('Google OAuth enabled:', oauthConfig.google);
+  console.log('anyOAuth:', anyOAuth);
+  console.log('submitting state:', submitting);
+
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.card}>
         <Text style={styles.brand}>abstinence</Text>
         <View style={styles.tabs}>
-          <Pressable onPress={() => setTab('login')} style={[styles.tab, tab==='login' && styles.tabActive]}><Text style={[styles.tabText, tab==='login' && styles.tabTextActive]}>ログイン</Text></Pressable>
-          <Pressable onPress={() => setTab('signup')} style={[styles.tab, tab==='signup' && styles.tabActive]}><Text style={[styles.tabText, tab==='signup' && styles.tabTextActive]}>新規登録</Text></Pressable>
+          <Pressable onPress={() => setTab('login')} style={[styles.tab, tab === 'login' && styles.tabActive]}><Text style={[styles.tabText, tab === 'login' && styles.tabTextActive]}>ログイン</Text></Pressable>
+          <Pressable onPress={() => setTab('signup')} style={[styles.tab, tab === 'signup' && styles.tabActive]}><Text style={[styles.tabText, tab === 'signup' && styles.tabTextActive]}>新規登録</Text></Pressable>
         </View>
 
         <View style={{ marginTop: spacing.lg }}>
           <Text style={styles.label}>メールアドレス</Text>
-          <TextInput
+          <TextInput testID="login-email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -117,8 +145,8 @@ const AuthScreen: React.FC = () => {
           <View style={{ height: spacing.md }} />
 
           <Text style={styles.label}>パスワード</Text>
-          <View style={[styles.input, passErr ? styles.inputError : null, { flexDirection: 'row', alignItems: 'center' }] }>
-            <TextInput
+          <View style={[styles.input, passErr ? styles.inputError : null, { flexDirection: 'row', alignItems: 'center' }]}>
+            <TextInput testID="login-password"
               style={{ flex: 1, color: colors.textPrimary }}
               value={password}
               onChangeText={setPassword}
@@ -145,8 +173,8 @@ const AuthScreen: React.FC = () => {
             <Text style={{ color: colors.textSecondary }}>次回から自動ログイン</Text>
           </View>
 
-          <DSButton
-            title={tab==='login' ? (submitting==='login' ? 'サインイン中…' : 'ログイン') : (submitting==='signup' ? '作成中…' : '新規登録')}
+          <DSButton testID="login-submit"
+            title={tab === 'login' ? (submitting === 'login' ? 'サインイン中…' : 'ログイン') : (submitting === 'signup' ? '作成中…' : '新規登録')}
             onPress={submit}
             loading={submitting === tab}
             disabled={!canSubmit || !!submitting}
@@ -162,7 +190,16 @@ const AuthScreen: React.FC = () => {
                   <Pressable onPress={() => { void startOAuth('twitter'); }} style={styles.iconBtn}><Ionicons name="logo-twitter" size={20} color={colors.textPrimary} /></Pressable>
                 )}
                 {oauthConfig.google && (
-                  <Pressable onPress={() => { void startOAuth('google'); }} style={styles.iconBtn}><Ionicons name="logo-google" size={20} color={colors.textPrimary} /></Pressable>
+                  <Pressable
+                    onPress={() => {
+                      console.log('Google OAuth button pressed (config)');
+                      void startOAuth('google');
+                    }}
+                    style={[styles.iconBtn, submitting === 'oauth' && styles.iconBtnDisabled]}
+                    disabled={submitting === 'oauth'}
+                  >
+                    <Ionicons name="logo-google" size={20} color={submitting === 'oauth' ? colors.textSecondary : colors.textPrimary} />
+                  </Pressable>
                 )}
                 {oauthConfig.amazon && (
                   <Pressable onPress={() => { void startOAuth('amazon'); }} style={styles.iconBtn}><Ionicons name="logo-amazon" size={20} color={colors.textPrimary} /></Pressable>
@@ -172,7 +209,12 @@ const AuthScreen: React.FC = () => {
                 )}
               </View>
             </View>
-          ) : null}
+          ) : (
+            <View style={{ alignItems: 'center', marginTop: spacing.lg }}>
+              <Text style={{ color: colors.textSecondary }}>OAuth設定が無効です</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Google: {oauthConfig.google ? '有効' : '無効'}</Text>
+            </View>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -199,6 +241,7 @@ const styles = StyleSheet.create({
   checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' },
   checkboxInner: { width: 12, height: 12, borderRadius: 2, backgroundColor: colors.primary },
   iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' },
+  iconBtnDisabled: { opacity: 0.5, backgroundColor: colors.backgroundSecondary },
 });
 
 export default AuthScreen;

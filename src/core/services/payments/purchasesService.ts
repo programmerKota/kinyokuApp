@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { supabase } from '@app/config/supabase.config';
 import { revenuecatConfig } from '@app/config/revenuecat.config';
 
@@ -6,9 +7,22 @@ let configured = false;
 const DEV_MODE = process.env.EXPO_PUBLIC_PAYMENTS_DEV_MODE === 'true';
 let MOCK_MODE = false; // true when no RC key is provided (graceful fallback)
 
+const extra: Record<string, any> = (Constants?.expoConfig as any)?.extra ?? (Constants as any)?.manifestExtra ?? {};
+const parseCsv = (v: unknown): string[] => {
+  if (typeof v !== 'string') return [];
+  return v.split(',').map((s) => s.trim()).filter(Boolean);
+};
+const FALLBACK_PRODUCT_IDS = parseCsv(extra.EXPO_PUBLIC_RC_FALLBACK_PRODUCT_IDS) || ['penalty_10','penalty_100','penalty_1000','penalty_10000'];
+
 async function ensureConfigured() {
   if (configured) return;
-  if (Platform.OS === 'web' || DEV_MODE) { configured = true; return; }
+  // Avoid RevenueCat in Expo Go (SDK switches to Web Billing mode and requires a different key)
+  const isExpoGo = (Constants as any)?.appOwnership === 'expo';
+  if (Platform.OS === 'web' || DEV_MODE || isExpoGo) {
+    MOCK_MODE = true;
+    configured = true;
+    return;
+  }
   const apiKey = Platform.select({ ios: revenuecatConfig.iosPublicApiKey, android: revenuecatConfig.androidPublicApiKey });
   if (!apiKey) {
     // Graceful fallback for local/dev environments without a configured key
@@ -69,7 +83,7 @@ export const PurchasesService = {
     if (!list.length) {
       // Fallback: fetch products directly by identifiers
       try {
-        const productIds = ['penalty_10','penalty_100','penalty_1000','penalty_10000'];
+        const productIds = FALLBACK_PRODUCT_IDS.length ? FALLBACK_PRODUCT_IDS : ['penalty_10','penalty_100','penalty_1000','penalty_10000'];
         const products: any[] = await Purchases.getProducts(productIds as any);
         if (!products?.length) {
           // Ultimate fallback: return mock package to let user proceed (no charge)
@@ -115,8 +129,8 @@ export const PurchasesService = {
         result = await Purchases.purchaseProduct(p.identifier);
       }
     } catch (e) {
-      // As last resort, simulate purchase to unblock user (flagged via mock-tx)
-      return { success: true, transactionId: 'mock-tx', productIdentifier: p.identifier };
+      // Do not return success on real-store failure; surface as failure
+      return { success: false, transactionId: undefined, productIdentifier: p?.identifier };
     }
     const productIdentifier: string | undefined = result?.productIdentifier ?? p.identifier;
     // RevenueCat SDK does not expose a platform transaction id in all cases; store product id as reference

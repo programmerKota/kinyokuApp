@@ -26,6 +26,10 @@
         "check:supabase:schema": "npx tsx scripts/checkSupabaseTables.ts",
         "apply:supabase:migration": "npx tsx scripts/applySupabaseMigration.ts --file supabase/migrations/2025-10-03_fix_schema.sql",
         "typecheck": "tsc --project tsconfig.typecheck.json --noEmit",
+        "e2e:web": "playwright test -c playwright.config.ts",
+        "eas:update": "CI=1 eas update --branch production --message \"Automated update\"",
+        "eas:build:ios": "eas build -p ios --profile production --non-interactive",
+        "eas:submit:ios": "eas submit -p ios --latest --profile production --non-interactive",
         "lint": "eslint . --ext .ts,.tsx",
         "lint:fix": "eslint . --ext .ts,.tsx --fix",
         "format": "prettier . --write",
@@ -68,9 +72,11 @@
         "react-native-web": "~0.21.0",
         "react-native-worklets": "0.5.1"
     },
-    "devDependencies": {
+  "devDependencies": {
         "@babel/core": "^7.25.2",
         "@faker-js/faker": "^10.0.0",
+    "@playwright/test": "^1.56.0",
+    "@testing-library/react-native": "^12.5.1",
         "@types/jest": "^30.0.0",
         "@types/react": "~19.1.10",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -92,7 +98,8 @@
         "metro": "^0.83.1",
         "prettier": "^3.6.2",
         "ts-jest": "^29.2.5",
-        "ts-node": "^10.9.2",
+    "ts-node": "^10.9.2",
+    "react-test-renderer": "19.1.0",
         "ts-prune": "^0.10.3",
         "tsx": "^4.20.5",
         "typescript": "~5.9.2"

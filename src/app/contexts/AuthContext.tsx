@@ -18,6 +18,7 @@ import { supabase } from "@app/config/supabase.config";
 import UserService from "@core/services/userService";
 import { uploadUserAvatar } from "@core/services/supabase/storageService";
 import { PurchasesService } from "@core/services/payments/purchasesService";
+import { featureFlags } from "@app/config/featureFlags.config";
 import { withRetry } from "@shared/utils/net";
 import type { User } from "@project-types";
 import { BlockStore } from "@shared/state/blockStore";
@@ -203,14 +204,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Determine current Supabase user ID (required for DB write with RLS)
       const { data } = await supabase.auth.getSession();
       const suid = (data?.session?.user?.id as string | undefined) || undefined;
-      if (!suid) {
-        throw new Error("AUTH_REQUIRED: no Supabase session");
-      }
 
       // Normalize avatarUrl: upload local uri to Supabase Storage in production
       let finalAvatar: string | undefined = avatarUrl?.trim() || undefined;
       try {
-        if (finalAvatar && !/^https?:\/\//i.test(finalAvatar)) {
+        if (suid && finalAvatar && !/^https?:\/\//i.test(finalAvatar)) {
+          // Only attempt upload when we have an authenticated Supabase user
           finalAvatar = await uploadUserAvatar(finalAvatar, suid);
         }
       } catch (e) {
@@ -219,14 +218,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         finalAvatar = prev && /^https?:\/\//i.test(prev) ? prev : undefined;
       }
 
-      // Persist to local profile cache
+      // Persist to local profile cache first (works offline / without Supabase)
       await userService.updateProfile(displayName, finalAvatar);
 
-      // Persist to Supabase (throws on RLS failure)
-      await FirestoreUserService.setUserProfile(suid, {
-        displayName,
-        photoURL: finalAvatar,
-      });
+      // Best-effort: persist to Supabase when session is available
+      try {
+        if (suid) {
+          await FirestoreUserService.setUserProfile(suid, {
+            displayName,
+            photoURL: finalAvatar,
+          });
+        } else if (!featureFlags.authDisabled) {
+          // If auth is not intentionally disabled and no session, surface a soft warning
+          console.warn("updateProfile: no Supabase session; saved locally only");
+        }
+      } catch (e) {
+        console.warn("updateProfile: remote save failed; local changes kept", e);
+      }
 
       // Update local AuthContext state immediately
       setUser((prev) => ({
@@ -240,19 +248,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // RevenueCat へプロフィール属性を反映（ベストエフォート）
       try {
-        await PurchasesService.registerUser({
-          uid: suid,
-          displayName,
-          email: (await supabase.auth.getUser()).data?.user?.email || undefined,
-          platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
-        });
+        if (suid) {
+          await PurchasesService.registerUser({
+            uid: suid,
+            displayName,
+            email: (await supabase.auth.getUser()).data?.user?.email || undefined,
+            platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
+          });
+        }
       } catch { /* ignore */ }
 
       // Best-effort reflection to related tables
-      void Promise.allSettled([
-        CommunityService.reflectUserProfile(suid, displayName, finalAvatar),
-        TournamentService.reflectUserProfile(suid, displayName, finalAvatar),
-      ]);
+      if (suid) {
+        void Promise.allSettled([
+          CommunityService.reflectUserProfile(suid, displayName, finalAvatar),
+          TournamentService.reflectUserProfile(suid, displayName, finalAvatar),
+        ]);
+      }
     } catch (error) {
       console.error("AuthContext: updateProfile failed", error);
       throw error;
