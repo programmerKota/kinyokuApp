@@ -111,7 +111,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
+    alignItems: "stretch",
     paddingTop: spacing.xl,
   },
   iconWrap: {
@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "center",
   },
   title: {
     marginTop: spacing.lg,
@@ -138,7 +139,8 @@ const styles = StyleSheet.create({
     marginTop: spacing["2xl"],
     width: "100%",
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 12,
   },
   secondaryBtn: {
