@@ -7,11 +7,23 @@ import ErrorBoundary from "@shared/components/ErrorBoundary";
 import { initSupabaseAuthDeepLinks } from "@core/services/supabase/authService";
 import { AuthPromptProvider } from "@shared/auth/AuthPromptProvider";
 import { AuthGate } from "@shared/auth/AuthGate";
+import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 
 const App = () => {
+  // Preload icon fonts to prevent first‑paint flicker of vector icons
+  const [fontsLoaded] = useFonts((Ionicons as any).font ?? {});
+  useEffect(() => {
+    try { (Ionicons as any)?.loadFont?.(); } catch {}
+  }, []);
+
   useEffect(() => {
     void initSupabaseAuthDeepLinks();
   }, []);
+  if (!fontsLoaded) {
+    // Keep a minimal root to avoid white flash while fonts load
+    return <GestureHandlerRootView style={{ flex: 1 }} />;
+  }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>

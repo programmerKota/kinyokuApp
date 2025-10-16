@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import type { CommunityComment } from "@project-types";
 import AvatarImage from "@shared/components/AvatarImage";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import RelativeTime from "@shared/components/RelativeTime";
 import { colors, spacing, typography } from "@shared/theme";
 
@@ -14,24 +15,27 @@ interface ReplyCardProps {
 
 const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   const Container = onPress ? TouchableOpacity : View;
+  const { name, avatar } = useDisplayProfile(
+    reply.authorId,
+    reply.authorName,
+    reply.authorAvatar,
+  );
   const containerProps = onPress ? { activeOpacity: 0.8, onPress } : {};
 
   return (
     <Container style={styles.container} {...containerProps}>
       <View style={styles.header}>
         <View style={styles.avatarWrapper}>
-          {reply.authorAvatar ? (
-            <AvatarImage uri={reply.authorAvatar} size={32} />
+          {avatar ? (
+            <AvatarImage uri={avatar} size={32} />
           ) : (
             <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>
-                {(reply.authorName || "ユーザー").charAt(0)}
-              </Text>
+              <Text style={styles.avatarFallbackText}>{(name || "ユーザー").charAt(0)}</Text>
             </View>
           )}
         </View>
         <View style={styles.headerText}>
-          <Text style={styles.author}>{reply.authorName || "ユーザー"}</Text>
+          <Text style={styles.author}>{name || "ユーザー"}</Text>
           <RelativeTime value={reply.createdAt} style={styles.timestamp} />
         </View>
       </View>

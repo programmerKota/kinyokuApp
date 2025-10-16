@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { colors, spacing } from "@shared/theme";
 import uiStyles from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
@@ -26,13 +27,19 @@ const DiaryCard: React.FC<Props> = ({
   createdAt,
   onAuthorPress,
 }) => {
+  const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
+    authorId,
+    authorName,
+    authorAvatar,
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.inner}>
         <View style={[uiStyles.rowStart, styles.header]}>
           <UserProfileWithRank
-            userName={authorName || "ユーザー"}
-            userAvatar={authorAvatar}
+            userName={displayName || "ユーザー"}
+            userAvatar={displayAvatar}
             averageDays={averageDays}
             onPress={() => onAuthorPress?.(authorId, authorName)}
             size="small"

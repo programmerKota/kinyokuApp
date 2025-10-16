@@ -6,7 +6,7 @@ import LikeBar from "@features/community/components/LikeBar";
 import type { CommunityPost } from "@project-types";
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
-import { useProfile } from "@shared/hooks/useProfile";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { colors, spacing, typography } from "@shared/theme";
 import uiStyles from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
@@ -35,9 +35,11 @@ const PostCard: React.FC<PostCardProps> = ({
   initialIsLiked = false,
 }) => {
   // Prefer live profile when available; fallback to post snapshot
-  const live = useProfile(post.authorId);
-  const displayName = live?.displayName ?? post.authorName;
-  const displayAvatar = live?.photoURL ?? post.authorAvatar;
+  const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
+    post.authorId,
+    post.authorName,
+    post.authorAvatar,
+  );
 
   const handleProfilePress = useCallback(() => {
     if (onUserPressId) {

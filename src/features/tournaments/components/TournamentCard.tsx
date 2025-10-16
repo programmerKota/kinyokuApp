@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import Button from "@shared/components/Button";
 import { colors, spacing, typography, shadows } from "@shared/theme";
@@ -39,6 +39,12 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   const canJoin = !tournament.isJoined;
   const isPending = tournament.requestPending === true;
 
+  const { name: ownerName, avatar: ownerAvatar } = useDisplayProfile(
+    tournament.ownerId,
+    tournament.ownerName,
+    tournament.ownerAvatar,
+  );
+
   return (
     <TouchableOpacity style={styles.card} onPress={() => onView(tournament.id)}>
       <View style={[uiStyles.rowBetween, styles.header]}>
@@ -63,18 +69,13 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
               onPress={() => onView(`user:${tournament.ownerId}`)}
               activeOpacity={0.8}
             >
-              {tournament.ownerAvatar ? (
+              {ownerAvatar ? (
                 <View style={styles.ownerAvatarWrap}>
-                  <Image
-                    source={{ uri: tournament.ownerAvatar }}
-                    style={styles.ownerAvatarImage}
-                  />
+                  <AvatarImage uri={ownerAvatar} size={32} />
                 </View>
               ) : (
-                <View style={styles.ownerAvatar}>
-                  <Text style={styles.ownerAvatarText}>
-                    {(tournament.ownerName || "U").charAt(0)}
-                  </Text>
+                <View style={styles.ownerAvatar}> 
+                  <Text style={styles.ownerAvatarText}>{(ownerName || 'U').charAt(0)}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -250,4 +251,5 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(TournamentCard);
-
+import AvatarImage from "@shared/components/AvatarImage";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";

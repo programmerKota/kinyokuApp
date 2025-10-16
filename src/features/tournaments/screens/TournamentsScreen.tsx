@@ -151,18 +151,7 @@ const TournamentsScreen: React.FC = () => {
               }),
             );
             setTournaments(convertedTournaments);
-            try {
-              if (profilesUnsub) { profilesUnsub(); setProfilesUnsub(null); }
-              const ownerIds = Array.from(new Set(convertedTournaments.map((t) => t.ownerId)));
-              const unsub = ProfileCache.getInstance().subscribeMany(ownerIds, (map) => {
-                setTournaments((prev) => prev.map((t) => ({
-                  ...t,
-                  ownerName: map.get(t.ownerId)?.displayName ?? t.ownerName,
-                  ownerAvatar: map.get(t.ownerId)?.photoURL ?? t.ownerAvatar,
-                })));
-              });
-              setProfilesUnsub(() => unsub);
-            } catch { }
+            // 作成者のライブな名前/アバターは各カード内（useDisplayProfile）で解決
           } catch (error) {
             handleError(
               error,

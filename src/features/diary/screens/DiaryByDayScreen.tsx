@@ -24,7 +24,6 @@ import ProfileCache from "@core/services/profileCache";
 import { UserStatsService } from "@core/services/userStatsService";
 import DayCard from "@features/diary/components/DayCard";
 import Modal from "@shared/components/Modal";
-import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import DiaryCard from "@features/diary/components/DiaryCard";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
@@ -39,6 +38,39 @@ interface DayDiaryItem {
   createdAt: Date | string | { toDate?: () => Date };
 }
 
+// NOTE: Defining row component OUTSIDE the screen component keeps the
+// component identity stable across renders and prevents unnecessary
+// re-mount/re-render of every row. Previously, defining this inside the
+// component recreated the component type on each render, causing churn.
+const DiaryItemRow: React.FC<{
+  item: DayDiaryItem;
+  authorName?: string;
+  authorAvatar?: string;
+  averageDays: number;
+  onAuthorPress: (uid: string, uname?: string) => void;
+}> = React.memo(
+  ({ item, authorName, authorAvatar, averageDays, onAuthorPress }) => (
+    <View style={{ marginBottom: spacing.sm }}>
+      <DiaryCard
+        authorId={item.userId}
+        authorName={authorName ?? 'ユーザー'}
+        authorAvatar={authorAvatar}
+        averageDays={averageDays}
+        content={item.content}
+        createdAt={item.createdAt}
+        onAuthorPress={() => onAuthorPress(item.userId, authorName)}
+      />
+    </View>
+  ),
+  (prev, next) =>
+    prev.item.id === next.item.id &&
+    prev.item.content === next.item.content &&
+    String(prev.item.createdAt) === String(next.item.createdAt) &&
+    prev.authorName === next.authorName &&
+    prev.authorAvatar === next.authorAvatar &&
+    prev.averageDays === next.averageDays,
+);
+
 const DiaryByDayScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -47,9 +79,6 @@ const DiaryByDayScreen: React.FC = () => {
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
-  const [profilesMap, setProfilesMap] = useState<
-    Map<string, UserProfileLite | undefined>
-  >(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const blockedSet = useBlockedIds();
@@ -98,27 +127,7 @@ const DiaryByDayScreen: React.FC = () => {
           }))
           .filter((it) => !blockedSet.has(it.userId));
         setItems(mapped);
-        // Batch-subscribe profiles for visible items and coalesce updates
-        try {
-          const ids = Array.from(new Set(mapped.map((m) => m.userId)));
-          if (ids.length > 0) {
-            if (subscribeProfilesRef.current) subscribeProfilesRef.current();
-            const pendingRef: { m?: Map<string, UserProfileLite | undefined> } =
-              {};
-            let timer: any | undefined;
-            subscribeProfilesRef.current =
-              ProfileCache.getInstance().subscribeMany(ids, (m) => {
-                pendingRef.m = m;
-                if (timer) return;
-                timer = setTimeout(() => {
-                  setProfilesMap(new Map(pendingRef.m));
-                  timer = undefined;
-                }, 16);
-              });
-          } else {
-            setProfilesMap(new Map());
-          }
-        } catch { }
+        // ユーザー名・アバターは各行コンポーネント側でライブ解決（useDisplayProfile）
         // prefetch averageDays for ranks (bulk)
         try {
           const ids = Array.from(new Set(mapped.map((m) => m.userId)));
@@ -209,15 +218,7 @@ const DiaryByDayScreen: React.FC = () => {
     };
   }, [day, blockedSet]);
 
-  // Keep a ref to unsubscribe profile subscriptions when items change
-  const subscribeProfilesRef = React.useRef<(() => void) | undefined>(
-    undefined,
-  );
-  useEffect(() => {
-    return () => {
-      if (subscribeProfilesRef.current) subscribeProfilesRef.current();
-    };
-  }, []);
+  // プロフィール購読は各行に委譲（画面側では保持しない）
 
   // Check if user already posted for the selected day (only matters on active day)
   useEffect(() => {
@@ -268,39 +269,27 @@ const DiaryByDayScreen: React.FC = () => {
 
   // day selection is controlled via card taps; chevron selector removed
 
-  const DiaryItemRow: React.FC<{ item: DayDiaryItem }> = React.memo(
-    ({ item }) => {
-      const prof = profilesMap.get(item.userId);
+  const renderItem = React.useCallback(
+    ({ item }: { item: DayDiaryItem }) => {
       const avgDays = userAverageDays.get(item.userId) ?? 0;
       return (
-        <View style={{ marginBottom: spacing.sm }}>
-          <DiaryCard
-            authorId={item.userId}
-            authorName={prof?.displayName ?? "ユーザー"}
-            authorAvatar={prof?.photoURL}
-            averageDays={avgDays}
-            content={item.content}
-            createdAt={item.createdAt}
-            onAuthorPress={(uid, uname) =>
-              navigateToUserDetail(
-                navigation as any,
-                uid,
-                uname ?? undefined,
-                prof?.photoURL ?? undefined,
-              )
-            }
-          />
-        </View>
+        <DiaryItemRow
+          item={item}
+          authorName={undefined}
+          authorAvatar={undefined}
+          averageDays={avgDays}
+          onAuthorPress={(uid, uname) =>
+            navigateToUserDetail(
+              navigation as any,
+              uid,
+              uname ?? undefined,
+              undefined,
+            )
+          }
+        />
       );
     },
-    (prev, next) =>
-      prev.item.id === next.item.id &&
-      prev.item.content === next.item.content &&
-      prev.item.createdAt === next.item.createdAt,
-  );
-
-  const renderItem = ({ item }: { item: DayDiaryItem }) => (
-    <DiaryItemRow item={item} />
+    [userAverageDays, navigation],
   );
 
   const canPostForSelectedDay =
@@ -359,6 +348,10 @@ const DiaryByDayScreen: React.FC = () => {
         keyExtractor={(i) => i.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: spacing.lg }}
+        initialNumToRender={8}
+        windowSize={7}
+        maxToRenderPerBatch={12}
+        removeClippedSubviews
         ListEmptyComponent={
           <View style={{ alignItems: "center", padding: spacing.lg }}>
             <Ionicons

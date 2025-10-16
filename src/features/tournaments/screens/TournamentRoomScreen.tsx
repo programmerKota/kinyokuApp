@@ -27,6 +27,7 @@ import Button from "@shared/components/Button";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { colors, spacing, typography, shadows } from "@shared/theme";
 import { toDate } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
@@ -469,37 +470,38 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
     });
   };
 
-  const renderParticipant = ({ item }: { item: Participant }) => (
-    <TouchableOpacity
-      style={styles.participantItem}
-      onPress={() => handleParticipantPress(item)}
-      activeOpacity={0.8}
-    >
-      {tournament &&
-      user?.uid === tournament.ownerId &&
-      item.role !== "owner" ? (
-        <TouchableOpacity
-          onPress={() => handleKick(item)}
-          activeOpacity={0.8}
-          style={styles.kickIconButton}
-          accessibilityLabel="削除"
-        >
-          <Ionicons name="close" size={18} color={colors.white} />
-        </TouchableOpacity>
-      ) : (
-        <View style={{ width: 0 }} />
-      )}
-      <UserProfileWithRank
-        userName={item.name}
-        userAvatar={item.avatar}
-        averageDays={userAverageDays.get(item.id) || 0}
-        size="small"
-        showRank={false}
-        showTitle={true}
-        style={styles.userProfileContainer}
-      />
-    </TouchableOpacity>
-  );
+  const renderParticipant = ({ item }: { item: Participant }) => {
+    const { name, avatar } = useDisplayProfile(item.id, item.name, item.avatar);
+    return (
+      <TouchableOpacity
+        style={styles.participantItem}
+        onPress={() => handleParticipantPress(item)}
+        activeOpacity={0.8}
+      >
+        {tournament && user?.uid === tournament.ownerId && item.role !== "owner" ? (
+          <TouchableOpacity
+            onPress={() => handleKick(item)}
+            activeOpacity={0.8}
+            style={styles.kickIconButton}
+            accessibilityLabel="削除"
+          >
+            <Ionicons name="close" size={18} color={colors.white} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 0 }} />
+        )}
+        <UserProfileWithRank
+          userName={name}
+          userAvatar={avatar}
+          averageDays={userAverageDays.get(item.id) || 0}
+          size="small"
+          showRank={false}
+          showTitle={true}
+          style={styles.userProfileContainer}
+        />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>

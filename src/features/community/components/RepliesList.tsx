@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState, useEffect, useCallback, memo } from "react";
+import { View, StyleSheet, FlatList } from "react-native";
 
 import { CommunityService } from "@core/services/firestore/communityService";
 import { UserStatsService } from "@core/services/userStatsService";
@@ -16,6 +16,20 @@ interface RepliesListProps {
   onUserPress: (userId: string, userName: string) => void;
   allowBlockedReplies?: boolean;
 }
+
+type RowProps = {
+  reply: CommunityComment;
+  avgDays: number;
+  onUserPress: (userId: string, userName: string) => void;
+};
+
+const ReplyRow: React.FC<RowProps> = memo(({ reply, avgDays, onUserPress }) => (
+  <ReplyCard
+    reply={reply}
+    onPress={() => onUserPress(reply.authorId, reply.authorName)}
+    authorAverageDays={avgDays}
+  />
+));
 
 const RepliesList: React.FC<RepliesListProps> = ({
   postId,
@@ -97,21 +111,27 @@ const RepliesList: React.FC<RepliesListProps> = ({
     setUserAverageDays(averageDaysMap);
   };
 
-  if (replies.length === 0) {
-    return null;
-  }
+  const renderItem = useCallback(({ item }: { item: CommunityComment }) => (
+    <ReplyRow
+      reply={item}
+      avgDays={userAverageDays.get(item.authorId) || 0}
+      onUserPress={onUserPress}
+    />
+  ), [userAverageDays, onUserPress]);
+
+  if (replies.length === 0) return null;
 
   return (
-    <View style={styles.container}>
-      {replies.map((reply) => (
-        <ReplyCard
-          key={reply.id}
-          reply={reply}
-          onPress={() => onUserPress(reply.authorId, reply.authorName)}
-          authorAverageDays={userAverageDays.get(reply.authorId) || 0}
-        />
-      ))}
-    </View>
+    <FlatList
+      data={replies}
+      keyExtractor={(r) => r.id}
+      renderItem={renderItem}
+      contentContainerStyle={styles.container}
+      initialNumToRender={6}
+      windowSize={9}
+      maxToRenderPerBatch={10}
+      removeClippedSubviews
+    />
   );
 };
 

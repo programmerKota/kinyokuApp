@@ -29,7 +29,7 @@ import PostList from "@features/community/components/PostList";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
 import AvatarImage from "@shared/components/AvatarImage";
 import { getRankDisplayByDays } from "@core/services/rankService";
-import { useProfile } from "@shared/hooks/useProfile";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
 import { colors, spacing, typography } from "@shared/theme";
@@ -53,9 +53,13 @@ const UserDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const { userId, userName, userAvatar } = route.params || ({} as any);
   const { user } = useAuth();
-  const live = useProfile(userId);
-  const [name, setName] = useState<string>(userName || "ユーザー");
-  const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
+  const { name: liveName, avatar: liveAvatar } = useDisplayProfile(
+    userId,
+    userName,
+    userAvatar,
+  );
+  const [name, setName] = useState<string>(liveName || "ユーザー");
+  const [avatar, setAvatar] = useState<string | undefined>(liveAvatar);
   const [following, setFollowing] = useState<boolean>(false);
   const [postsData, setPostsData] = useState<FirestoreCommunityPost[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -102,15 +106,14 @@ const UserDetailScreen: React.FC = () => {
   );
 
   useEffect(() => {
-    setName((prev) => prev || "User");
+    setName(liveName || "ユーザー");
+    setAvatar(liveAvatar);
     if (!userId) return;
     (async () => {
-      const days = await UserStatsService.getUserCurrentDaysForRank(
-        userId,
-      ).catch(() => 0);
+      const days = await UserStatsService.getUserCurrentDaysForRank(userId).catch(() => 0);
       setAverageDays(days);
     })();
-  }, [userId]);
+  }, [userId, liveName, liveAvatar]);
 
   // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {

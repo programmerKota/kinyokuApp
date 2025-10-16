@@ -176,16 +176,18 @@ const PostList: React.FC<PostListProps> = ({
     ],
   );
 
+  const extra = React.useMemo(() => ({
+    likedPosts,
+    replyCounts,
+    authorAverageDays,
+    loadingMore,
+    hasMore,
+  }), [likedPosts, replyCounts, authorAverageDays, loadingMore, hasMore]);
+
   return (
     <FlatList
       ref={listRef}
-      extraData={{
-        likedPosts,
-        replyCounts,
-        authorAverageDays,
-        loadingMore,
-        hasMore,
-      }}
+      extraData={extra}
       onLayout={(e) => {
         try {
           viewportHRef.current = e?.nativeEvent?.layout?.height || viewportHRef.current;
@@ -233,6 +235,10 @@ const PostList: React.FC<PostListProps> = ({
         }
         return emptyComponent as any;
       }}
+      initialNumToRender={8}
+      windowSize={7}
+      maxToRenderPerBatch={12}
+      removeClippedSubviews
     />
   );
 };

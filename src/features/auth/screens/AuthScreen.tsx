@@ -30,6 +30,7 @@ const AuthScreen: React.FC = () => {
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [submitting, setSubmitting] = useState<null | 'login' | 'signup' | 'reset' | 'oauth' | 'magic'>(null);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+  const [devBypass, setDevBypass] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,6 +45,13 @@ const AuthScreen: React.FC = () => {
     setTriedSubmit(false);
     setInfoMsg(null);
   }, [tab]);
+
+  // 開発用バイパスの現在状態を読み込み
+  useEffect(() => {
+    (async () => {
+      try { setDevBypass((await AsyncStorage.getItem('__dev_auth_bypass')) === '1'); } catch { }
+    })();
+  }, []);
 
   // モバイルのディープリンクで返ってきたURLからセッションを確立
   useEffect(() => {
@@ -327,6 +335,23 @@ const AuthScreen: React.FC = () => {
             <View style={styles.infoBanner}><Text style={styles.infoText}>{infoMsg}</Text></View>
           ) : null}
 
+          {/* 開発用: Expo Go 向けバイパス（本番無効） */}
+          {__DEV__ ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={async () => {
+                try {
+                  await AsyncStorage.setItem('__dev_auth_bypass', '1');
+                  setDevBypass(true);
+                  setInfoMsg('開発用バイパスを有効にしました');
+                } catch { }
+              }}
+              style={({ pressed }) => [styles.devBypassBtn, { opacity: pressed ? 0.9 : 1 }]}
+            >
+              <Text style={styles.devBypassText}>{devBypass ? 'バイパス有効中' : '開発用: ログインをスキップ'}</Text>
+            </Pressable>
+          ) : null}
+
           {/* 新規登録: メールで登録（Google風アウトライン） */}
           {tab === 'signup' ? (
             <Pressable
@@ -472,6 +497,8 @@ const styles = StyleSheet.create({
   googleIcon: { width: 18, height: 18, marginRight: 8 },
   infoBanner: { marginTop: spacing.sm, paddingVertical: 10, paddingHorizontal: spacing.md, backgroundColor: '#ECFDF5', borderRadius: 8, borderWidth: 1, borderColor: '#A7F3D0' },
   infoText: { color: '#065F46', fontSize: 12 },
+  devBypassBtn: { marginTop: spacing.md, paddingVertical: 12, paddingHorizontal: spacing.lg, borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#F9FAFB', alignItems: 'center' },
+  devBypassText: { color: '#374151', fontSize: 12, fontWeight: '700' },
 });
 
 export default AuthScreen;

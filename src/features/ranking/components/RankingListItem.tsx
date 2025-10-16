@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from "react-native";
 
 import type { UserRanking } from "@core/services/rankingService";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
-import { useProfile } from "@shared/hooks/useProfile";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -46,9 +46,11 @@ const RankingListItem: React.FC<RankingListItemProps> = ({
   onPress,
 }) => {
   const isCurrentUser = currentUserId === item.id;
-  const live = useProfile(item.id);
-  const displayName = live?.displayName ?? item.name;
-  const displayAvatar = live?.photoURL ?? item.avatar;
+  const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
+    item.id,
+    item.name,
+    item.avatar,
+  );
 
   return (
     <View style={[styles.rankingItem, isCurrentUser && styles.currentUserItem]}>
@@ -154,4 +156,3 @@ export default React.memo(RankingListItem, (prev, next) => {
     prev.currentUserId === next.currentUserId
   );
 });
-
