@@ -13,6 +13,7 @@ import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import { colors, spacing, typography, shadows } from "@shared/theme";
+import { screenThemes } from "@shared/theme/screenThemes";
 import { PurchasesService } from "@core/services/payments/purchasesService";
 
 const ActionCard = ({
@@ -213,13 +214,13 @@ const ProfileScreen: React.FC = () => {
                       try {
                         const { Platform } = await import('react-native');
                         await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'success', platform: (Platform as any)?.OS });
-                      } catch {}
+                      } catch { }
                       Alert.alert("復元完了", "購入情報を復元しました。");
                     } catch (e: any) {
                       try {
                         const { Platform } = await import('react-native');
                         await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'error', platform: (Platform as any)?.OS, errorMessage: e?.message || String(e) });
-                      } catch {}
+                      } catch { }
                       Alert.alert("エラー", e?.message || "復元に失敗しました");
                     }
                   }}
@@ -283,7 +284,7 @@ const ProfileScreen: React.FC = () => {
         primaryLabel="ログアウト"
         onSecondary={() => setShowLogoutConfirm(false)}
         onPrimary={async () => {
-          try { await supabase.auth.signOut(); } catch {}
+          try { await supabase.auth.signOut(); } catch { }
         }}
       />
     </SafeAreaView>
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#EEF2FF",
+    backgroundColor: screenThemes.profile.tintSoft,
     alignItems: "center",
     justifyContent: "center",
     marginRight: spacing.md,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderStyle: "dashed",
     borderColor: colors.info,
-    backgroundColor: "#EEF2FF",
+    backgroundColor: screenThemes.profile.tintSoft,
     justifyContent: "center",
     alignItems: "center",
   },

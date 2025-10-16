@@ -19,6 +19,7 @@ import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
 import { colors, spacing, typography } from "@shared/theme";
+import { screenThemes } from "@shared/theme/screenThemes";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recordCard: {
-    backgroundColor: "#8B5CF6",
+    backgroundColor: screenThemes.history.cardBg,
     margin: spacing.xl,
     borderRadius: 20,
     padding: spacing.xl,
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     marginHorizontal: spacing.sm,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: screenThemes.history.tintSoft,
     borderRadius: 16,
     padding: spacing.lg,
   },
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing.sm,
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: screenThemes.history.tintSoft,
     borderRadius: 16,
     padding: spacing.lg,
   },
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.md,

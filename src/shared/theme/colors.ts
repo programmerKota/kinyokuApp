@@ -1,9 +1,9 @@
 // アプリケーション全体で使用する色の定義
 export const colors = {
   // Primary brand
-  primary: "#7C3AED", // violet-600
-  primaryDark: "#6D28D9", // violet-700
-  primaryLight: "#C4B5FD", // violet-300
+  primary: "#2563EB", // blue-600
+  primaryDark: "#1D4ED8", // blue-700
+  primaryLight: "#93C5FD", // blue-300
 
   // Accent / secondary
   secondary: "#06B6D4", // cyan-500
@@ -48,7 +48,7 @@ export const colors = {
   // Border
   borderPrimary: "#E2E8F0",
   borderSecondary: "#CBD5E1",
-  borderFocus: "#7C3AED",
+  borderFocus: "#2563EB",
 
   // Shadows (unchanged)
   shadowLight: "rgba(0, 0, 0, 0.1)",

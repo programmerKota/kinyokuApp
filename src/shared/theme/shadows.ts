@@ -74,12 +74,12 @@ export const shadows = {
   },
 
   focus: {
-    shadowColor: "#6366F1",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 0,
-    boxShadow: "0 0 4px rgba(99, 102, 241, 0.25)",
+    boxShadow: "0 0 4px rgba(37, 99, 235, 0.25)",
   },
 } as const;
 

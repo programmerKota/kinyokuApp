@@ -6,6 +6,7 @@ import Modal from '@shared/components/Modal';
 import { oauthConfig } from '@app/config/oauth.config';
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
+import { screenThemes } from '@shared/theme/screenThemes';
 import { supabase, supabaseConfig } from '@app/config/supabase.config';
 import { featureFlags } from '@app/config/featureFlags.config';
 import { signInWithEmailPassword, signUpWithEmailPassword, sendMagicLink, resetPassword, initSupabaseAuthDeepLinks, getRedirectTo } from '@core/services/supabase/authService';
@@ -47,9 +48,9 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           resolverRef.current?.(true);
           resolverRef.current = null;
         }
-      } catch {}
+      } catch { }
     });
-    return () => { try { data?.subscription?.unsubscribe(); } catch {} };
+    return () => { try { data?.subscription?.unsubscribe(); } catch { } };
   }, []);
 
   const close = useCallback((v: boolean) => {
@@ -147,7 +148,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (Platform.OS !== 'web') {
         await Linking.openURL(data.url);
       } else {
-        try { window.location.href = data.url; } catch {}
+        try { window.location.href = data.url; } catch { }
       }
     } finally {
       setAuthing(null);
@@ -218,7 +219,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               paddingHorizontal: spacing['2xl'],
               paddingVertical: 14,
               color: colors.textPrimary,
-              backgroundColor: '#EEF2FF',
+              backgroundColor: screenThemes.auth.tintSoft,
             }}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -237,7 +238,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               paddingHorizontal: spacing['2xl'],
               paddingVertical: 14,
               color: colors.textPrimary,
-              backgroundColor: '#EEF2FF',
+              backgroundColor: screenThemes.auth.tintSoft,
             }}
             secureTextEntry
             onFocus={() => setPassFocus(true)}

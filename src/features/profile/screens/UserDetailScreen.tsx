@@ -115,6 +115,14 @@ const UserDetailScreen: React.FC = () => {
     })();
   }, [userId, liveName, liveAvatar]);
 
+  // Fallback: if profile avatar is missing, borrow latest from posts snapshot
+  useEffect(() => {
+    if (!avatar) {
+      const a = postsData.find((p) => p.authorAvatar)?.authorAvatar;
+      if (a) setAvatar(a);
+    }
+  }, [postsData, avatar]);
+
   // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {
     let timer: any | undefined;
@@ -345,12 +353,12 @@ const UserDetailScreen: React.FC = () => {
           <View>
             <View style={styles.profileHeaderCenter}>
               <AvatarImage
-                uri={live?.photoURL ?? avatar}
+                uri={avatar}
                 size={88}
                 style={styles.profileAvatar}
               />
               <Text style={styles.profileName} numberOfLines={1}>
-                {live?.displayName ?? name}
+                {name}
               </Text>
               <Text style={styles.profileRank} numberOfLines={1}>
                 {getRankDisplayByDays(averageDays)}
@@ -411,7 +419,7 @@ const UserDetailScreen: React.FC = () => {
                 onPress={() =>
                   (navigation as any).navigate("FollowList", {
                     userId,
-                    userName: live?.displayName ?? name,
+                    userName: name,
                     mode: "following",
                   })
                 }
@@ -426,7 +434,7 @@ const UserDetailScreen: React.FC = () => {
                 onPress={() =>
                   (navigation as any).navigate("FollowList", {
                     userId,
-                    userName: live?.displayName ?? name,
+                    userName: name,
                     mode: "followers",
                   })
                 }

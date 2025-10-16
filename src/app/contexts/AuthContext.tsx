@@ -54,29 +54,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<void> => {
     try {
       if (!supaUid || !legacyId || supaUid === legacyId) return;
+      // Only migrate if new profile is missing; avoid overwriting an existing user with stale data
+      const { data: newRow } = await supabase
+        .from("profiles")
+        .select("displayName, photoURL")
+        .eq("id", supaUid)
+        .maybeSingle();
+      if (newRow && ((newRow as any).displayName || (newRow as any).photoURL)) {
+        return; // already has data; do not migrate
+      }
       const { data: oldRow } = await supabase
         .from("profiles")
         .select("displayName, photoURL")
         .eq("id", legacyId)
         .maybeSingle();
       if (!oldRow) return;
-      const { data: newRow } = await supabase
-        .from("profiles")
-        .select("displayName, photoURL")
-        .eq("id", supaUid)
-        .maybeSingle();
-      const displayName =
-        (newRow as any)?.displayName || (oldRow as any).displayName || "User";
-      const photoURL =
-        (newRow as any)?.photoURL || (oldRow as any).photoURL || undefined;
       await FirestoreUserService.setUserProfile(supaUid, {
-        displayName,
-        photoURL,
+        displayName: (oldRow as any).displayName || "User",
+        photoURL: (oldRow as any).photoURL || undefined,
       });
       try {
         await supabase.from("profiles").delete().eq("id", legacyId);
-      } catch { }
-    } catch { }
+      } catch {}
+    } catch {}
   };
 
   const loadUser = useCallback(async () => {
@@ -238,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Update local AuthContext state immediately
       setUser((prev) => ({
-        uid: suid,
+        uid: suid || prev?.uid,
         displayName,
         avatarUrl: finalAvatar,
         avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),

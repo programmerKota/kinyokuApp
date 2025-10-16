@@ -24,6 +24,18 @@ export const ReplyCountStore = {
     const s = subs.get(postId);
     if (s) s.forEach((fn) => fn());
   },
+  // For values coming from server snapshots. Avoid lowering the
+  // current value to mitigate eventual consistency (e.g., when the
+  // UI already incremented optimistically but the server has not
+  // reflected the change yet). Exact reconciliation is done by
+  // RepliesList when it loads the actual list.
+  setFromServer(postId: string, value: number) {
+    const cur = counts.get(postId) ?? 0;
+    const next = Math.max(0, value || 0);
+    if (next >= cur) {
+      ReplyCountStore.set(postId, next);
+    }
+  },
   increment(postId: string, delta: number) {
     const v = (counts.get(postId) ?? 0) + delta;
     ReplyCountStore.set(postId, v);

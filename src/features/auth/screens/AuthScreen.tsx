@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
+import { screenThemes } from '@shared/theme/screenThemes';
 import { supabase, supabaseConfig } from '@app/config/supabase.config';
 import { signInWithEmailPassword, signUpWithEmailPassword, resetPassword, getRedirectTo } from '@core/services/supabase/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -70,19 +71,32 @@ const AuthScreen: React.FC = () => {
         } catch {
           u = new URL(url ?? '', base);
         }
-        const hasVerifier = !!u.searchParams.get('code_verifier');
+        // Only proceed when known auth params exist
+        const code = u.searchParams.get('code');
+        const access_token_q = u.searchParams.get('access_token');
+        const refresh_token_q = u.searchParams.get('refresh_token');
         let data: any = null; let error: any = null;
-        if (Platform.OS === 'web' && !hasVerifier) {
-          const code = u.searchParams.get('code');
+        if (Platform.OS === 'web') {
           const lastEmail = u.searchParams.get('email') || (await AsyncStorage.getItem(LAST_MAGIC_EMAIL_KEY));
-          if (code && lastEmail) {
+          if (code && lastEmail && !access_token_q && !refresh_token_q) {
             const res = await supabase.auth.verifyOtp({ token_hash: code, type: 'magiclink', email: lastEmail });
             data = res.data; error = res.error;
-          } else {
+          } else if (code || access_token_q || refresh_token_q) {
             ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
+          } else {
+            // No recognizable auth params; ignore
+            return;
           }
         } else {
-          ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
+          // Native: handle magic link tokens or PKCE code
+          if (access_token_q && refresh_token_q) {
+            ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
+          } else if (code) {
+            ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
+          } else {
+            // Not an auth callback; ignore
+            return;
+          }
         }
         if (error) {
           console.error('exchangeCodeForSession error:', error);
@@ -324,7 +338,7 @@ const AuthScreen: React.FC = () => {
               ]}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="mail" size={18} color="#1a73e8" style={{ marginRight: 8 }} />
+                <Ionicons name="mail" size={18} color={screenThemes.auth.accent} style={{ marginRight: 8 }} />
                 <Text style={styles.googleText}>{submitting === 'magic' ? 'リンク送信中…' : 'メールでログイン'}</Text>
               </View>
             </Pressable>
@@ -365,7 +379,7 @@ const AuthScreen: React.FC = () => {
               ]}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="mail" size={18} color="#1a73e8" style={{ marginRight: 8 }} />
+                <Ionicons name="mail" size={18} color={screenThemes.auth.accent} style={{ marginRight: 8 }} />
                 <Text style={styles.googleText}>{submitting === 'magic' ? 'リンク送信中…' : 'メールで登録'}</Text>
               </View>
             </Pressable>

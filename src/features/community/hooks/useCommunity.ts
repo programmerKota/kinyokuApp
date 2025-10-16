@@ -143,10 +143,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       const filtered = normalized.filter((p) => !blockedSet.has(p.authorId));
       const counts = buildReplyCountMapFromPosts(filtered);
       setReplyCounts(counts);
-      // Initialize per-post reply counters store for minimal UI updates
+      // Keep the bubble counter in sync with server-provided `comments`
+      // Using `set` to refresh existing values as posts update via Realtime.
       try {
         const { ReplyCountStore } = await import("@shared/state/replyStore");
-        filtered.forEach((p) => ReplyCountStore.init(p.id, p.comments || 0));
+        filtered.forEach((p) => ReplyCountStore.setFromServer(p.id, p.comments || 0));
       } catch {}
       return filtered;
     },
