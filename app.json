@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.abstinence",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "NSCameraUsageDescription": "プロフィール画像の撮影にカメラを使用します。",
         "NSPhotoLibraryUsageDescription": "プロフィール画像・日記画像の選択にフォトライブラリを使用します。",

@@ -17,6 +17,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
+import { supabase, supabaseConfig } from "@app/config/supabase.config";
 import { ChallengeService, DiaryService } from "@core/services/firestore";
 import type { UserProfileLite } from "@core/services/profileCache";
 import ProfileCache from "@core/services/profileCache";
@@ -138,6 +139,73 @@ const DiaryByDayScreen: React.FC = () => {
     });
     return () => {
       try { (task as any)?.cancel?.(); } catch { }
+    };
+  }, [day, blockedSet]);
+
+  // 選択中の「日」のみRealtime購読して差分適用（負荷抑制）
+  useEffect(() => {
+    if (!supabaseConfig?.isConfigured) return;
+    let active = true;
+    const channel = supabase
+      .channel(`realtime:diaries:day:${day}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        (payload) => {
+          const row = (payload.new || payload.old) as any;
+          if (!row) return;
+          // 受信データを画面の型に合わせる
+          const mapped = {
+            id: row.id as string,
+            userId: row.userId as string,
+            content: row.content as string,
+            createdAt:
+              (row.createdAt as any)?.toDate?.() ||
+              (typeof row.createdAt === "string" ? new Date(row.createdAt) : row.createdAt),
+          } as DayDiaryItem;
+
+          setItems((prev) => {
+            let next = prev;
+            // ブロックユーザーの項目は表示しない
+            const visible = !blockedSet.has(mapped.userId);
+
+            if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+              // 既存を置換 or 先頭に追加
+              const idx = next.findIndex((it) => it.id === mapped.id);
+              if (!visible) {
+                // 可視条件を満たさない場合は削除扱い
+                if (idx !== -1) {
+                  next = [...next.slice(0, idx), ...next.slice(idx + 1)];
+                }
+                return next;
+              }
+              if (idx === -1) {
+                next = [mapped, ...next];
+              } else {
+                next = [...next];
+                next[idx] = mapped;
+              }
+              // createdAt 降順を維持
+              next = next.slice().sort((a, b) => (new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime()));
+              return next;
+            }
+            if (payload.eventType === "DELETE") {
+              const idx = next.findIndex((it) => it.id === mapped.id);
+              if (idx !== -1) {
+                next = [...next.slice(0, idx), ...next.slice(idx + 1)];
+              }
+              return next;
+            }
+            return next;
+          });
+        },
+      );
+
+    channel.subscribe();
+
+    return () => {
+      active = false;
+      try { supabase.removeChannel(channel); } catch { }
     };
   }, [day, blockedSet]);
 

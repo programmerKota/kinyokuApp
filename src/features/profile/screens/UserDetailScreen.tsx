@@ -76,14 +76,7 @@ const UserDetailScreen: React.FC = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const { requireAuth } = useAuthPrompt();
   // 相対時間表示は各セル内の RelativeTime コンポーネントで個別に更新
-  const [nowTick, setNowTick] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      const id = setInterval(() => setNowTick((t) => t + 1), 1000);
-      return () => clearInterval(id);
-    }, []),
-  );
+  // 相対時間更新は各セル側で行うため、画面全体の毎秒再レンダは不要
 
   // Recompute rank on focus to keep consistency with post lists
   useFocusEffect(
@@ -121,17 +114,24 @@ const UserDetailScreen: React.FC = () => {
 
   // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {
+    let timer: any | undefined;
     (async () => {
       try {
         const { LikeStore } = await import("@shared/state/likeStore");
-        postsData.forEach((p) => {
-          LikeStore.setFromServer(p.id, {
-            isLiked: likedPosts.has(p.id),
-            likes: p.likes || 0,
+        // 16ms 以内に来た更新をまとめて反映
+        const apply = () => {
+          postsData.forEach((p) => {
+            LikeStore.setFromServer(p.id, {
+              isLiked: likedPosts.has(p.id),
+              likes: p.likes || 0,
+            });
           });
-        });
+          timer = undefined;
+        };
+        if (!timer) timer = setTimeout(apply, 16);
       } catch { }
     })();
+    return () => { if (timer) clearTimeout(timer); };
   }, [likedPosts, postsData]);
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -300,7 +300,7 @@ const UserDetailScreen: React.FC = () => {
         setFollowing(false);
         try {
           FollowStore.remove(userId);
-        } catch {}
+        } catch { }
         if (wasFollowing) {
           setFollowersCount((n) => Math.max(0, n - 1));
         }

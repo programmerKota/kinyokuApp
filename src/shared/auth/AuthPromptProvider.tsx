@@ -130,7 +130,6 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
     try {
       setAuthing(provider as any);
-      // Use deep link on native, origin on web
       const redirectTo = (typeof window !== 'undefined' && Platform.OS === 'web')
         ? window.location.origin
         : getRedirectTo();
@@ -141,13 +140,13 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           skipBrowserRedirect: Platform.OS !== 'web',
         },
       });
-      // On native, open the provider URL manually. Fallback to constructed authorize URL if needed.
-      if (Platform.OS !== 'web') {
-        const providerUrl = data?.url || `${supabaseConfig.url}/auth/v1/authorize?provider=${encodeURIComponent(provider)}&redirect_to=${encodeURIComponent(redirectTo)}&flow_type=pkce`;
-        await Linking.openURL(providerUrl);
+      if (error || !data?.url) {
+        console.error('OAuth start failed', error);
+        return;
       }
-      // On web, supabase handles redirect. If it didn't, manually redirect.
-      if (Platform.OS === 'web' && data?.url) {
+      if (Platform.OS !== 'web') {
+        await Linking.openURL(data.url);
+      } else {
         try { window.location.href = data.url; } catch {}
       }
     } finally {

@@ -1,10 +1,35 @@
 import * as Linking from "expo-linking";
+import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 import { supabase } from "@app/config/supabase.config";
 
 let initialized = false;
 
-export const getRedirectTo = () => Linking.createURL("auth/callback"); // uses app.json `scheme`
+// Returns a redirect URL for Supabase Auth that works across:
+// - Native (EAS/Dev Client): <scheme>://auth/callback
+// - Expo Go: exp://.../--/auth/callback (Linking.createURL)
+// - Web: https://<origin>/auth/callback
+export const getRedirectTo = () => {
+  try {
+    if (Platform.OS === "web" && typeof window !== "undefined" && (window as any)?.location?.origin) {
+      return `${(window as any).location.origin}/auth/callback`;
+    }
+    // On native, prefer explicit app scheme so tapping email link opens the app
+    const scheme = (Constants?.expoConfig as any)?.scheme
+      || (Constants as any)?.manifest?.scheme
+      || "abstinence"; // fallback; replace if you change app.json scheme
+
+    // In Expo Go, createURL is correct (exp://...)
+    const isExpoGo = (Constants as any)?.appOwnership === 'expo';
+    if (isExpoGo) return Linking.createURL("auth/callback");
+
+    return `${scheme}://auth/callback`;
+  } catch {
+    // Safe fallback
+    return Linking.createURL("auth/callback");
+  }
+};
 
 export async function initSupabaseAuthDeepLinks() {
   if (initialized) return;

@@ -26,15 +26,7 @@ const HistoryScreen: React.FC = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  // 画面表示中のみ1秒ごとに再描画して、進行中チャレンジの時間・統計をリアルタイム更新
-  const [, setNowTick] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      const id = setInterval(() => setNowTick((t) => t + 1), 1000);
-      return () => clearInterval(id);
-    }, []),
-  );
+  // 進行中の時間表示は各カード側で処理するため、画面全体の毎秒再レンダは不要
 
   // Firestoreからデータを取得
   useEffect(() => {
