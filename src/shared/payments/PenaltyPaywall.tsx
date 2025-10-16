@@ -46,7 +46,10 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
               try {
                 setPurchasing(true);
                 const res = await PurchasesService.purchase(pkg);
-                try { await PaymentFirestoreService.addPaymentLog({ event: 'purchase', status: res?.success ? 'success' : 'error', amount: pkg.price, productId: res?.productIdentifier, platform: Platform.OS, transactionId: res?.transactionId, raw: res }); } catch {}
+                try {
+                  const status = res?.success ? 'success' : (res?.cancelled ? 'cancel' : 'error');
+                  await PaymentFirestoreService.addPaymentLog({ event: 'purchase', status, amount: pkg.price, productId: res?.productIdentifier, platform: Platform.OS, transactionId: res?.transactionId, raw: res });
+                } catch {}
                 if (res?.success) onPaid({ transactionId: res.transactionId, productIdentifier: res.productIdentifier });
               } catch (e) {
                 onError?.(e);
@@ -55,7 +58,21 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
             }} loading={purchasing} style={{ width: '100%', marginTop: spacing.md }} />
           </>
         ) : (
-          <Text style={{ color: colors.error }}>購入オプションを取得できませんでした。</Text>
+          <>
+            <Text style={{ color: colors.error }}>購入オプションを取得できませんでした。</Text>
+            <DSButton
+              title={purchasing ? '再取得中...' : '再試行'}
+              onPress={async () => {
+                try {
+                  setPurchasing(true);
+                  const p = await PurchasesService.getPenaltyPackage(amountJPY);
+                  setPkg(p);
+                } finally { setPurchasing(false); }
+              }}
+              loading={purchasing}
+              style={{ width: '100%', marginTop: spacing.md }}
+            />
+          </>
         )}
       </View>
     </View>

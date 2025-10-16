@@ -20,6 +20,12 @@ const canDisplayUri = (v?: string) => {
   return false;
 };
 
+const addCacheBust = (u: string, n: number) => {
+  if (!u) return u;
+  const sep = u.includes("?") ? "&" : "?";
+  return `${u}${sep}cb=${n}`;
+};
+
 const AvatarImage: React.FC<AvatarImageProps> = ({
   uri,
   size,
@@ -31,6 +37,7 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
     canDisplayUri(uri) ? uri : undefined,
   );
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const prevUriRef = useRef<string | undefined>(uri);
 
   useEffect(() => {
@@ -38,6 +45,7 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
     if (!uri) {
       setDisplayedUri(undefined);
       setFailed(false);
+      setAttempt(0);
       prevUriRef.current = undefined;
       return;
     }
@@ -46,11 +54,13 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
         // On native, render local file/asset URIs immediately
         setFailed(false);
         setDisplayedUri(uri);
+        setAttempt(0);
         prevUriRef.current = uri;
       } else {
         // On web, avoid blob:/file: URIs
         setDisplayedUri(undefined);
         setFailed(false);
+        setAttempt(0);
         prevUriRef.current = uri;
       }
       return;
@@ -66,22 +76,40 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
           if (ok) {
             setFailed(false);
             setDisplayedUri(uri);
+            setAttempt(0);
             prevUriRef.current = uri;
           } else {
             // Keep previous image; show placeholder only if nothing shown yet
-            setFailed(true);
-            if (!displayedUri) setDisplayedUri(undefined);
+            if (attempt < 2) {
+              const next = addCacheBust(uri, Date.now());
+              setAttempt((a) => a + 1);
+              setFailed(false);
+              setDisplayedUri(next);
+              prevUriRef.current = uri; // keep original for equality
+            } else {
+              setFailed(true);
+              if (!displayedUri) setDisplayedUri(undefined);
+            }
           }
         })
         .catch(() => {
           if (cancelled) return;
-          setFailed(true);
-          if (!displayedUri) setDisplayedUri(undefined);
+          if (attempt < 2) {
+            const next = addCacheBust(uri, Date.now());
+            setAttempt((a) => a + 1);
+            setFailed(false);
+            setDisplayedUri(next);
+            prevUriRef.current = uri;
+          } else {
+            setFailed(true);
+            if (!displayedUri) setDisplayedUri(undefined);
+          }
         });
     } else {
       // If prefetch is unavailable, swap immediately
       setFailed(false);
       setDisplayedUri(uri);
+      setAttempt(0);
       prevUriRef.current = uri;
     }
     return () => {
@@ -104,8 +132,15 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
           source={{ uri: displayedUri }}
           style={{ width: "100%", height: "100%", borderRadius: radius }}
           onError={() => {
-            setFailed(true);
-            setDisplayedUri(undefined);
+            if (uri && attempt < 2) {
+              const next = addCacheBust(uri, Date.now());
+              setAttempt((a) => a + 1);
+              setFailed(false);
+              setDisplayedUri(next);
+            } else {
+              setFailed(true);
+              setDisplayedUri(undefined);
+            }
           }}
         />
       ) : (

@@ -93,18 +93,16 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const initializeLikedPosts = useCallback(
     async (list: CommunityPost[]) => {
       if (!user) return;
-      // Check only posts whose like state is unknown
+      // Check only posts whose like state is unknown, in bulk
       const toCheck = list.map((p) => p.id).filter((id) => !likedPosts.has(id));
       if (toCheck.length === 0) return;
-      const next = new Set(likedPosts);
-      for (const id of toCheck) {
-        const isLiked = await CommunityService.isPostLikedByUser(
-          id,
-          user.uid,
-        ).catch(() => false);
-        if (isLiked) next.add(id);
-      }
-      setLikedPosts(next);
+      try {
+        const set = await CommunityService.getLikedPostIds(user.uid, toCheck);
+        if (set.size === 0) return;
+        const next = new Set(likedPosts);
+        set.forEach((id) => next.add(id));
+        setLikedPosts(next);
+      } catch { /* ignore */ }
     },
     [user, likedPosts],
   );

@@ -50,10 +50,28 @@ export class ProfileCache {
             .select("displayName, photoURL")
             .eq("id", userId)
             .maybeSingle();
+          const resolveSigned = async (url?: string): Promise<string | undefined> => {
+            try {
+              if (!url) return undefined;
+              const marker = "/storage/v1/object/public/";
+              const i = url.indexOf(marker);
+              if (i === -1) return url;
+              const rest = url.substring(i + marker.length);
+              const j = rest.indexOf("/");
+              if (j === -1) return url;
+              const bucket = rest.substring(0, j);
+              const pathWithQ = rest.substring(j + 1);
+              const path = pathWithQ.split("?")[0];
+              const { data: signed } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(path, 60 * 60 * 24 * 7);
+              return signed?.signedUrl || url;
+            } catch { return url; }
+          };
           const next = data
             ? {
                 displayName: (data as any).displayName ?? undefined,
-                photoURL: (data as any).photoURL ?? undefined,
+                photoURL: await resolveSigned((data as any).photoURL ?? undefined),
               }
             : undefined;
           entry.data = next;
@@ -81,19 +99,39 @@ export class ProfileCache {
                 | { displayName?: string; photoURL?: string }
                 | undefined;
               if (!row) return;
-              const next = {
-                displayName: row.displayName ?? entry.data?.displayName,
-                photoURL: row.photoURL ?? entry.data?.photoURL,
-              } as UserProfileLite;
-              const prev = entry.data;
-              if (
-                !prev ||
-                prev.displayName !== next.displayName ||
-                prev.photoURL !== next.photoURL
-              ) {
-                entry.data = next;
-                entry.listeners.forEach((l) => l(entry.data));
-              }
+              (async () => {
+                const resolveSigned = async (url?: string): Promise<string | undefined> => {
+                  try {
+                    if (!url) return undefined;
+                    const marker = "/storage/v1/object/public/";
+                    const i = url.indexOf(marker);
+                    if (i === -1) return url;
+                    const rest = url.substring(i + marker.length);
+                    const j = rest.indexOf("/");
+                    if (j === -1) return url;
+                    const bucket = rest.substring(0, j);
+                    const pathWithQ = rest.substring(j + 1);
+                    const path = pathWithQ.split("?")[0];
+                    const { data: signed } = await supabase.storage
+                      .from(bucket)
+                      .createSignedUrl(path, 60 * 60 * 24 * 7);
+                    return signed?.signedUrl || url;
+                  } catch { return url; }
+                };
+                const next = {
+                  displayName: row.displayName ?? entry.data?.displayName,
+                  photoURL: await resolveSigned(row.photoURL ?? entry.data?.photoURL),
+                } as UserProfileLite;
+                const prev = entry.data;
+                if (
+                  !prev ||
+                  prev.displayName !== next.displayName ||
+                  prev.photoURL !== next.photoURL
+                ) {
+                  entry.data = next;
+                  entry.listeners.forEach((l) => l(entry.data));
+                }
+              })();
             },
           )
           .subscribe();
@@ -135,6 +173,46 @@ export class ProfileCache {
     const unsubs: Unsubscribe[] = [];
 
     const emit = () => onUpdate(new Map(map));
+    // Batch prime: fetch all profiles in one round-trip to reduce N+1 queries
+    (async () => {
+      try {
+        if (ids.length === 0) return;
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, displayName, photoURL")
+          .in("id", ids);
+        if (!error && Array.isArray(data)) {
+          const resolveSigned = async (url?: string): Promise<string | undefined> => {
+            try {
+              if (!url) return undefined;
+              const marker = "/storage/v1/object/public/";
+              const i = url.indexOf(marker);
+              if (i === -1) return url;
+              const rest = url.substring(i + marker.length);
+              const j = rest.indexOf("/");
+              if (j === -1) return url;
+              const bucket = rest.substring(0, j);
+              const pathWithQ = rest.substring(j + 1);
+              const path = pathWithQ.split("?")[0];
+              const { data: signed } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(path, 60 * 60 * 24 * 7);
+              return signed?.signedUrl || url;
+            } catch { return url; }
+          };
+          for (const row of data as any[]) {
+            const id = String(row.id);
+            const entry = this.ensureEntry(id);
+            entry.data = {
+              displayName: row.displayName ?? undefined,
+              photoURL: await resolveSigned(row.photoURL ?? undefined),
+            };
+            map.set(id, entry.data);
+          }
+          emit();
+        }
+      } catch { /* ignore */ }
+    })();
 
     ids.forEach((id) => {
       const u = this.subscribe(id, (p) => {

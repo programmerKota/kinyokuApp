@@ -104,7 +104,7 @@ export class DiaryService {
     if (!supabaseConfig?.isConfigured) return [];
     const { data, error } = await supabase
       .from("diaries")
-      .select("*")
+      .select("id,userId,content,createdAt")
       .eq("day", day)
       .order("createdAt", { ascending: false })
       .limit(max);

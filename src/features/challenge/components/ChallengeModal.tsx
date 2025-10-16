@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Button from "@shared/components/Button";
 import Modal from "@shared/components/Modal";
 import { colors, spacing, typography } from "@shared/theme";
+import { paymentsConfig } from "@app/config/payments.config";
 
 interface ChallengeModalProps {
   visible: boolean;
@@ -28,7 +29,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
 }) => {
   const [daysPickerVisible, setDaysPickerVisible] = useState(false);
 
-  const penaltyOptions = [0, 10, 100, 1000, 10000];
+  const penaltyOptions = paymentsConfig.penaltyOptions;
 
   return (
     <>

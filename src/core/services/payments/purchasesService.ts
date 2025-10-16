@@ -75,28 +75,31 @@ export const PurchasesService = {
       return { identifier: 'web-mock', price: targetJPY, raw: {} };
     }
     const Purchases = (await import('react-native-purchases')).default;
-    const offerings = await Purchases.getOfferings();
-    // Prefer explicitly-configured penalty offering; fallback to current
-    const all: any = (offerings?.all as any) ?? {};
-    const off = all?.[revenuecatConfig.penaltyOfferingKey] ?? (offerings?.current as any) ?? null;
-    const list = off?.availablePackages ?? [];
-    if (!list.length) {
-      // Fallback: fetch products directly by identifiers
+
+    // Try: Offerings → fallback to direct product lookup → final mock
+    let list: any[] = [];
+    try {
+      const offerings = await Purchases.getOfferings();
+      const all: any = (offerings?.all as any) ?? {};
+      const off = all?.[revenuecatConfig.penaltyOfferingKey] ?? (offerings?.current as any) ?? null;
+      list = off?.availablePackages ?? [];
+    } catch {
+      // ignore and fallback to direct product fetch below
+    }
+
+    if (!list?.length) {
       try {
         const productIds = FALLBACK_PRODUCT_IDS.length ? FALLBACK_PRODUCT_IDS : ['penalty_10','penalty_100','penalty_1000','penalty_10000'];
         const products: any[] = await Purchases.getProducts(productIds as any);
         if (!products?.length) {
-          // Ultimate fallback: return mock package to let user proceed (no charge)
           return { identifier: `mock_${targetJPY}`, price: targetJPY, raw: null } as PenaltyPackage;
         }
         const candidates = products
           .map((prod: any) => ({ id: prod.identifier as string, price: Number(prod.price) || 0, raw: prod }))
           .sort((a: any, b: any) => a.price - b.price);
         const pick = candidates.find((c: any) => c.price >= targetJPY) ?? candidates[candidates.length - 1];
-        // Wrap as PenaltyPackage with product raw (not a package)
         return { identifier: pick.id, price: pick.price, raw: pick.raw } as PenaltyPackage;
       } catch {
-        // Fallback to mock when product lookup fails entirely
         return { identifier: `mock_${targetJPY}`, price: targetJPY, raw: null } as PenaltyPackage;
       }
     }
@@ -107,7 +110,15 @@ export const PurchasesService = {
     return { identifier: found.id, price: found.price, raw: found.raw };
   },
 
-  async purchase(p: PenaltyPackage): Promise<{ success: boolean; transactionId?: string; productIdentifier?: string }> {
+  async purchase(
+    p: PenaltyPackage,
+  ): Promise<{
+    success: boolean;
+    transactionId?: string;
+    productIdentifier?: string;
+    cancelled?: boolean;
+    errorCode?: string | number;
+  }> {
     await ensureConfigured();
     if (Platform.OS === 'web' || DEV_MODE || MOCK_MODE) {
       await new Promise((r) => setTimeout(r, 400));
@@ -128,9 +139,16 @@ export const PurchasesService = {
         // Fallback: purchase by product identifier
         result = await Purchases.purchaseProduct(p.identifier);
       }
-    } catch (e) {
-      // Do not return success on real-store failure; surface as failure
-      return { success: false, transactionId: undefined, productIdentifier: p?.identifier };
+    } catch (e: any) {
+      // Distinguish user-cancel vs other errors when possible
+      const cancelled = !!(e?.userCancelled || e?.code === 'PURCHASE_CANCELLED_ERROR' || e?.code === 1);
+      return {
+        success: false,
+        transactionId: undefined,
+        productIdentifier: p?.identifier,
+        cancelled,
+        errorCode: e?.code,
+      };
     }
     const productIdentifier: string | undefined = result?.productIdentifier ?? p.identifier;
     // RevenueCat SDK does not expose a platform transaction id in all cases; store product id as reference

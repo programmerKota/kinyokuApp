@@ -8,15 +8,25 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "env": {}
+      "env": {
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+        "HUSKY": "0"
+      }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "env": {}
+      "env": {
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+        "HUSKY": "0"
+      }
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+        "HUSKY": "0"
+      }
     }
   },
   "submit": {

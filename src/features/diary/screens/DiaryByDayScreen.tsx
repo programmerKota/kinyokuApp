@@ -118,23 +118,14 @@ const DiaryByDayScreen: React.FC = () => {
             setProfilesMap(new Map());
           }
         } catch { }
-        // prefetch averageDays for ranks
+        // prefetch averageDays for ranks (bulk)
         try {
           const ids = Array.from(new Set(mapped.map((m) => m.userId)));
           const next = new Map(userAverageDays);
           const missing = ids.filter((uid) => !next.has(uid));
           if (missing.length > 0) {
-            const results = await Promise.all(
-              missing.map(async (uid) => {
-                const days = await UserStatsService.getUserCurrentDaysForRank(
-                  uid,
-                ).catch(() => 0);
-                return { uid, days };
-              }),
-            );
-            results.forEach(({ uid, days }) =>
-              next.set(uid, Math.max(0, days)),
-            );
+            const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+            map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
           }
           setUserAverageDays(next);
         } catch { }
@@ -197,15 +188,8 @@ const DiaryByDayScreen: React.FC = () => {
         const next = new Map(userAverageDays);
         const missing = ids.filter((uid) => !next.has(uid));
         if (missing.length > 0) {
-          const results = await Promise.all(
-            missing.map(async (uid) => {
-              const days = await UserStatsService.getUserCurrentDaysForRank(
-                uid,
-              ).catch(() => 0);
-              return { uid, days };
-            }),
-          );
-          results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
+          const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+          map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
         }
         setUserAverageDays(next);
       } catch { }

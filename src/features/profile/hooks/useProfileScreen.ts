@@ -101,13 +101,26 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
       });
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0] as any;
-        const mime = asset.mimeType || 'image/jpeg';
+        // Always convert to JPEG to avoid HEIC/WEBP decode issues on some platforms
+        try {
+          const manip = await import('expo-image-manipulator');
+          const { manipulateAsync, SaveFormat } = manip as any;
+          const out = await manipulateAsync(
+            asset.uri,
+            [],
+            { compress: 0.9, format: SaveFormat.JPEG, base64: true },
+          );
+          if (out?.base64) {
+            setEditAvatar(`data:image/jpeg;base64,${out.base64}`);
+            return;
+          }
+        } catch {}
+        // Fallback: trust base64 if provided; default to jpeg
         if (asset.base64) {
-          // Use data URL to ensure iOS(ph://) is handled without relying on fetch(file://)
-          setEditAvatar(`data:${mime};base64,${asset.base64}`);
-        } else {
-          setEditAvatar(asset.uri);
+          setEditAvatar(`data:image/jpeg;base64,${asset.base64}`);
+          return;
         }
+        setEditAvatar(asset.uri);
       }
     } catch (error) {
       console.error("画像選択に失敗しました:", error);

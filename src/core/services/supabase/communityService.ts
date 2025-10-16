@@ -40,6 +40,22 @@ const toFirestoreCommunityPost = (row: SupaPostRow): FirestoreCommunityPost => {
 };
 
 export class CommunityService {
+  static async getLikedPostIds(
+    userId: string,
+    postIds: string[],
+  ): Promise<Set<string>> {
+    if (!supabaseConfig?.isConfigured || postIds.length === 0) return new Set();
+    const unique = Array.from(new Set(postIds));
+    const { data, error } = await supabase
+      .from("community_likes")
+      .select("postId")
+      .eq("userId", userId)
+      .in("postId", unique);
+    if (error) throw error;
+    const set = new Set<string>();
+    (data || []).forEach((row: any) => set.add(String(row.postId)));
+    return set;
+  }
   static async reflectUserProfile(
     userId: string,
     displayName?: string,

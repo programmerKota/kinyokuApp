@@ -119,6 +119,33 @@ export class UserStatsService {
     }
   }
 
+  static async getManyUsersCurrentDaysForRank(userIds: string[]): Promise<Map<string, number>> {
+    const out = new Map<string, number>();
+    const ids = Array.from(new Set(userIds)).filter(Boolean);
+    if (ids.length === 0) return out;
+    // Try bulk RPC if available
+    try {
+      const { data, error } = await supabase.rpc(
+        "get_users_current_days_for_rank",
+        { p_user_ids: ids },
+      );
+      if (!error && Array.isArray(data)) {
+        for (const row of data as any[]) {
+          const id = String(row.user_id ?? row.userId ?? "");
+          const days = Math.max(0, Number(row.days ?? 0));
+          if (id) out.set(id, days);
+        }
+        if (out.size === ids.length) return out;
+      }
+    } catch { /* ignore and fallback */ }
+    // Fallback: individual RPCs in parallel
+    const results = await Promise.all(
+      ids.map(async (id) => ({ id, days: await this.getUserCurrentDaysForRank(id) })),
+    );
+    results.forEach(({ id, days }) => out.set(id, days));
+    return out;
+  }
+
   static clearCache(): void {
     this.userStatsCache.clear();
     this.rankCache.clear();

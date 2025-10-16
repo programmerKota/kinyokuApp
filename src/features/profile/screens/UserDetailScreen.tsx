@@ -171,17 +171,11 @@ const UserDetailScreen: React.FC = () => {
             setPostsData(normalized);
 
             if (user) {
-              const liked = new Set<string>();
-              for (const post of normalized) {
-                try {
-                  const likedFlag = await CommunityService.isPostLikedByUser(
-                    post.id,
-                    user.uid,
-                  );
-                  if (likedFlag) liked.add(post.id);
-                } catch { }
-              }
-              setLikedPosts(liked);
+              try {
+                const ids = normalized.map((p) => p.id);
+                const set = await CommunityService.getLikedPostIds(user.uid, ids);
+                setLikedPosts(set);
+              } catch { }
             }
           },
         );
