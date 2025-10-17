@@ -2,7 +2,7 @@
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Image } from "react-native";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 import { Switch } from "react-native";
 
@@ -16,7 +16,7 @@ import Modal from "@shared/components/Modal";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 import { createScreenThemes } from "@shared/theme/screenThemes";
-import { PurchasesService } from "@core/services/payments/purchasesService";
+// 購入の復元機能は削除
 
 const ActionCard = ({
   icon,
@@ -226,29 +226,6 @@ const ProfileScreen: React.FC = () => {
                   }}
                   styles={styles}
                   colors={colors}
-                />
-                <ActionCard
-                  icon="refresh"
-                  title="購入の復元"
-                  description="機種変更などで購入が反映されない場合"
-                  styles={styles}
-                  colors={colors}
-                  onPress={async () => {
-                    try {
-                      await PurchasesService.restore();
-                      try {
-                        const { Platform } = await import('react-native');
-                        await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'success', platform: (Platform as any)?.OS });
-                      } catch { }
-                      Alert.alert("復元完了", "購入情報を復元しました。");
-                    } catch (e: any) {
-                      try {
-                        const { Platform } = await import('react-native');
-                        await (await import('@core/services/firestore/paymentService')).PaymentFirestoreService.addPaymentLog({ event: 'restore', status: 'error', platform: (Platform as any)?.OS, errorMessage: e?.message || String(e) });
-                      } catch { }
-                      Alert.alert("エラー", e?.message || "復元に失敗しました");
-                    }
-                  }}
                 />
               </Section>
             </View>
