@@ -6,15 +6,25 @@ import { colors, spacing, typography, shadows } from "@shared/theme";
 
 interface HistoryButtonProps {
   onPress: () => void;
+  // オプション: ボタン背景色と文字色を切り替え可能にする
+  backgroundColor?: string;
+  textColor?: string;
 }
 
-const HistoryButton: React.FC<HistoryButtonProps> = ({ onPress }) => {
+const HistoryButton: React.FC<HistoryButtonProps> = ({
+  onPress,
+  backgroundColor,
+  textColor,
+}) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, backgroundColor ? { backgroundColor } : null]}
+      onPress={onPress}
+    >
       <View style={styles.iconContainer}>
         <Ionicons name="time" size={20} color={colors.primary} />
       </View>
-      <Text style={styles.text}>履歴</Text>
+      <Text style={[styles.text, textColor ? { color: textColor } : null]}>履歴</Text>
     </TouchableOpacity>
   );
 };

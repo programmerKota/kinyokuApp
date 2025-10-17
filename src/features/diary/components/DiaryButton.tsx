@@ -6,15 +6,25 @@ import { colors, spacing, typography, shadows } from "@shared/theme";
 
 interface DiaryButtonProps {
   onPress: () => void;
+  // オプション: ボタン背景色と文字色を切り替え可能にする
+  backgroundColor?: string;
+  textColor?: string;
 }
 
-const DiaryButton: React.FC<DiaryButtonProps> = ({ onPress }) => {
+const DiaryButton: React.FC<DiaryButtonProps> = ({
+  onPress,
+  backgroundColor,
+  textColor,
+}) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, backgroundColor ? { backgroundColor } : null]}
+      onPress={onPress}
+    >
       <View style={styles.iconContainer}>
         <Ionicons name="book" size={20} color={colors.success} />
       </View>
-      <Text style={styles.text}>日記</Text>
+      <Text style={[styles.text, textColor ? { color: textColor } : null]}>日記</Text>
     </TouchableOpacity>
   );
 };

@@ -8,20 +8,28 @@ interface RankingButtonProps {
   onPress: () => void;
   title?: string;
   style?: any;
+  // オプション: ボタン背景色と文字色を切り替え可能にする
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 const RankingButton: React.FC<RankingButtonProps> = ({
   onPress,
   title = "ランキング",
   style,
+  backgroundColor,
+  textColor,
 }) => {
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.button, style, backgroundColor ? { backgroundColor } : null]}
+      onPress={onPress}
+    >
       <View style={styles.iconContainer}>
         <Ionicons name={"trophy"} size={20} color={colors.warning} />
       </View>
       <Text
-        style={styles.text}
+        style={[styles.text, textColor ? { color: textColor } : null]}
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.85}
