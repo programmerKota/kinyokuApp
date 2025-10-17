@@ -83,8 +83,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   content: {
-    // Align reply content start under the author name (32 avatar + spacing.sm)
-    marginLeft: 32 + spacing.sm,
+    // Align reply content start with ReplyInputBar "返信を書く" button text start position
+    // ReplyInputBar "返信を書く" text starts at: container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg)
+    marginLeft: spacing.lg + spacing.lg + spacing.md,
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
     lineHeight: 20,

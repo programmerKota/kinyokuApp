@@ -1,4 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "files": ["index.ts", "src/types/index.ts", "src/shared/utils/date.ts"]
-}

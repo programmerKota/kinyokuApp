@@ -59,7 +59,7 @@ const RepliesList: React.FC<RepliesListProps> = ({
           return visible;
         });
         // keep bubble count in sync with visible items
-        try { ReplyCountStore.set(postId, visible.length); } catch {}
+        try { ReplyCountStore.set(postId, visible.length); } catch { }
         void initializeUserAverageDays(visible);
       },
     );
@@ -85,9 +85,9 @@ const RepliesList: React.FC<RepliesListProps> = ({
             }
             return visible;
           });
-          try { ReplyCountStore.set(postId, visible.length); } catch {}
+          try { ReplyCountStore.set(postId, visible.length); } catch { }
           void initializeUserAverageDays(visible);
-        } catch {}
+        } catch { }
       })();
     });
     return unsub;
@@ -138,12 +138,9 @@ const RepliesList: React.FC<RepliesListProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    // Align left start with PostCard content start.
-    // PostCard content start = postContent.paddingLeft (spacing.lg) + CONTENT_LEFT_MARGIN.small.
-    // ReplyCard has paddingHorizontal: spacing.lg, so make
-    //   RepliesList.paddingLeft + spacing.lg = spacing.lg + CONTENT_LEFT_MARGIN.small
-    // => RepliesList.paddingLeft = CONTENT_LEFT_MARGIN.small
-    paddingLeft: CONTENT_LEFT_MARGIN.small,
+    // Align with ReplyInputBar "返信を書く" button text start position
+    // ReplyInputBar "返信を書く" text starts at: container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg)
+    paddingLeft: spacing.lg + spacing.lg + spacing.md,
     paddingBottom: spacing.sm,
   },
 });

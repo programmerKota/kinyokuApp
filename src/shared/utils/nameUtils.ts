@@ -42,7 +42,6 @@ export const getUserNameContainerStyle = (): TextStyle => {
  * ユーザー名の表示用ヘッダーコンテナスタイル
  * アバターと名前、タイムスタンプを適切に配置
  */
-// 以前のヘッダーコンテナスタイルは uiStyles.row へ集約しました（未使用のため削除）
 
 /**
  * 肩書表示用のスタイル
