@@ -73,19 +73,23 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     } catch {}
 
     // View 系（背景色）
-    const applyBg = (Comp: any) => {
-      try {
+    // 以前は View/ScrollView/SafeAreaView の defaultProps に背景色を強制設定していたが、
+    // 画面によっては上書き漏れで意図せぬ黒/白のベタ塗りが発生するため撤廃。
+    // 各画面で container 背景色を明示指定する方針に変更。
+    try {
+      const clearBg = (Comp: any) => {
         const prev = Comp.defaultProps?.style;
         Comp.defaultProps = Comp.defaultProps || {};
+        // 既存の default 背景指定は保持せず、透明にして個別スタイルの指定に委ねる
         Comp.defaultProps.style = [
-          { backgroundColor: defaultBackground },
+          { backgroundColor: "transparent" },
           prev,
         ];
-      } catch {}
-    };
-    applyBg(View as any);
-    applyBg(ScrollView as any);
-    applyBg(SafeAreaView as any);
+      };
+      clearBg(View as any);
+      clearBg(ScrollView as any);
+      clearBg(SafeAreaView as any);
+    } catch {}
   }, [mode, hydrated]);
 
   const paperTheme = useMemo<MD3Theme>(() => {
