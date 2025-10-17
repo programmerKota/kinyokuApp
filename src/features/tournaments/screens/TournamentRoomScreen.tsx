@@ -1,7 +1,7 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { Alert, View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from "react-native";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
@@ -48,6 +48,49 @@ interface Participant {
   progressPercent?: number;
   currentDay?: number;
 }
+
+// FlatList の renderItem 内でフックを呼ぶと "Invalid hook call" になるため、
+// 個別行をコンポーネント化してここでフックを使う。
+const ParticipantRow: React.FC<{
+  item: Participant;
+  avgDays: number;
+  onPress: (p: Participant) => void;
+  canKick: boolean;
+  onKick: (p: Participant) => void;
+  styles: any;
+  colors: any;
+}> = memo(({ item, avgDays, onPress, canKick, onKick, styles, colors }) => {
+  const { name, avatar } = useDisplayProfile(item.id, item.name, item.avatar);
+  return (
+    <TouchableOpacity
+      style={styles.participantItem}
+      onPress={() => onPress(item)}
+      activeOpacity={0.8}
+    >
+      {canKick ? (
+        <TouchableOpacity
+          onPress={() => onKick(item)}
+          activeOpacity={0.8}
+          style={styles.kickIconButton}
+          accessibilityLabel="削除"
+        >
+          <Ionicons name="close" size={18} color={colors.white} />
+        </TouchableOpacity>
+      ) : (
+        <View style={{ width: 0 }} />
+      )}
+      <UserProfileWithRank
+        userName={name}
+        userAvatar={avatar}
+        averageDays={avgDays}
+        size="small"
+        showRank={false}
+        showTitle={true}
+        style={styles.userProfileContainer}
+      />
+    </TouchableOpacity>
+  );
+});
 
 interface JoinRequest {
   id: string;
@@ -467,38 +510,20 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
     });
   };
 
-  const renderParticipant = ({ item }: { item: Participant }) => {
-    const { name, avatar } = useDisplayProfile(item.id, item.name, item.avatar);
-    return (
-      <TouchableOpacity
-        style={styles.participantItem}
-        onPress={() => handleParticipantPress(item)}
-        activeOpacity={0.8}
-      >
-        {tournament && user?.uid === tournament.ownerId && item.role !== "owner" ? (
-          <TouchableOpacity
-            onPress={() => handleKick(item)}
-            activeOpacity={0.8}
-            style={styles.kickIconButton}
-            accessibilityLabel="削除"
-          >
-            <Ionicons name="close" size={18} color={colors.white} />
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 0 }} />
-        )}
-        <UserProfileWithRank
-          userName={name}
-          userAvatar={avatar}
-          averageDays={userAverageDays.get(item.id) || 0}
-          size="small"
-          showRank={false}
-          showTitle={true}
-          style={styles.userProfileContainer}
-        />
-      </TouchableOpacity>
-    );
-  };
+  const renderParticipant = useCallback(
+    ({ item }: { item: Participant }) => (
+      <ParticipantRow
+        item={item}
+        avgDays={userAverageDays.get(item.id) || 0}
+        onPress={handleParticipantPress}
+        canKick={!!(tournament && user?.uid === tournament.ownerId && item.role !== "owner")}
+        onKick={handleKick}
+        styles={styles}
+        colors={colors}
+      />
+    ),
+    [styles, colors, userAverageDays, tournament, user],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
