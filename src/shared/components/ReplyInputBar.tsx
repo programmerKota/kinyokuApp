@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+﻿import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import {
   View,
   TextInput,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { ReplyUiStore } from "@shared/state/replyUiStore";
 
 interface ReplyInputBarProps {
@@ -28,11 +28,16 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
   onFocus,
 }) => {
   const disabled = !value.trim();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const onLayout = useCallback((e: any) => {
     try {
       const h = e?.nativeEvent?.layout?.height as number | undefined;
       if (h && h > 0) ReplyUiStore.setInputBarHeight(h);
-    } catch {}
+    } catch { }
   }, []);
   const inputRef = useRef<TextInput>(null);
 
@@ -83,59 +88,64 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.gray50,
-    padding: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderPrimary,
-  },
-  input: {
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: spacing.md,
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  cancelBtn: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  cancelText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-    minWidth: 60,
-    alignItems: "center",
-  },
-  submitBtnDisabled: {
-    backgroundColor: colors.gray300,
-  },
-  submitText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.white,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  submitTextDisabled: {
-    color: colors.gray500,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.backgroundSecondary,
+      padding: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderPrimary,
+    },
+    input: {
+      fontSize: typography.fontSize.base,
+      color: colors.textPrimary,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      minHeight: 80,
+      textAlignVertical: "top",
+      marginBottom: spacing.md,
+    },
+    actions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    cancelBtn: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+    },
+    cancelText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      fontWeight: typography.fontWeight.medium,
+    },
+    submitBtn: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+      minWidth: 60,
+      alignItems: "center",
+    },
+    submitBtnDisabled: {
+      backgroundColor: colors.gray300,
+    },
+    submitText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.white,
+      fontWeight: typography.fontWeight.semibold,
+    },
+    submitTextDisabled: {
+      color: colors.gray500,
+    },
+  });
+};
 
 export default ReplyInputBar;

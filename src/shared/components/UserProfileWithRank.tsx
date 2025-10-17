@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import {
@@ -7,7 +7,7 @@ import {
   getRankDisplayByDays,
 } from "@core/services/rankService";
 import { StatsService } from "@core/services/statsService";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import {
   getUserNameStyle,
   getUserNameContainerStyle,
@@ -43,6 +43,10 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   style,
   textStyle,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const rank = getRankByDays(averageDays);
 
   const getSizeConfig = () => {
@@ -92,7 +96,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
           <Ionicons
             name="person"
             size={sizeConfig.avatarSize * 0.5}
-            color={colors.textSecondary}
+            color="#9CA3AF"
           />
         </View>
       )}
@@ -102,7 +106,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
           <Text
             style={[
               styles.userName,
-              getUserNameStyle({ fontSize: sizeConfig.fontSize }),
+              getUserNameStyle(colors.textPrimary, { fontSize: sizeConfig.fontSize }),
               textStyle,
             ]}
           >
@@ -125,7 +129,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
         </View>
         {showTitle && (
           <Text
-            style={[styles.userTitle, getTitleStyle(size)]}
+            style={[styles.userTitle, getTitleStyle(size, colors.textSecondary)]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -186,7 +190,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   return <ProfileContent containerStyle={style} />;
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",

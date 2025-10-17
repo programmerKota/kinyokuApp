@@ -1,8 +1,10 @@
-// テーマシステムの統合エクスポート
+﻿// テーマシステムの統合エクスポート
 export { colors } from "./colors";
 export { spacing, spacingAliases } from "./spacing";
 export { typography, textStyles } from "./typography";
 export { shadows } from "./shadows";
+export { ThemeProvider, useAppTheme } from "./ThemeProvider";
+export { useThemedStyles } from "./useThemedStyles";
 
 // テーマオブジェクトの統合
 import { colors } from "./colors";

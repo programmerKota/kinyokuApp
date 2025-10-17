@@ -1,27 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useMemo, useState, useCallback } from "react";
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  TextInput,
-  Text,
-  Platform,
-  TouchableOpacity,
-  Alert,
-  Linking,
-} from "react-native";
+import { SafeAreaView, StyleSheet, View, TextInput, Text, Platform, TouchableOpacity, Alert, Linking } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import Button from "@shared/components/Button";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import * as MailComposer from "expo-mail-composer";
 
 const FeedbackScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -84,10 +79,7 @@ const FeedbackScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -136,59 +128,64 @@ const FeedbackScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: typography.fontSize.lg,
-    fontWeight: "700",
-    color: colors.gray800,
-  },
-  subTitle: {
-    marginTop: 4,
-    color: colors.textSecondary,
-  },
-  form: {
-    padding: spacing.lg,
-  },
-  label: {
-    fontSize: typography.fontSize.sm,
-    color: colors.gray800,
-    fontWeight: "600",
-  },
-  input: {
-    marginTop: 6,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    color: colors.gray800,
-  },
-  textarea: {
-    minHeight: 160,
-  },
-  successMessage: {
-    marginTop: spacing.md,
-    textAlign: "center",
-    color: colors.success,
-    fontSize: typography.fontSize.sm,
-    fontWeight: "600",
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: typography.fontSize.lg,
+      fontWeight: "700",
+      color: colors.textPrimary,
+    },
+    subTitle: {
+      marginTop: 4,
+      color: colors.textSecondary,
+    },
+    form: {
+      padding: spacing.lg,
+    },
+    label: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textPrimary,
+      fontWeight: "600",
+    },
+    input: {
+      marginTop: 6,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      color: colors.textPrimary,
+    },
+    textarea: {
+      minHeight: 160,
+    },
+    successMessage: {
+      marginTop: spacing.md,
+      textAlign: "center",
+      color: colors.success,
+      fontSize: typography.fontSize.sm,
+      fontWeight: "600",
+    },
+  });
+};
 
 export default FeedbackScreen;

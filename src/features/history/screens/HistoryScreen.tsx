@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,21 +9,27 @@ import {
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
-  StatusBar,
   ScrollView,
 } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { ChallengeService, PaymentFirestoreService } from "@core/services/firestore";
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
-import { colors, spacing, typography } from "@shared/theme";
-import { screenThemes } from "@shared/theme/screenThemes";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import { createScreenThemes } from "@shared/theme/screenThemes";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -174,10 +180,7 @@ const HistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -347,165 +350,171 @@ const HistoryScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.backgroundPrimary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  title: {
-    fontSize: typography.fontSize["2xl"],
-    fontWeight: "bold",
-    color: colors.textPrimary,
-    textAlign: "center",
-    flex: 1,
-  },
-  placeholder: {
-    width: 40,
-  },
-  content: {
-    flex: 1,
-  },
-  recordCard: {
-    backgroundColor: screenThemes.history.cardBg,
-    margin: spacing.xl,
-    borderRadius: 20,
-    padding: spacing.xl,
-  },
-  recordHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.xl,
-  },
-  waveIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: spacing.md,
-  },
-  recordTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.white,
-  },
-  recordStats: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: spacing.xl,
-  },
-  statBox: {
-    flex: 1,
-    alignItems: "center",
-    marginHorizontal: spacing.sm,
-    backgroundColor: screenThemes.history.tintSoft,
-    borderRadius: 16,
-    padding: spacing.lg,
-  },
-  statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  statLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.white,
-    marginBottom: spacing.xs,
-    textAlign: "center",
-  },
-  statValue: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.white,
-    marginBottom: spacing.xs,
-  },
-  statSubValue: {
-    fontSize: typography.fontSize.sm,
-    color: "rgba(255, 255, 255, 0.8)",
-  },
-  challengeCountBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: screenThemes.history.tintSoft,
-    borderRadius: 16,
-    padding: spacing.lg,
-  },
-  challengeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: spacing.md,
-  },
-  challengeLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.white,
-    marginRight: spacing.sm,
-  },
-  challengeValue: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.white,
-  },
-  pastRecordsSection: {
-    padding: spacing.xl,
-  },
-  pastRecordsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.xl,
-  },
-  pastRecordsTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginLeft: spacing.sm,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: spacing["4xl"],
-  },
-  leafIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.gray100,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  emptyText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textTertiary,
-    textAlign: "center",
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+  const screenThemes = createScreenThemes(colors);
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    backButton: {
+      padding: spacing.sm,
+    },
+    title: {
+      fontSize: typography.fontSize["2xl"],
+      fontWeight: "bold",
+      color: colors.textPrimary,
+      textAlign: "center",
+      flex: 1,
+    },
+    placeholder: {
+      width: 40,
+    },
+    content: {
+      flex: 1,
+    },
+    recordCard: {
+      backgroundColor: screenThemes.history.cardBg,
+      margin: spacing.xl,
+      borderRadius: 20,
+      padding: spacing.xl,
+    },
+    recordHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.xl,
+    },
+    waveIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: spacing.md,
+    },
+    recordTitle: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.white,
+    },
+    recordStats: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: spacing.xl,
+    },
+    statBox: {
+      flex: 1,
+      alignItems: "center",
+      marginHorizontal: spacing.sm,
+      backgroundColor: screenThemes.history.tintSoft,
+      borderRadius: 16,
+      padding: spacing.lg,
+    },
+    statIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    statLabel: {
+      fontSize: typography.fontSize.sm,
+      color: colors.white,
+      marginBottom: spacing.xs,
+      textAlign: "center",
+    },
+    statValue: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.white,
+      marginBottom: spacing.xs,
+    },
+    statSubValue: {
+      fontSize: typography.fontSize.sm,
+      color: "rgba(255, 255, 255, 0.8)",
+    },
+    challengeCountBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: screenThemes.history.tintSoft,
+      borderRadius: 16,
+      padding: spacing.lg,
+    },
+    challengeIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: spacing.md,
+    },
+    challengeLabel: {
+      fontSize: typography.fontSize.sm,
+      color: colors.white,
+      marginRight: spacing.sm,
+    },
+    challengeValue: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.white,
+    },
+    pastRecordsSection: {
+      padding: spacing.xl,
+    },
+    pastRecordsHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.xl,
+    },
+    pastRecordsTitle: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+      color: colors.textPrimary,
+      marginLeft: spacing.sm,
+    },
+    emptyContainer: {
+      alignItems: "center",
+      paddingVertical: spacing["4xl"],
+    },
+    leafIcon: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.gray100,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: spacing.lg,
+    },
+    emptyTitle: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginBottom: spacing.sm,
+    },
+    emptyText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textTertiary,
+      textAlign: "center",
+    },
+  });
+};
 
 export default HistoryScreen;

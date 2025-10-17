@@ -11,12 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  StatusBar,
 } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useModerationGuard } from "@shared/hooks/useModerationGuard";
-import { colors, spacing, typography } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -29,6 +29,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = React.useMemo(() => colorSchemes[mode], [mode]);
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
+
   const [content, setContent] = useState("");
   const guard = useModerationGuard(content);
 
@@ -60,7 +66,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       statusBarTranslucent
     >
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+        <AppStatusBar />
         <View style={[uiStyles.row, styles.header]}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -119,10 +125,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
     flexDirection: "row",

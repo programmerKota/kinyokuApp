@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import Button from "@shared/components/Button";
 import Modal from "@shared/components/Modal";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { formatDuration } from "@shared/utils/date";
 
 interface CurrentSession {
@@ -28,6 +28,11 @@ const StopModal: React.FC<StopModalProps> = ({
   isGoalAchieved,
   onConfirm,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Modal visible={visible} onClose={onClose} title="チャレンジ停止">
       {currentSession ? (
@@ -92,7 +97,7 @@ const StopModal: React.FC<StopModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",

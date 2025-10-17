@@ -1,11 +1,11 @@
-import React from "react";
+﻿import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { colors, spacing } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
 type Props = {
@@ -27,6 +27,12 @@ const DiaryCard: React.FC<Props> = ({
   createdAt,
   onAuthorPress,
 }) => {
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
     authorId,
     authorName,
@@ -51,22 +57,27 @@ const DiaryCard: React.FC<Props> = ({
         </View>
 
         <View style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}>
-          <Text style={[styles.text, getContentStyle("small")]}> {content} </Text>
+          <Text style={[styles.text, getContentStyle("small", colors.textPrimary)]}> {content} </Text>
         </View>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { backgroundColor: colors.white, marginBottom: 0 },
-  inner: { padding: spacing.lg },
-  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.sm, width: "100%", justifyContent: "space-between" },
-  timestampRight: { marginLeft: spacing.md, color: colors.textSecondary, fontSize: 14, flexShrink: 0 },
-  userProfileContainer: { flex: 1 },
-  content: { marginBottom: spacing.xs },
-  text: {},
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: { backgroundColor: colors.backgroundSecondary, marginBottom: 0 },
+    inner: { padding: spacing.lg },
+    header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.sm, width: "100%", justifyContent: "space-between" },
+    timestampRight: { marginLeft: spacing.md, color: colors.textSecondary, fontSize: 14, flexShrink: 0 },
+    userProfileContainer: { flex: 1 },
+    content: { marginBottom: spacing.xs },
+    text: {},
+  });
+};
 
 export default React.memo(DiaryCard, (a, b) =>
   a.authorId === b.authorId &&

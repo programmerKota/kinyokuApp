@@ -38,7 +38,7 @@
         "prepare": "husky",
         "lint:unused": "ts-prune"
     },
-  "dependencies": {
+    "dependencies": {
         "@expo/metro-runtime": "~6.1.2",
         "@react-native-async-storage/async-storage": "^1.24.0",
         "@react-navigation/bottom-tabs": "^7.4.7",
@@ -52,7 +52,6 @@
         "expo-dev-client": "~6.0.13",
         "expo-device": "~8.0.9",
         "expo-image-picker": "~17.0.8",
-        
         "expo-linking": "~8.0.8",
         "expo-mail-composer": "^15.0.7",
         "expo-notifications": "~0.32.12",
@@ -60,11 +59,11 @@
         "expo-status-bar": "~3.0.8",
         "expo-updates": "~29.0.12",
         "pg": "^8.12.0",
-        
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "react-native": "0.81.4",
         "react-native-gesture-handler": "~2.28.0",
+        "react-native-paper": "^5.14.5",
         "react-native-purchases": "^9.4.0",
         "react-native-reanimated": "~4.1.1",
         "react-native-safe-area-context": "~5.6.0",
@@ -73,12 +72,11 @@
         "react-native-web": "~0.21.0",
         "react-native-worklets": "0.5.1"
     },
-  "devDependencies": {
+    "devDependencies": {
         "@babel/core": "^7.25.2",
         "@faker-js/faker": "^10.0.0",
-    "@playwright/test": "^1.56.0",
-    "playwright": "^1.55.1",
-    "@testing-library/react-native": "^12.5.1",
+        "@playwright/test": "^1.56.0",
+        "@testing-library/react-native": "^12.5.1",
         "@types/jest": "^30.0.0",
         "@types/react": "~19.1.10",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -98,10 +96,11 @@
         "lint-staged": "^15.5.2",
         "localtunnel": "^2.0.2",
         "metro": "^0.83.1",
+        "playwright": "^1.55.1",
         "prettier": "^3.6.2",
+        "react-test-renderer": "19.1.0",
         "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
-    "react-test-renderer": "19.1.0",
+        "ts-node": "^10.9.2",
         "ts-prune": "^0.10.3",
         "tsx": "^4.20.5",
         "typescript": "~5.9.2"

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+﻿import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
@@ -293,7 +293,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 {oauthConfig.twitter && (
                   <Pressable
                     onPress={() => { void startOAuth('twitter'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
                   >
                     <Ionicons name="logo-twitter" size={20} color={colors.textPrimary} />
                   </Pressable>
@@ -301,7 +301,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 {oauthConfig.google && (
                   <Pressable
                     onPress={() => { void startOAuth('google'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
                   >
                     <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
                   </Pressable>
@@ -309,7 +309,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 {oauthConfig.amazon && (
                   <Pressable
                     onPress={() => { void startOAuth('amazon'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
                   >
                     <Ionicons name="logo-amazon" size={20} color={colors.textPrimary} />
                   </Pressable>

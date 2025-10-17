@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AuthProvider } from "@app/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { AuthPromptProvider } from "@shared/auth/AuthPromptProvider";
 import { AuthGate } from "@shared/auth/AuthGate";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
+import { ThemeProvider } from "@shared/theme";
 
 const App = () => {
   // Preload icon fonts to prevent first‑paint flicker of vector icons
@@ -26,7 +27,8 @@ const App = () => {
   }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ErrorBoundary>
+      <ThemeProvider>
+<ErrorBoundary>
         <AuthPromptProvider>
           <AuthProvider>
             {(() => {
@@ -47,6 +49,9 @@ const App = () => {
           </AuthProvider>
         </AuthPromptProvider>
       </ErrorBoundary>
+
+    </ThemeProvider>
+
     </GestureHandlerRootView>
   );
 };

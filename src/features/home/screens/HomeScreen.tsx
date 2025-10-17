@@ -1,6 +1,7 @@
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useCallback, useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
+import React, { useCallback, useState, useMemo } from "react";
+import { SafeAreaView, StyleSheet, View } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
@@ -8,7 +9,7 @@ import TimerScreen from "@features/challenge/screens/TimerScreen";
 import DiaryButton from "@features/diary/components/DiaryButton";
 import HistoryButton from "@features/home/components/HistoryButton";
 import RankingButton from "@features/home/components/RankingButton";
-import { colors, spacing } from "@shared/theme";
+import { spacing, useAppTheme } from "@shared/theme";
 
 // プロフィール初期設定モーダルの自動表示は廃止
 
@@ -21,7 +22,8 @@ type HomeScreenProps = {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-
+  const { mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(mode), [mode]);
 
   const refreshHomeScreen = useCallback(() => {
     setRefreshKey(prev => prev + 1);
@@ -29,10 +31,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
       <TimerScreen
         key={refreshKey}
         onChallengeStarted={refreshHomeScreen}
@@ -56,23 +55,28 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 0,
-    paddingBottom: spacing.lg,
-  },
-  quickBtn: {
-    flex: 1,
-    minWidth: 120,
-    alignItems: "stretch",
-    paddingHorizontal: spacing.xs,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 0,
+      paddingBottom: spacing.lg,
+    },
+    quickBtn: {
+      flex: 1,
+      minWidth: 120,
+      alignItems: "stretch",
+      paddingHorizontal: spacing.xs,
+    },
+  });
+};
 
 export default HomeScreen;

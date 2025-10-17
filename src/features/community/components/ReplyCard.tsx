@@ -1,11 +1,12 @@
-import React from "react";
+﻿import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import type { CommunityComment } from "@project-types";
 import AvatarImage from "@shared/components/AvatarImage";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import RelativeTime from "@shared/components/RelativeTime";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface ReplyCardProps {
   reply: CommunityComment;
@@ -14,6 +15,11 @@ interface ReplyCardProps {
 }
 
 const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const Container = onPress ? TouchableOpacity : View;
   const { name, avatar } = useDisplayProfile(
     reply.authorId,
@@ -44,11 +50,13 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
+    // 前の余白・背景に戻す（従来のレイアウトを維持）
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.white,
+    paddingLeft: spacing.lg + CONTENT_LEFT_MARGIN.small,
+    paddingRight: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
     flexDirection: "row",
@@ -83,8 +91,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   content: {
-    // Align reply content start with ReplyInputBar "返信を書く" button text start position
-    // ReplyInputBar "返信を書く" text starts at: container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg)
+    // 前の余白設定に戻す（返信入力のテキスト開始位置と同値）
+    // container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg) + 微調整(spacing.md)
     marginLeft: spacing.lg + spacing.lg + spacing.md,
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,

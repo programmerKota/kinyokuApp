@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import { colors, spacing, typography, shadows } from "@shared/theme";
+import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 import { formatDuration } from "@shared/utils/date";
 
 interface TimerDisplayProps {
@@ -24,6 +24,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   onStartPress,
   onStopPress,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const days = Math.floor(actualDuration / (24 * 3600));
   const timeText = formatDuration(actualDuration).split(" ")[1];
 
@@ -72,7 +77,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "space-between",
@@ -163,7 +168,7 @@ const styles = StyleSheet.create({
   },
   goalBannerActive: {
     width: "100%",
-    backgroundColor: "#E8F5E8",
+    backgroundColor: colors.successLight,
     borderRadius: 12,
     padding: spacing.lg,
     overflow: "hidden",
@@ -179,7 +184,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: "rgba(76, 175, 80, 0.25)",
+    backgroundColor: colors.success + "40", // 25% opacity
     zIndex: 1,
   },
   goalBannerText: {

@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
 import CreatePostModal from "@features/community/components/CreatePostModal";
@@ -22,8 +22,8 @@ import type { CommunityPost } from "@project-types";
 import Button from "@shared/components/Button";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
-import { colors, spacing, typography, shadows } from "@shared/theme";
-import { uiStyles } from "@shared/ui/styles";
+import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
@@ -33,6 +33,11 @@ const CommunityScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const [state, actions] = useCommunity();
   const { requireAuth } = useAuthPrompt();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const uiStyles = useThemedStyles(createUiStyles);
+  const styles = useMemo(() => createStyles(mode), [mode]);
   const {
     posts,
     likedPosts,
@@ -78,10 +83,7 @@ const CommunityScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
 
       <View style={uiStyles.tabBar}>
         <TouchableOpacity
@@ -128,7 +130,7 @@ const CommunityScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAwareScrollView>
+      <KeyboardAwareScrollView style={styles.scrollView}>
         <PostList
           key={`postlist-${activeTab}`}
           posts={posts}
@@ -237,139 +239,147 @@ const CommunityScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.backgroundPrimary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  title: {
-    fontSize: typography.fontSize["2xl"],
-    fontWeight: "700",
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-  tabContainer: {
-    flexDirection: "row",
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.backgroundPrimary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  tab: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    marginRight: spacing["3xl"],
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.info,
-  },
-  tabText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "500",
-    color: colors.textSecondary,
-  },
-  activeTabText: {
-    color: colors.info,
-  },
-  listContainer: {
-    padding: spacing.xl,
-    backgroundColor: colors.backgroundSecondary,
-  },
-  fab: {
-    position: "absolute",
-    bottom: spacing.xl,
-    right: spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.info,
-    justifyContent: "center",
-    alignItems: "center",
-    ...shadows.lg,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: spacing["5xl"],
-  },
-  emptyTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  emptyText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textTertiary,
-    textAlign: "center",
-    marginBottom: spacing["2xl"],
-  },
-  emptyButton: {
-    paddingHorizontal: spacing["3xl"],
-  },
-  replyInputContainer: {
-    backgroundColor: colors.gray50,
-    padding: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderPrimary,
-  },
-  replyInput: {
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: spacing.md,
-  },
-  replyInputActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  replyCancelButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  replyCancelText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  replySubmitButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-    minWidth: 60,
-    alignItems: "center",
-  },
-  replySubmitButtonDisabled: {
-    backgroundColor: colors.gray300,
-  },
-  replySubmitText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.white,
-    fontWeight: typography.fontWeight.semibold,
-  },
-  replySubmitTextDisabled: {
-    color: colors.gray500,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    title: {
+      fontSize: typography.fontSize["2xl"],
+      fontWeight: "700",
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    tabContainer: {
+      flexDirection: "row",
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    tab: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      marginRight: spacing["3xl"],
+    },
+    activeTab: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.info,
+    },
+    tabText: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "500",
+      color: colors.textSecondary,
+    },
+    activeTabText: {
+      color: colors.info,
+    },
+    listContainer: {
+      padding: spacing.xl,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    fab: {
+      position: "absolute",
+      bottom: spacing.xl,
+      right: spacing.xl,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.info,
+      justifyContent: "center",
+      alignItems: "center",
+      ...shadows.lg,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: spacing["5xl"],
+    },
+    emptyTitle: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+    emptyText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textTertiary,
+      textAlign: "center",
+      marginBottom: spacing["2xl"],
+    },
+    emptyButton: {
+      paddingHorizontal: spacing["3xl"],
+    },
+    scrollView: {
+      backgroundColor: colors.backgroundTertiary,
+    },
+    replyInputContainer: {
+      backgroundColor: colors.gray50,
+      padding: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderPrimary,
+    },
+    replyInput: {
+      fontSize: typography.fontSize.base,
+      color: colors.textPrimary,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      minHeight: 80,
+      textAlignVertical: "top",
+      marginBottom: spacing.md,
+    },
+    replyInputActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    replyCancelButton: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+    },
+    replyCancelText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      fontWeight: typography.fontWeight.medium,
+    },
+    replySubmitButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+      minWidth: 60,
+      alignItems: "center",
+    },
+    replySubmitButtonDisabled: {
+      backgroundColor: colors.gray300,
+    },
+    replySubmitText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.white,
+      fontWeight: typography.fontWeight.semibold,
+    },
+    replySubmitTextDisabled: {
+      color: colors.gray500,
+    },
+  });
+};
 
 export default CommunityScreen;

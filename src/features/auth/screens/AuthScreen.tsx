@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Pressable, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 
 import DSButton from '@shared/designSystem/components/DSButton';
-import { colors, spacing, typography } from '@shared/theme';
-import { screenThemes } from '@shared/theme/screenThemes';
+import { spacing, typography, useAppTheme } from '@shared/theme';
+import { createScreenThemes } from '@shared/theme/screenThemes';
 import { supabase, supabaseConfig } from '@app/config/supabase.config';
 import { signInWithEmailPassword, signUpWithEmailPassword, resetPassword, getRedirectTo } from '@core/services/supabase/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,12 @@ const TERMS_URL = 'https://example.com/terms';
 const PRIVACY_URL = 'https://example.com/privacy';
 
 const AuthScreen: React.FC = () => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require('@shared/theme/colors');
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
+  const styles = useMemo(() => createAuthStyles(colors), [colors]);
+
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -426,7 +432,7 @@ const AuthScreen: React.FC = () => {
                       accessibilityLabel="利用規約に同意"
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      {agreeTermsTos ? <Ionicons name="checkmark" size={14} color="#1a73e8" /> : null}
+                      {agreeTermsTos ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                     </TouchableOpacity>
                     <Text style={styles.termsLineSmall}>
                       <Text style={styles.linkGoogle} onPress={() => Linking.openURL(TERMS_URL)}>利用規約</Text>
@@ -442,7 +448,7 @@ const AuthScreen: React.FC = () => {
                       accessibilityLabel="プライバシーポリシーに同意"
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      {agreeTermsPrivacy ? <Ionicons name="checkmark" size={14} color="#1a73e8" /> : null}
+                      {agreeTermsPrivacy ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                     </TouchableOpacity>
                     <Text style={styles.termsLineSmall}>
                       <Text style={styles.linkGoogle} onPress={() => Linking.openURL(PRIVACY_URL)}>プライバシーポリシー</Text>
@@ -464,19 +470,19 @@ const AuthScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createAuthStyles = (colors: any) => StyleSheet.create({
   container: { flexGrow: 1, backgroundColor: colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', padding: spacing['2xl'] },
-  card: { width: '100%', maxWidth: 520, backgroundColor: colors.white, borderRadius: 20, padding: spacing['2xl'], borderWidth: 1, borderColor: colors.borderPrimary, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  card: { width: '100%', maxWidth: 520, backgroundColor: colors.backgroundSecondary, borderRadius: 20, padding: spacing['2xl'], borderWidth: 1, borderColor: colors.borderPrimary, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   brand: { fontSize: typography.fontSize['2xl'], fontWeight: '800', color: colors.textPrimary, textAlign: 'center', letterSpacing: 0.5 },
   // ピル型タブ
   tabsPillsWrapper: { marginTop: spacing.lg },
   tabsPillsBg: { flexDirection: 'row', backgroundColor: colors.backgroundSecondary, padding: 4, borderRadius: 999 },
   pill: { flex: 1, paddingVertical: spacing.md, borderRadius: 999, alignItems: 'center' },
-  pillActive: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary },
+  pillActive: { backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary },
   pillText: { color: colors.textSecondary, fontWeight: '700' },
   pillTextActive: { color: colors.textPrimary },
   label: { color: colors.textSecondary, fontWeight: '700', marginBottom: 6, marginTop: spacing.lg },
-  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing.lg, paddingVertical: 16, backgroundColor: colors.white },
+  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing.lg, paddingVertical: 16, backgroundColor: colors.backgroundSecondary },
   inputError: { borderColor: colors.error },
   hint: { color: colors.textSecondary, fontSize: 12, marginTop: 6 },
   hintError: { color: colors.error, fontSize: 12, marginTop: 6 },
@@ -488,10 +494,10 @@ const styles = StyleSheet.create({
   termsText: { color: colors.textSecondary, flex: 1 },
   termsLineText: { color: colors.textPrimary, fontSize: typography.fontSize.base },
   termsLineSmall: { color: colors.textPrimary, fontSize: typography.fontSize.sm },
-  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.backgroundSecondary },
   checkboxInner: { width: 0, height: 0 },
   checkboxChecked: { borderColor: colors.primary },
-  iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' },
   iconBtnDisabled: { opacity: 0.5, backgroundColor: colors.backgroundSecondary },
   ok: { color: '#1a7f37' },
   ng: { color: colors.textSecondary },
@@ -501,7 +507,7 @@ const styles = StyleSheet.create({
   googleBtn: {
     width: '100%',
     marginTop: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderColor: '#dadce0',
     borderWidth: 1,
     borderRadius: 12,

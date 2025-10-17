@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, memo, useRef } from "react";
+﻿import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, memo, useRef, useMemo } from "react";
 import { Dimensions, InteractionManager, Keyboard, Platform } from "react-native";
 import ReplyUiStore from "@shared/state/replyUiStore";
 import {
@@ -17,7 +17,7 @@ import RepliesList from "@features/community/components/RepliesList";
 import type { CommunityPost } from "@project-types";
 import ListFooterSpinner from "@shared/components/ListFooterSpinner";
 import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface PostListProps {
@@ -63,6 +63,10 @@ const PostList: React.FC<PostListProps> = ({
   refreshControl,
   ListEmptyComponent: emptyComponent,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+
   const listRef = useRef<FlatList<any>>(null);
   const scrollYRef = useRef(0);
   const viewportHRef = useRef(Dimensions.get("window").height);
@@ -78,8 +82,8 @@ const PostList: React.FC<PostListProps> = ({
       const needHeight = () => (ReplyUiStore.getInputBarHeight?.() || 0) > 60;
 
       const cleanupAll = (subs: { remove?: () => void }[], extra: (() => void)[] = []) => {
-        for (const s of subs) { try { s?.remove?.(); } catch {} }
-        for (const f of extra) { try { f(); } catch {} }
+        for (const s of subs) { try { s?.remove?.(); } catch { } }
+        for (const f of extra) { try { f(); } catch { } }
       };
 
       const tryScroll = () => {
@@ -97,13 +101,13 @@ const PostList: React.FC<PostListProps> = ({
               const buttonBottom = (y || 0) + (h || 0);
               const delta = (buttonBottom || 0) - targetBottom;
               const newOffset = Math.max(0, (scrollYRef.current || 0) + (delta || 0));
-              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch {}
+              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch { }
             });
           } catch {
             try {
               const index = posts.findIndex((p) => p.id === postId);
               if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.98 });
-            } catch {}
+            } catch { }
           }
         });
       };
@@ -191,12 +195,12 @@ const PostList: React.FC<PostListProps> = ({
       onLayout={(e) => {
         try {
           viewportHRef.current = e?.nativeEvent?.layout?.height || viewportHRef.current;
-        } catch {}
+        } catch { }
       }}
       onScroll={(e) => {
         try {
           scrollYRef.current = e?.nativeEvent?.contentOffset?.y || 0;
-        } catch {}
+        } catch { }
       }}
       scrollEventThrottle={16}
       style={listStyle}
@@ -221,7 +225,7 @@ const PostList: React.FC<PostListProps> = ({
               animated: true,
               viewPosition: 1,
             });
-          } catch {}
+          } catch { }
         }, 80);
       }}
       ListEmptyComponent={() => {
@@ -270,6 +274,11 @@ const PostListRow: React.FC<{
 }) => {
   const replyBtnRef = React.useRef<any>(null);
   const visible = useReplyVisibility(item.id, false);
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const rowStyles = useMemo(() => createRowStyles(colors), [colors]);
+
   const avgDays =
     typeof authorAverageDays === "number"
       ? authorAverageDays
@@ -345,11 +354,11 @@ const PostListRow: React.FC<{
   );
 });
 
-const rowStyles = StyleSheet.create({
+const createRowStyles = (colors: any) => StyleSheet.create({
   replyButtonContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   replyButtonSpacer: {
     width: spacing.lg + CONTENT_LEFT_MARGIN.small,

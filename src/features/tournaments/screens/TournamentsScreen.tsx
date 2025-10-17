@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 // Firebase Timestamp は使用せず Date を利用
@@ -6,12 +6,12 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   TouchableOpacity,
   Alert,
   Text,
   View,
 } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { supabase } from "@app/config/supabase.config";
 import { useAuth } from "@app/contexts/AuthContext";
@@ -27,8 +27,8 @@ import VirtualizedList from "@features/tournaments/components/VirtualizedList";
 import useTournamentParticipants from "@features/tournaments/hooks/useTournamentParticipants";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
-import { colors, spacing, typography, shadows } from "@shared/theme";
-import { uiStyles } from "@shared/ui/styles";
+import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import ProfileCache from "@core/services/profileCache";
 
@@ -55,6 +55,10 @@ const TournamentsScreen: React.FC = () => {
   const navigation = useNavigation<TournamentsScreenNavigationProp>();
   const { user } = useAuth();
   const { handleError } = useErrorHandler();
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const [, participantsActions] = useTournamentParticipants();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -361,10 +365,7 @@ const TournamentsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
 
       {/* ヘッダー削除（リクエストにより非表示） */}
 
@@ -372,6 +373,8 @@ const TournamentsScreen: React.FC = () => {
       <FilterTabs
         active={filter}
         onChange={(v) => setFilter(v)}
+        mode={mode}
+        uiStyles={uiStyles}
       />
 
       <VirtualizedList
@@ -393,7 +396,7 @@ const TournamentsScreen: React.FC = () => {
         style={styles.fab}
         onPress={() => setShowCreateModal(true)}
       >
-        <Ionicons name="add" size={24} color={colors.white} />
+        <Ionicons name="add" size={24} color="white" />
       </TouchableOpacity>
 
       <CreateTournamentModal
@@ -417,42 +420,47 @@ const TournamentsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.backgroundPrimary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  title: {
-    fontSize: typography.fontSize["2xl"],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-  fab: {
-    position: "absolute",
-    bottom: spacing.xl,
-    right: spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.info,
-    justifyContent: "center",
-    alignItems: "center",
-    ...shadows.lg,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    title: {
+      fontSize: typography.fontSize["2xl"],
+      fontWeight: typography.fontWeight.bold,
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    fab: {
+      position: "absolute",
+      bottom: spacing.xl,
+      right: spacing.xl,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.info,
+      justifyContent: "center",
+      alignItems: "center",
+      ...shadows.lg,
+    },
+    list: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xl,
+    },
+  });
+};
 
 export default TournamentsScreen;
 
@@ -460,7 +468,12 @@ export default TournamentsScreen;
 const FilterTabs: React.FC<{
   active: "all" | "joined";
   onChange: (v: "all" | "joined") => void;
-}> = ({ active, onChange }) => {
+  mode: "light" | "dark";
+  uiStyles: ReturnType<typeof createUiStyles>;
+}> = ({ active, onChange, mode, uiStyles }) => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
   return (
     <SafeAreaView style={{ backgroundColor: colors.backgroundTertiary }}>
       <View style={uiStyles.tabBar}>

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { TextInputProps, TextStyle } from "react-native";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 
 interface InputFieldProps extends TextInputProps {
   label: string;
@@ -25,11 +25,16 @@ const InputField: React.FC<InputFieldProps> = ({
   unstyled = false,
   ...textInputProps
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   if (unstyled) {
     return (
       <TextInput
         style={[textStyle, style]}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={mode === "dark" ? "#9CA3AF" : "#94A3B8"}
         {...textInputProps}
       />
     );
@@ -55,49 +60,54 @@ const InputField: React.FC<InputFieldProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.xl,
-  },
-  labelContainer: {
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "bold",
-    color: colors.gray800,
-  },
-  required: {
-    color: colors.error,
-  },
-  description: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    borderRadius: 8,
-    padding: spacing.lg,
-    fontSize: typography.fontSize.base,
-    backgroundColor: colors.backgroundSecondary,
-    color: colors.gray800,
-  },
-  inputError: {
-    borderColor: colors.error,
-    backgroundColor: colors.errorLight,
-  },
-  hint: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-  },
-  error: {
-    fontSize: typography.fontSize.xs,
-    color: colors.error,
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      marginBottom: spacing.xl,
+    },
+    labelContainer: {
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "bold",
+      color: colors.textPrimary,
+    },
+    required: {
+      color: colors.error,
+    },
+    description: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      marginTop: spacing.xs,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      borderRadius: 8,
+      padding: spacing.lg,
+      fontSize: typography.fontSize.base,
+      backgroundColor: colors.backgroundSecondary,
+      color: colors.textPrimary,
+    },
+    inputError: {
+      borderColor: colors.error,
+      backgroundColor: colors.errorLight,
+    },
+    hint: {
+      fontSize: typography.fontSize.xs,
+      color: colors.textTertiary,
+      marginTop: spacing.xs,
+    },
+    error: {
+      fontSize: typography.fontSize.xs,
+      color: colors.error,
+      marginTop: spacing.xs,
+    },
+  });
+};
 
 export default InputField;

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import type { RouteProp } from "@react-navigation/native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -7,15 +7,15 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   TouchableOpacity,
   FlatList,
 } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { FollowService } from "@core/services/firestore";
 import ProfileCache from "@core/services/profileCache";
 import AvatarImage from "@shared/components/AvatarImage";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { getRankDisplayByDays } from "@core/services/rankService";
 import { UserStatsService } from "@core/services/userStatsService";
@@ -40,6 +40,10 @@ const FollowListScreen: React.FC = () => {
   const { user } = useAuth();
   const followingSet = useFollowingIds();
   const { requireAuth } = useAuthPrompt();
+  const { mode: themeMode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const title = mode === "following" ? "フォロー" : "フォロワー";
   const [ids, setIds] = useState<string[]>([]);
@@ -102,7 +106,7 @@ const FollowListScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+      <AppStatusBar />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray800} />
@@ -151,7 +155,7 @@ const FollowListScreen: React.FC = () => {
           );
         }}
         ListEmptyComponent={() => (
-          <View style={styles.empty}> 
+          <View style={styles.empty}>
             <Text style={styles.emptyText}>
               {mode === "following" ? "フォローしているユーザーがいません" : "フォロワーがいません"}
             </Text>
@@ -162,7 +166,7 @@ const FollowListScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundTertiary,
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
   },
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
     color: colors.gray800,
   },
   listContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   separator: {
     height: 1,
@@ -197,7 +201,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   itemMain: {
     flexDirection: "row",
@@ -227,11 +231,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 2,
     borderColor: "#FACC15",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   followPillFollowing: {
     borderColor: "#FDE047",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   followPillText: {
     fontSize: typography.fontSize.sm,
@@ -260,6 +264,10 @@ export default FollowListScreen;
 
 // 下: 補助コンポーネント（1ユーザーの階級表示）
 const RankText: React.FC<{ userId: string }> = ({ userId }) => {
+  const { mode: themeMode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [days, setDays] = useState<number>(0);
   useEffect(() => {
     let mounted = true;
@@ -287,6 +295,10 @@ const FollowPill: React.FC<{
   isFollowing: boolean;
   requireAuth: () => Promise<boolean>;
 }> = ({ targetUserId, isFollowing, requireAuth }) => {
+  const { mode: themeMode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [busy, setBusy] = useState(false);
   const handlePress = async () => {
     if (busy) return;

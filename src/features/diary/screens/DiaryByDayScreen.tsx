@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -7,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  StatusBar,
   FlatList,
   ScrollView,
   RefreshControl,
@@ -27,7 +26,8 @@ import Modal from "@shared/components/Modal";
 import DiaryCard from "@features/diary/components/DiaryCard";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { formatDateTimeJP } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
@@ -74,6 +74,11 @@ const DiaryItemRow: React.FC<{
 const DiaryByDayScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const [day, setDay] = useState<number>(1);
   const [items, setItems] = useState<DayDiaryItem[]>([]);
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
@@ -309,10 +314,7 @@ const DiaryByDayScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -347,6 +349,7 @@ const DiaryByDayScreen: React.FC = () => {
         data={items}
         keyExtractor={(i) => i.id}
         renderItem={renderItem}
+        style={styles.list}
         contentContainerStyle={{ padding: spacing.lg }}
         initialNumToRender={8}
         windowSize={7}
@@ -509,85 +512,93 @@ const DiaryByDayScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.backgroundTertiary },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  iconBtn: { padding: spacing.sm },
-  title: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.gray800,
-  },
-  daySelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  dayBtn: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs },
-  dayText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "700",
-    color: colors.textPrimary,
-  },
-  // card-related styles removed; use DiaryCard component for consistent look with posts
-  cardsRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  fab: {
-    position: "absolute",
-    right: spacing.lg,
-    bottom: spacing.lg,
-    backgroundColor: colors.primary,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalInput: {
-    minHeight: 140,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    borderRadius: 12,
-    padding: spacing.md,
-    color: colors.textPrimary,
-    textAlignVertical: "top",
-    backgroundColor: colors.white,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginTop: spacing.md,
-    gap: spacing.md,
-  },
-  modalCancel: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  modalCancelText: { color: colors.textSecondary },
-  modalSubmit: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-  },
-  modalSubmitDisabled: { backgroundColor: colors.gray300 },
-  modalSubmitText: { color: colors.white, fontWeight: "600" },
-  helperText: {
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.backgroundTertiary },
+    list: {
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    iconBtn: { padding: spacing.sm },
+    title: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.gray800,
+    },
+    daySelector: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    dayBtn: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs },
+    dayText: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "700",
+      color: colors.textPrimary,
+    },
+    // card-related styles removed; use DiaryCard component for consistent look with posts
+    cardsRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+    fab: {
+      position: "absolute",
+      right: spacing.lg,
+      bottom: spacing.lg,
+      backgroundColor: colors.primary,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    modalInput: {
+      minHeight: 140,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      borderRadius: 12,
+      padding: spacing.md,
+      color: colors.textPrimary,
+      textAlignVertical: "top",
+      backgroundColor: colors.backgroundSecondary,
+    },
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      marginTop: spacing.md,
+      gap: spacing.md,
+    },
+    modalCancel: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+    modalCancelText: { color: colors.textSecondary },
+    modalSubmit: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+    },
+    modalSubmitDisabled: { backgroundColor: colors.gray300 },
+    modalSubmitText: { color: colors.white, fontWeight: "600" },
+    helperText: {
+      color: colors.textSecondary,
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+    },
+  });
+};
 
 export default DiaryByDayScreen;

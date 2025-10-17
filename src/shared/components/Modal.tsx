@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React, { useMemo } from "react";
 import type { GestureResponderEvent } from "react-native";
 import {
   Modal as RNModal,
@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 
-import { colors, spacing, typography, shadows } from "@shared/theme";
+import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 
 interface ModalProps {
   visible: boolean;
@@ -33,6 +33,9 @@ const Modal: React.FC<ModalProps> = ({
   hideHeader = false,
   maxWidth,
 }) => {
+  const { mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const handleBackdropPress = () => {
     Keyboard.dismiss();
     onClose();
@@ -59,25 +62,25 @@ const Modal: React.FC<ModalProps> = ({
           >
             {/* Do not intercept presses inside content; it blocks nested buttons (OAuth, etc.) */}
             <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
-                {!hideHeader && (
-                  <View style={styles.header}>
-                    <Text style={styles.title}>{title}</Text>
-                    {showCloseButton && (
-                      <TouchableWithoutFeedback onPress={onClose}>
-                        <View style={styles.closeButton}>
-                          <Text style={styles.closeButtonText}>x</Text>
-                        </View>
-                      </TouchableWithoutFeedback>
-                    )}
-                  </View>
-                )}
-                <ScrollView
-                  style={styles.content}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
-                >
-                  {children}
-                </ScrollView>
+              {!hideHeader && (
+                <View style={styles.header}>
+                  <Text style={styles.title}>{title}</Text>
+                  {showCloseButton && (
+                    <TouchableWithoutFeedback onPress={onClose}>
+                      <View style={styles.closeButton}>
+                        <Text style={styles.closeButtonText}>x</Text>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  )}
+                </View>
+              )}
+              <ScrollView
+                style={styles.content}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {children}
+              </ScrollView>
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -86,64 +89,69 @@ const Modal: React.FC<ModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing["4xl"],
-  },
-  keyboardAvoidingView: {
-    width: "100%",
-    maxHeight: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    width: "100%",
-    maxWidth: 400,
-    maxHeight: "100%",
-    shadowColor: shadows.xl.shadowColor,
-    shadowOffset: shadows.xl.shadowOffset,
-    shadowOpacity: shadows.xl.shadowOpacity,
-    shadowRadius: shadows.xl.shadowRadius,
-    elevation: shadows.xl.elevation,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: spacing["2xl"],
-    paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  title: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: "bold",
-    color: colors.gray800,
-    flex: 1,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.gray100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeButtonText: {
-    fontSize: typography.fontSize.lg,
-    color: colors.textSecondary,
-    fontWeight: "bold",
-  },
-  content: {
-    padding: spacing["2xl"],
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: mode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing["4xl"],
+    },
+    keyboardAvoidingView: {
+      width: "100%",
+      maxHeight: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      width: "100%",
+      maxWidth: 400,
+      maxHeight: "100%",
+      shadowColor: shadows.xl.shadowColor,
+      shadowOffset: shadows.xl.shadowOffset,
+      shadowOpacity: shadows.xl.shadowOpacity,
+      shadowRadius: shadows.xl.shadowRadius,
+      elevation: shadows.xl.elevation,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: spacing["2xl"],
+      paddingVertical: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    title: {
+      fontSize: typography.fontSize.xl,
+      fontWeight: "bold",
+      color: colors.textPrimary,
+      flex: 1,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.gray100,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    closeButtonText: {
+      fontSize: typography.fontSize.lg,
+      color: colors.textSecondary,
+      fontWeight: "bold",
+    },
+    content: {
+      padding: spacing["2xl"],
+    },
+  });
+};
 
 export default Modal;

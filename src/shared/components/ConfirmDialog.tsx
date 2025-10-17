@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import Modal from "@shared/components/Modal";
 import Button from "@shared/components/Button";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import type { ColorPalette } from "@shared/theme/colors";
 
 type Tone = "default" | "danger" | "warning" | "info";
 
@@ -27,7 +28,7 @@ interface ConfirmDialogProps {
   tone?: Tone;
 }
 
-const toneColor = (tone: Tone) => {
+const toneColor = (tone: Tone, colors: ColorPalette) => {
   switch (tone) {
     case "danger":
       return { fg: colors.error, bg: colors.errorLight };
@@ -58,8 +59,13 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   icon = "alert-circle-outline",
   tone = "default",
 }) => {
-  const close = onClose || (() => {});
-  const c = toneColor(tone);
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
+  const close = onClose || (() => { });
+  const c = toneColor(tone, colors);
   const desc = description || message;
   const primaryText = primaryLabel || confirmText || "OK";
   const secondaryText = secondaryLabel || cancelText || "キャンセル";
@@ -83,7 +89,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <Modal visible={visible} onClose={close} hideHeader>
       <View style={styles.container}>
-        <View style={[styles.iconWrap, { backgroundColor: c.bg }]}> 
+        <View style={[styles.iconWrap, { backgroundColor: c.bg }]}>
           <Ionicons name={icon} size={28} color={c.fg} />
         </View>
         <Text style={styles.title}>{title}</Text>
@@ -109,43 +115,48 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "stretch",
-    paddingTop: spacing.xl,
-  },
-  iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
-  },
-  title: {
-    marginTop: spacing.lg,
-    fontSize: typography.fontSize.lg,
-    fontWeight: "700",
-    color: colors.gray800,
-    textAlign: "center",
-  },
-  desc: {
-    marginTop: spacing.sm,
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-  actions: {
-    marginTop: spacing["2xl"],
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 12,
-  },
-  secondaryBtn: {
-    backgroundColor: "transparent",
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      alignItems: "stretch",
+      paddingTop: spacing.xl,
+    },
+    iconWrap: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+    },
+    title: {
+      marginTop: spacing.lg,
+      fontSize: typography.fontSize.lg,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    desc: {
+      marginTop: spacing.sm,
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    actions: {
+      marginTop: spacing["2xl"],
+      width: "100%",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 12,
+    },
+    secondaryBtn: {
+      backgroundColor: "transparent",
+    },
+  });
+};
 
 export default ConfirmDialog;

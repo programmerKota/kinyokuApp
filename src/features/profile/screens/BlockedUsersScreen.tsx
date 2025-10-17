@@ -2,21 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  FlatList,
-  TouchableOpacity,
-  Text,
-} from "react-native";
+import { SafeAreaView, StyleSheet, View, FlatList, TouchableOpacity, Text } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import { BlockService } from "@core/services/firestore";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
 export interface SimpleUser {
@@ -28,6 +21,10 @@ export interface SimpleUser {
 const BlockedUsersScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [users, setUsers] = useState<SimpleUser[]>([]);
 
@@ -56,10 +53,10 @@ const BlockedUsersScreen: React.FC = () => {
                 displayName: u.displayName || "ユーザー",
                 photoURL: u.photoURL ?? undefined,
               });
-          } catch {}
+          } catch { }
         }
         if (!cancelled) setUsers(list);
-      } catch {}
+      } catch { }
     };
     void load();
     return () => {
@@ -78,10 +75,7 @@ const BlockedUsersScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -125,7 +119,7 @@ const BlockedUsersScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundTertiary,
@@ -133,7 +127,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
     flexDirection: "row",
@@ -150,7 +144,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   item: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: spacing.lg,
     marginBottom: spacing.md,

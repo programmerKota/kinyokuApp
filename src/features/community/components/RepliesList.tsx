@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+﻿import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 
 import { CommunityService } from "@core/services/firestore/communityService";
 import { UserStatsService } from "@core/services/userStatsService";
 import ReplyCard from "@features/community/components/ReplyCard";
 import type { CommunityComment } from "@project-types";
-import { colors, spacing } from "@shared/theme";
+import { spacing, useAppTheme } from "@shared/theme";
 import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { ReplyCountStore } from "@shared/state/replyStore";
@@ -36,6 +36,11 @@ const RepliesList: React.FC<RepliesListProps> = ({
   onUserPress,
   allowBlockedReplies = false,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [replies, setReplies] = useState<CommunityComment[]>([]);
   const blockedSet = useBlockedIds();
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
@@ -135,11 +140,12 @@ const RepliesList: React.FC<RepliesListProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
+    // 前の余白と背景に戻す（従来のレイアウトを維持）
     backgroundColor: colors.white,
-    // Align with ReplyInputBar "返信を書く" button text start position
-    // ReplyInputBar "返信を書く" text starts at: container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg)
+    // ReplyInputBar「返信を書く」テキスト開始位置に合わせた従来の padding
+    // container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg) + 微調整(spacing.md)
     paddingLeft: spacing.lg + spacing.lg + spacing.md,
     paddingBottom: spacing.sm,
   },

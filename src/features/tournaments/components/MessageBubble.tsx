@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 import AvatarImage from "@shared/components/AvatarImage";
-import { colors, spacing, typography, shadows } from "@shared/theme";
+import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 
 interface MessageBubbleProps {
   message: {
@@ -29,6 +29,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   isOwn,
   onUserPress,
 }) => {
+  const { mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(mode), [mode]);
   if (message.type === "system") {
     return (
       <View style={styles.systemContainer}>
@@ -127,122 +129,127 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  messageContainer: {
-    marginVertical: spacing.xs,
-    paddingHorizontal: spacing.lg,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  ownMessageContainer: {
-    justifyContent: "flex-end",
-  },
-  avatarContainer: {
-    marginRight: spacing.sm,
-    marginTop: 2,
-  },
-  messageContent: {
-    flex: 1,
-    minWidth: 0, // allow children to shrink and wrap on web
-    alignItems: "flex-start", // default: content-sized bubble
-  },
-  ownMessageContent: {
-    alignItems: "flex-end", // own messages right-aligned
-  },
-  bubbleRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    flex: 1,
-    minWidth: 0,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.info,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: "bold",
-    color: colors.white,
-  },
-  bubble: {
-    maxWidth: "80%",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 20,
-    ...shadows.base,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  bubbleOther: {
-    alignSelf: "flex-start",
-  },
-  bubbleOwn: {
-    alignSelf: "flex-end",
-  },
-  ownBubble: {
-    backgroundColor: colors.info,
-    borderBottomRightRadius: 4,
-  },
-  otherBubble: {
-    backgroundColor: colors.white,
-    borderBottomLeftRadius: 4,
-  },
-  authorName: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: "600",
-    color: colors.info,
-    marginBottom: spacing.xs,
-    marginLeft: spacing.xs,
-  },
-  messageText: {
-    fontSize: typography.fontSize.base,
-    lineHeight: 22,
-    flexShrink: 1,
-    flexWrap: "wrap",
-  },
-  messageTextWeb: {
-    // RN Web specific: allow long words/continuous text to wrap
-    wordBreak: "break-all",
-    overflowWrap: "anywhere",
-    whiteSpace: "pre-wrap",
-  } as any,
-  ownMessageText: {
-    color: colors.white,
-  },
-  otherMessageText: {
-    color: colors.gray800,
-  },
-  timestamp: {
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  ownTimestamp: {
-    color: colors.textTertiary,
-    marginRight: spacing.sm,
-  },
-  otherTimestamp: {
-    color: colors.textTertiary,
-    marginLeft: spacing.sm,
-  },
-  systemContainer: {
-    alignItems: "center",
-    marginVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  systemText: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
-    fontStyle: "italic",
-    backgroundColor: colors.gray100,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    messageContainer: {
+      marginVertical: spacing.xs,
+      paddingHorizontal: spacing.lg,
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    ownMessageContainer: {
+      justifyContent: "flex-end",
+    },
+    avatarContainer: {
+      marginRight: spacing.sm,
+      marginTop: 2,
+    },
+    messageContent: {
+      flex: 1,
+      minWidth: 0, // allow children to shrink and wrap on web
+      alignItems: "flex-start", // default: content-sized bubble
+    },
+    ownMessageContent: {
+      alignItems: "flex-end", // own messages right-aligned
+    },
+    bubbleRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      flex: 1,
+      minWidth: 0,
+    },
+    avatar: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.info,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarText: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: "bold",
+      color: colors.white,
+    },
+    bubble: {
+      maxWidth: "80%",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderRadius: 20,
+      ...shadows.base,
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    bubbleOther: {
+      alignSelf: "flex-start",
+    },
+    bubbleOwn: {
+      alignSelf: "flex-end",
+    },
+    ownBubble: {
+      backgroundColor: colors.info,
+      borderBottomRightRadius: 4,
+    },
+    otherBubble: {
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomLeftRadius: 4,
+    },
+    authorName: {
+      fontSize: typography.fontSize.xs,
+      fontWeight: "600",
+      color: colors.info,
+      marginBottom: spacing.xs,
+      marginLeft: spacing.xs,
+    },
+    messageText: {
+      fontSize: typography.fontSize.base,
+      lineHeight: 22,
+      flexShrink: 1,
+      flexWrap: "wrap",
+    },
+    messageTextWeb: {
+      // RN Web specific: allow long words/continuous text to wrap
+      wordBreak: "break-all",
+      overflowWrap: "anywhere",
+      whiteSpace: "pre-wrap",
+    } as any,
+    ownMessageText: {
+      color: colors.white,
+    },
+    otherMessageText: {
+      color: colors.gray800,
+    },
+    timestamp: {
+      fontSize: 11,
+      marginBottom: 2,
+    },
+    ownTimestamp: {
+      color: colors.textTertiary,
+      marginRight: spacing.sm,
+    },
+    otherTimestamp: {
+      color: colors.textTertiary,
+      marginLeft: spacing.sm,
+    },
+    systemContainer: {
+      alignItems: "center",
+      marginVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+    },
+    systemText: {
+      fontSize: typography.fontSize.xs,
+      color: colors.textSecondary,
+      fontStyle: "italic",
+      backgroundColor: colors.gray100,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: 12,
+    },
+  });
+};
 
 export default React.memo(MessageBubble, (prev, next) => {
   const a = prev.message;

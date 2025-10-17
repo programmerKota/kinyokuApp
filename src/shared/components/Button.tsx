@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import type { ViewStyle, TextStyle, StyleProp } from "react-native";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 
-import { colors, spacing } from "@shared/theme";
-import { createButtonStyle, createTextStyle } from "@shared/utils/styles";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import { createButtonStyle } from "@shared/utils/styles";
 
 interface ButtonProps {
   title: string;
@@ -31,18 +31,33 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
   testID,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+
   const buttonStyle = [
-    createButtonStyle(variant, size),
+    createButtonStyle(variant, size, colors),
     disabled && styles.disabled,
     style,
   ];
 
+  const getTextColor = () => {
+    if (variant === "secondary") return colors.textSecondary;
+    return colors.white;
+  };
+
+  const getTextSize = () => {
+    if (size === "small") return typography.fontSize.sm;
+    if (size === "large") return typography.fontSize.lg;
+    return typography.fontSize.base;
+  };
+
   const textStyleCombined = [
-    createTextStyle(
-      size === "small" ? "sm" : size === "large" ? "lg" : "base",
-      "semibold",
-      variant === "secondary" ? "textSecondary" : "textInverse",
-    ),
+    {
+      fontSize: getTextSize(),
+      fontWeight: typography.fontWeight.semibold,
+      color: getTextColor(),
+    },
     disabled && styles.disabledText,
     textStyle,
   ];

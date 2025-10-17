@@ -14,10 +14,13 @@ export const CONTENT_LEFT_MARGIN = {
  * ユーザー名の表示用スタイルを生成する共通関数
  * 長い名前でも適切に折り返し、レイアウトが崩れないようにする
  */
-export const getUserNameStyle = (baseStyle?: TextStyle): TextStyle => {
+export const getUserNameStyle = (
+  color?: string,
+  baseStyle?: TextStyle,
+): TextStyle => {
   return {
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: color ?? "#1a1a1a",
     marginRight: 8,
     flexShrink: 1,
     flexWrap: "wrap",
@@ -49,6 +52,7 @@ export const getUserNameContainerStyle = (): TextStyle => {
  */
 export const getTitleStyle = (
   size: "small" | "medium" | "large" = "medium",
+  color?: string,
 ): TextStyle => {
   const fontSizeMap = {
     small: 10,
@@ -59,7 +63,7 @@ export const getTitleStyle = (
   return {
     fontSize: fontSizeMap[size],
     fontWeight: "500",
-    color: "#9E9E9E", // 肩書きの文字色は訓練兵に統一
+    color: color ?? "#9E9E9E",
     marginTop: 4,
     lineHeight: 16,
   };
@@ -71,6 +75,7 @@ export const getTitleStyle = (
  */
 export const getContentStyle = (
   size: "small" | "medium" | "large" = "medium",
+  color?: string,
 ): TextStyle => {
   const fontSizeMap = {
     small: 16,
@@ -83,7 +88,7 @@ export const getContentStyle = (
 
   return {
     fontSize: fs,
-    color: "#1a1a1a",
+    color: color ?? "#1a1a1a",
     lineHeight: lh,
   };
 };

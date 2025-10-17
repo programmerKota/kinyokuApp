@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import type { RouteProp } from "@react-navigation/native";
 import {
   useRoute,
@@ -32,8 +32,9 @@ import { getRankDisplayByDays } from "@core/services/rankService";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
-import { colors, spacing, typography } from "@shared/theme";
-import { uiStyles } from "@shared/ui/styles";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
+import { createUiStyles } from "@shared/ui/styles";
 import {
   buildReplyCountMapFromPosts,
   normalizeCommunityPostsFirestore,
@@ -53,6 +54,11 @@ const UserDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const { userId, userName, userAvatar } = route.params || ({} as any);
   const { user } = useAuth();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = React.useMemo(() => colorSchemes[mode], [mode]);
+  const uiStyles = useThemedStyles(createUiStyles);
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const { name: liveName, avatar: liveAvatar } = useDisplayProfile(
     userId,
     userName,
@@ -325,7 +331,7 @@ const UserDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+      <AppStatusBar />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -481,7 +487,7 @@ const UserDetailScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundTertiary,
@@ -491,7 +497,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
   },
@@ -504,7 +510,7 @@ const styles = StyleSheet.create({
     color: colors.gray800,
   },
   listContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   empty: {
     paddingVertical: spacing["3xl"],
@@ -519,7 +525,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing["2xl"],
     paddingBottom: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   profileAvatar: {
     marginBottom: spacing.md,
@@ -542,7 +548,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   primaryCta: {
     flex: 1,
@@ -566,7 +572,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
     borderColor: colors.borderPrimary,
     borderRadius: 28,
@@ -600,7 +606,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     minHeight: 28,
     borderColor: "#F87171",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   followText: {
     color: "#F87171",
@@ -608,7 +614,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   follow: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   following: {
     backgroundColor: "#FDE2E2",
@@ -630,7 +636,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   block: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderColor: colors.borderPrimary,
   },
   blocking: {
@@ -651,7 +657,7 @@ const styles = StyleSheet.create({
   postItem: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
   },
@@ -706,7 +712,7 @@ const styles = StyleSheet.create({
   replyInput: {
     fontSize: typography.fontSize.base,
     color: colors.textPrimary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     padding: spacing.md,
     borderWidth: 1,
@@ -750,7 +756,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderTopWidth: 1,

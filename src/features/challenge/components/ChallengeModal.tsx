@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+﻿import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import Button from "@shared/components/Button";
 import Modal from "@shared/components/Modal";
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 import { paymentsConfig } from "@app/config/payments.config";
 
 interface ChallengeModalProps {
@@ -27,6 +27,10 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
   onStart,
   isStarting,
 }) => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [daysPickerVisible, setDaysPickerVisible] = useState(false);
 
   const penaltyOptions = paymentsConfig.penaltyOptions;
@@ -145,7 +149,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   penaltyChipSelected: {
     backgroundColor: "#E5F2FF",
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   selectFieldText: {
     fontSize: typography.fontSize.base,
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
   },
   dayRowSelected: {
     backgroundColor: "#E5F2FF",

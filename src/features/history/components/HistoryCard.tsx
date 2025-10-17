@@ -1,11 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+﻿import { Ionicons } from "@expo/vector-icons";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import { StatsService } from "@core/services/statsService";
 import type { Challenge, Payment } from "@project-types";
-import { colors, spacing, typography, shadows } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 import { formatDateTimeJP } from "@shared/utils/date";
 
 interface HistoryCardProps {
@@ -15,6 +15,12 @@ interface HistoryCardProps {
 }
 
 const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+
   const calculateDuration = (challenge: Challenge) => {
     const startTime = challenge.startedAt.getTime();
     const endTime =
@@ -208,80 +214,85 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    ...shadows.md,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.md,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.gray100,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: spacing.md,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-    color: colors.gray800,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
-  },
-  statusContainer: {
-    marginLeft: spacing.md,
-  },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: "600",
-    color: colors.white,
-  },
-  details: {
-    borderTopWidth: 1,
-    borderTopColor: colors.gray100,
-    paddingTop: spacing.md,
-  },
-  detailRow: {
-    marginBottom: spacing.sm,
-  },
-  detailLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-  },
-  detailValue: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: "600",
-    color: colors.gray800,
-  },
-  penaltyText: {
-    color: colors.error,
-  },
-  paymentText: {
-    color: colors.info,
-  },
-  prizeText: {
-    color: colors.success,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+      ...shadows.md,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.md,
+    },
+    iconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.gray100,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: spacing.md,
+    },
+    content: {
+      flex: 1,
+    },
+    title: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+      color: colors.gray800,
+      marginBottom: spacing.xs,
+    },
+    subtitle: {
+      fontSize: typography.fontSize.xs,
+      color: colors.textSecondary,
+    },
+    statusContainer: {
+      marginLeft: spacing.md,
+    },
+    statusBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderRadius: 12,
+    },
+    statusText: {
+      fontSize: typography.fontSize.xs,
+      fontWeight: "600",
+      color: colors.white,
+    },
+    details: {
+      borderTopWidth: 1,
+      borderTopColor: colors.gray100,
+      paddingTop: spacing.md,
+    },
+    detailRow: {
+      marginBottom: spacing.sm,
+    },
+    detailLabel: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+    },
+    detailValue: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: "600",
+      color: colors.gray800,
+    },
+    penaltyText: {
+      color: colors.error,
+    },
+    paymentText: {
+      color: colors.info,
+    },
+    prizeText: {
+      color: colors.success,
+    },
+  });
+};
 
 export default HistoryCard;

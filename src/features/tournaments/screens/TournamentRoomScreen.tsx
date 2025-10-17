@@ -1,17 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Alert,
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Alert, View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from "react-native";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
@@ -28,7 +20,7 @@ import ConfirmDialog from "@shared/components/ConfirmDialog";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { colors, spacing, typography, shadows } from "@shared/theme";
+import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 import { toDate } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
@@ -76,6 +68,11 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
   route,
 }) => {
   const navigation = useNavigation<TournamentRoomScreenNavigationProp>();
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const { tournamentId } = route.params;
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat");
   const { user } = useAuth();
@@ -239,19 +236,19 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
               ownerExists || !tournamentData?.ownerId
                 ? list
                 : [
-                    {
-                      id: "owner-participant",
-                      tournamentId,
-                      userId: tournamentData.ownerId,
-                      userName: ownerDisplayName || "ユーザー",
-                      userAvatar: ownerAvatarUrl,
-                      status: "joined",
-                      joinedAt: tournamentData.createdAt,
-                      progressPercent: 0,
-                      currentDay: 0,
-                    },
-                    ...list,
-                  ];
+                  {
+                    id: "owner-participant",
+                    tournamentId,
+                    userId: tournamentData.ownerId,
+                    userName: ownerDisplayName || "ユーザー",
+                    userAvatar: ownerAvatarUrl,
+                    status: "joined",
+                    joinedAt: tournamentData.createdAt,
+                    progressPercent: 0,
+                    currentDay: 0,
+                  },
+                  ...list,
+                ];
 
             const converted: Participant[] = all.map((p) => ({
               id: p.userId,
@@ -505,10 +502,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.backgroundTertiary}
-      />
+      <AppStatusBar />
 
       {/* ヘッダー */}
       <View style={styles.header}>
@@ -577,10 +571,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
           {(() => {
             const canSend = Boolean(
               user &&
-                ((tournament && tournament.ownerId === user.uid) ||
-                  participants.some(
-                    (p) => p.id === user.uid && p.status === "joined",
-                  )),
+              ((tournament && tournament.ownerId === user.uid) ||
+                participants.some(
+                  (p) => p.id === user.uid && p.status === "joined",
+                )),
             );
             return canSend ? (
               <MessageInput onSend={handleSendMessage} />
@@ -588,7 +582,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
               <View
                 style={{
                   padding: spacing.lg,
-                  backgroundColor: colors.white,
+                  backgroundColor: colors.backgroundSecondary,
                   borderTopWidth: 1,
                   borderTopColor: colors.borderPrimary,
                 }}
@@ -603,8 +597,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
       ) : (
         <View style={styles.participantsList}>
           {tournament &&
-          user?.uid === tournament.ownerId &&
-          joinRequests.length > 0 ? (
+            user?.uid === tournament.ownerId &&
+            joinRequests.length > 0 ? (
             <View style={styles.requestsSection}>
               <Text style={styles.requestsTitle}>参加申請</Text>
               {joinRequests.map((r) => (
@@ -663,142 +657,148 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  backButton: {
-    padding: spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.gray800,
-    textAlign: "center",
-  },
-  placeholder: {
-    width: 40,
-  },
-  headerAction: {
-    padding: spacing.sm,
-  },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: spacing.lg,
-    alignItems: "center",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.info,
-  },
-  tabText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-    color: colors.textSecondary,
-  },
-  activeTabText: {
-    color: colors.info,
-  },
-  chatContainer: {
-    flex: 1,
-  },
-  messagesList: {
-    flex: 1,
-  },
-  participantsList: {
-    flex: 1,
-  },
-  participantsContent: {
-    padding: spacing.lg,
-  },
-  requestsSection: {
-    padding: spacing.lg,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    ...shadows.base,
-  },
-  requestsTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "700",
-    color: colors.gray800,
-    marginBottom: spacing.md,
-  },
-  requestRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderPrimary,
-  },
-  requestProfile: {
-    flex: 1,
-  },
-  requestActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  participantItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-    borderRadius: 12,
-    ...shadows.base,
-  },
-  userProfileContainer: {
-    marginLeft: spacing.md,
-  },
-  kickIconButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.error,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "bold",
-    color: colors.white,
-  },
-  participantInfo: {
-    flex: 1,
-  },
-  participantHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  participantName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-    color: colors.gray800,
-  },
-  progressText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    backButton: {
+      padding: spacing.sm,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.gray800,
+      textAlign: "center",
+    },
+    placeholder: {
+      width: 40,
+    },
+    headerAction: {
+      padding: spacing.sm,
+    },
+    tabContainer: {
+      flexDirection: "row",
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: spacing.lg,
+      alignItems: "center",
+    },
+    activeTab: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.info,
+    },
+    tabText: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+    activeTabText: {
+      color: colors.info,
+    },
+    chatContainer: {
+      flex: 1,
+    },
+    messagesList: {
+      flex: 1,
+    },
+    participantsList: {
+      flex: 1,
+    },
+    participantsContent: {
+      padding: spacing.lg,
+    },
+    requestsSection: {
+      padding: spacing.lg,
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.lg,
+      ...shadows.base,
+    },
+    requestsTitle: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "700",
+      color: colors.gray800,
+      marginBottom: spacing.md,
+    },
+    requestRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.borderPrimary,
+    },
+    requestProfile: {
+      flex: 1,
+    },
+    requestActions: {
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    participantItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.backgroundSecondary,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+      borderRadius: 12,
+      ...shadows.base,
+    },
+    userProfileContainer: {
+      marginLeft: spacing.md,
+    },
+    kickIconButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.error,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "bold",
+      color: colors.white,
+    },
+    participantInfo: {
+      flex: 1,
+    },
+    participantHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    participantName: {
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+      color: colors.gray800,
+    },
+    progressText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+    },
+  });
+};
 
 export default TournamentRoomScreen;
+

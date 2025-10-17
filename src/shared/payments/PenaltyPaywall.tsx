@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import DSButton from '@shared/designSystem/components/DSButton';
 import { colors, spacing, typography } from '@shared/theme';
@@ -81,7 +81,7 @@ export const PenaltyPaywall: React.FC<{ amountJPY: number; visible: boolean; onP
 
 const styles = StyleSheet.create({
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  sheet: { width: '100%', maxWidth: 420, backgroundColor: colors.white, borderRadius: 16, padding: spacing['2xl'], borderWidth: 1, borderColor: colors.borderPrimary },
+  sheet: { width: '100%', maxWidth: 420, backgroundColor: colors.backgroundSecondary, borderRadius: 16, padding: spacing['2xl'], borderWidth: 1, borderColor: colors.borderPrimary },
   title: { fontSize: typography.fontSize['2xl'], fontWeight: '800', color: colors.textPrimary },
   desc: { color: colors.textSecondary, marginTop: spacing.sm },
   amount: { marginTop: spacing['2xl'], fontSize: 28, fontWeight: '800', color: colors.textPrimary, textAlign: 'center' },

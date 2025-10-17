@@ -1,4 +1,4 @@
-import { colors } from "./colors";
+import type { ColorPalette } from "./colors";
 
 export type ScreenTheme = {
   accent: string;
@@ -8,16 +8,13 @@ export type ScreenTheme = {
   badgeText?: string;
 };
 
-export const screenThemes: {
-  auth: ScreenTheme;
-  history: ScreenTheme;
-  profile: ScreenTheme;
-} = {
+// 動的テーマ生成関数
+export const createScreenThemes = (colors: ColorPalette) => ({
   // 認証画面: 落ち着いたブルー基調 + ソフトな青系背景
   auth: {
     accent: "#1a73e8", // Google系ブルーに合わせたアクセント
-    tintSoft: "#EFF6FF", // blue-50/100系の淡色
-    cardBg: colors.white,
+    tintSoft: colors.primary === "#2563EB" ? "#EFF6FF" : "#1F2937", // ライト: blue-50, ダーク: gray-800
+    cardBg: colors.backgroundSecondary,
   },
 
   // 履歴画面: カードは落ち着いた情報色ブルー、微細要素は白/淡色
@@ -32,7 +29,11 @@ export const screenThemes: {
   // 設定/プロフィール: 情報色をアクセントに、淡い青背景
   profile: {
     accent: colors.info,
-    tintSoft: "#EFF6FF",
-    cardBg: colors.white,
+    tintSoft: colors.primary === "#2563EB" ? "#EFF6FF" : "#1F2937", // ライト: blue-50, ダーク: gray-800
+    cardBg: colors.backgroundSecondary,
   },
-};
+});
+
+// 後方互換性のため（colors は動的に更新される）
+import { colors } from "./colors";
+export const screenThemes = createScreenThemes(colors);

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import React from "react";
+import React, { useMemo } from "react";
 
 import CommunityScreen from "@features/community/screens/CommunityScreen";
 import FeedbackScreen from "@features/feedback/screens/FeedbackScreen";
@@ -11,9 +11,8 @@ import BlockedUsersScreen from "@features/profile/screens/BlockedUsersScreen";
 import FollowListScreen from "@features/profile/screens/FollowListScreen";
 import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import ProfileScreen from "@features/profile/screens/ProfileScreen";
-import { colors } from "@shared/theme";
+import { useAppTheme } from "@shared/theme";
 import E2EScreen from "@features/e2e/screens/E2EScreen";
-import { useEffect } from "react";
 
 import DiaryStackNavigator from "./DiaryStackNavigator";
 import HistoryStackNavigator from "./HistoryStackNavigator";
@@ -42,73 +41,79 @@ export type RootStackParamList = {
 
 const RootStack = createStackNavigator<RootStackParamList>();
 
-const MainTabs: React.FC = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({
-        focused,
-        color,
-        size,
-      }: {
-        focused: boolean;
-        color: string;
-        size: number;
-      }) => {
-        let iconName: keyof typeof Ionicons.glyphMap;
+const MainTabs: React.FC = () => {
+  const { mode } = useAppTheme();
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
 
-        if (route.name === "Home") {
-          iconName = focused ? "home" : "home-outline";
-        } else if (route.name === "Tournaments") {
-          iconName = focused ? "trophy" : "trophy-outline";
-        } else if (route.name === "Community") {
-          iconName = focused ? "chatbubble" : "chatbubble-outline";
-        } else if (route.name === "Settings") {
-          iconName = focused ? "settings" : "settings-outline";
-        } else {
-          iconName = "help-outline";
-        }
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({
+          focused,
+          color,
+          size,
+        }: {
+          focused: boolean;
+          color: string;
+          size: number;
+        }) => {
+          let iconName: keyof typeof Ionicons.glyphMap;
 
-        return <Ionicons name={iconName} size={size} color={color} />;
-      },
-      tabBarActiveTintColor: colors.primary,
-      tabBarInactiveTintColor: colors.textSecondary,
-      tabBarStyle: {
-        backgroundColor: "white",
-        borderTopWidth: 1,
-        borderTopColor: colors.borderPrimary,
-        paddingBottom: 8,
-        paddingTop: 8,
-        height: 88,
-      },
-      tabBarLabelStyle: {
-        fontSize: 12,
-        fontWeight: "500",
-      },
-      headerShown: false,
-    })}
-  >
-    <Tab.Screen
-      name="Home"
-      component={HomeScreen}
-      options={{ tabBarLabel: "ホーム" }}
-    />
-    <Tab.Screen
-      name="Tournaments"
-      component={TournamentStackNavigator}
-      options={{ tabBarLabel: "トーナメント" }}
-    />
-    <Tab.Screen
-      name="Community"
-      component={CommunityScreen}
-      options={{ tabBarLabel: "コミュニティ" }}
-    />
-    <Tab.Screen
-      name="Settings"
-      component={ProfileScreen}
-      options={{ tabBarLabel: "設定" }}
-    />
-  </Tab.Navigator>
-);
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Tournaments") {
+            iconName = focused ? "trophy" : "trophy-outline";
+          } else if (route.name === "Community") {
+            iconName = focused ? "chatbubble" : "chatbubble-outline";
+          } else if (route.name === "Settings") {
+            iconName = focused ? "settings" : "settings-outline";
+          } else {
+            iconName = "help-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.backgroundSecondary,
+          borderTopWidth: 1,
+          borderTopColor: colors.borderPrimary,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 88,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "500",
+        },
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: "ホーム" }}
+      />
+      <Tab.Screen
+        name="Tournaments"
+        component={TournamentStackNavigator}
+        options={{ tabBarLabel: "トーナメント" }}
+      />
+      <Tab.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{ tabBarLabel: "コミュニティ" }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={ProfileScreen}
+        options={{ tabBarLabel: "設定" }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const RootNavigator: React.FC = () => {
   const isE2E = (() => {
@@ -116,28 +121,30 @@ const RootNavigator: React.FC = () => {
       if (typeof window !== 'undefined') {
         return new URLSearchParams(window.location.search).get('e2e') === '1';
       }
-    } catch {}
+    } catch { }
     return false;
   })();
+  const { navigationTheme } = useAppTheme();
   return (
-  <NavigationContainer>
-    <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? 'E2E' : 'MainTabs'}>
-      <RootStack.Screen name="MainTabs" component={MainTabs} />
-      <RootStack.Screen name="History" component={HistoryStackNavigator} />
-      <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
-      <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
-      <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <RootStack.Screen name="FollowList" component={FollowListScreen} />
-      <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
-      <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-      {/* デバッグ/テスト用 */}
-      {DevCrudTestScreen && (
-        <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
-      )}
-      {/* Web/E2E用の固定画面 */}
-      <RootStack.Screen name="E2E" component={E2EScreen} />
-    </RootStack.Navigator>
-  </NavigationContainer>
-)};
+    <NavigationContainer theme={navigationTheme}>
+      <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? 'E2E' : 'MainTabs'}>
+        <RootStack.Screen name="MainTabs" component={MainTabs} />
+        <RootStack.Screen name="History" component={HistoryStackNavigator} />
+        <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
+        <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
+        <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
+        <RootStack.Screen name="FollowList" component={FollowListScreen} />
+        <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+        <RootStack.Screen name="Feedback" component={FeedbackScreen} />
+        {/* デバッグ/テスト用 */}
+        {DevCrudTestScreen && (
+          <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
+        )}
+        {/* Web/E2E用の固定画面 */}
+        <RootStack.Screen name="E2E" component={E2EScreen} />
+      </RootStack.Navigator>
+    </NavigationContainer>
+  )
+};
 
 export default RootNavigator;

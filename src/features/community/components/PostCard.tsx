@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+﻿import React, { useCallback } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 
 import CommentBar from "@features/community/components/CommentBar";
@@ -7,8 +7,8 @@ import type { CommunityPost } from "@project-types";
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { colors, spacing, typography } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
 interface PostCardProps {
@@ -34,6 +34,12 @@ const PostCard: React.FC<PostCardProps> = ({
   commentsCount,
   initialIsLiked = false,
 }) => {
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = React.useMemo(() => colorSchemes[mode], [mode]);
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
+
   // Prefer live profile when available; fallback to post snapshot
   const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
     post.authorId,
@@ -68,7 +74,7 @@ const PostCard: React.FC<PostCardProps> = ({
         <View
           style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}
         >
-          <Text style={[styles.text, getContentStyle("small")]}>
+          <Text style={[styles.text, getContentStyle("small", colors.textPrimary)]}>
             {post.content}
           </Text>
           {post.imageUrl && (
@@ -97,9 +103,9 @@ const PostCard: React.FC<PostCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     marginBottom: 0,
   },
   postContent: {

@@ -1,9 +1,9 @@
-import React from "react";
+﻿import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import Button from "@shared/components/Button";
-import { colors, spacing, typography, shadows } from "@shared/theme";
-import { uiStyles } from "@shared/ui/styles";
+import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import { createUiStyles } from "@shared/ui/styles";
 
 export interface UITournament {
   id: string;
@@ -36,6 +36,10 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   showDelete = false,
   onToggleRecruitment,
 }) => {
+  const { mode } = useAppTheme();
+  const uiStyles = useThemedStyles(createUiStyles);
+  const styles = useMemo(() => createStyles(mode), [mode]);
+
   const canJoin = !tournament.isJoined;
   const isPending = tournament.requestPending === true;
 
@@ -74,7 +78,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
                   <AvatarImage uri={ownerAvatar} size={32} />
                 </View>
               ) : (
-                <View style={styles.ownerAvatar}> 
+                <View style={styles.ownerAvatar}>
                   <Text style={styles.ownerAvatarText}>{(ownerName || 'U').charAt(0)}</Text>
                 </View>
               )}
@@ -133,122 +137,127 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    ...shadows.lg,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: spacing.sm,
-  },
-  title: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    flex: 1,
-    marginRight: spacing.sm,
-    lineHeight: 28,
-  },
-  countBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 16,
-  },
-  countBadgeText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: "600",
-    color: colors.white,
-  },
-  description: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: spacing.lg,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  leftInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  ownerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  ownerAvatarWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: colors.backgroundSecondary,
-    marginRight: spacing.sm,
-  },
-  ownerAvatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  ownerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.info,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.sm,
-  },
-  ownerAvatarText: {
-    color: colors.white,
-    fontWeight: "600",
-    fontSize: typography.fontSize.sm,
-  },
-  ownerLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: "500",
-    marginRight: spacing.sm,
-  },
-  joinButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 12,
-  },
-  joinedBadge: {
-    backgroundColor: colors.warning,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 12,
-  },
-  joinedText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: "600",
-    color: colors.white,
-  },
-  deleteButton: {
-    marginLeft: spacing.sm,
-    padding: spacing.xs,
-    borderRadius: 8,
-    backgroundColor: "transparent",
-  },
-  actionsRow: {
-    alignItems: "center",
-  },
-  actionSpacing: {
-    marginLeft: spacing.md,
-  },
-});
+const createStyles = (mode: "light" | "dark") => {
+  const { colorSchemes } = require("@shared/theme/colors");
+  const colors = colorSchemes[mode];
+
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 16,
+      padding: spacing.lg,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      ...shadows.lg,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: spacing.sm,
+    },
+    title: {
+      fontSize: typography.fontSize.xl,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      flex: 1,
+      marginRight: spacing.sm,
+      lineHeight: 28,
+    },
+    countBadge: {
+      backgroundColor: colors.success,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderRadius: 16,
+    },
+    countBadgeText: {
+      fontSize: typography.fontSize.xs,
+      fontWeight: "600",
+      color: colors.white,
+    },
+    description: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      lineHeight: 22,
+      marginBottom: spacing.lg,
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    leftInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    ownerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    ownerAvatarWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      overflow: "hidden",
+      backgroundColor: colors.backgroundSecondary,
+      marginRight: spacing.sm,
+    },
+    ownerAvatarImage: {
+      width: "100%",
+      height: "100%",
+    },
+    ownerAvatar: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.info,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: spacing.sm,
+    },
+    ownerAvatarText: {
+      color: colors.white,
+      fontWeight: "600",
+      fontSize: typography.fontSize.sm,
+    },
+    ownerLabel: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      fontWeight: "500",
+      marginRight: spacing.sm,
+    },
+    joinButton: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: 12,
+    },
+    joinedBadge: {
+      backgroundColor: colors.warning,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: 12,
+    },
+    joinedText: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: "600",
+      color: colors.white,
+    },
+    deleteButton: {
+      marginLeft: spacing.sm,
+      padding: spacing.xs,
+      borderRadius: 8,
+      backgroundColor: "transparent",
+    },
+    actionsRow: {
+      alignItems: "center",
+    },
+    actionSpacing: {
+      marginLeft: spacing.md,
+    },
+  });
+};
 
 export default React.memo(TournamentCard);
 import AvatarImage from "@shared/components/AvatarImage";

@@ -1,13 +1,15 @@
 import type { ViewStyle, TextStyle } from "react-native";
 
-import { colors, spacing, typography } from "@shared/theme";
+import { spacing, typography } from "@shared/theme";
+import type { ColorPalette } from "@shared/theme/colors";
 
 // よく使用されるスタイルパターンのユーティリティ関数
 
-// ボタンスタイルの共通パターン
+// ボタンスタイルの共通パターン（動的colors対応）
 export const createButtonStyle = (
   variant: "primary" | "secondary" | "danger" = "primary",
   size: "small" | "medium" | "large" = "medium",
+  colors: ColorPalette,
 ) => {
   const baseStyle: ViewStyle = {
     borderRadius: 8,
@@ -51,14 +53,15 @@ export const createButtonStyle = (
   };
 };
 
-// テキストスタイルの共通パターン
+// テキストスタイルの共通パターン（動的colors対応）
 export const createTextStyle = (
   size: keyof typeof typography.fontSize = "base",
   weight: keyof typeof typography.fontWeight = "normal",
-  color: keyof typeof colors = "textPrimary",
+  colorKey: keyof ColorPalette = "textPrimary",
+  colors: ColorPalette,
 ): TextStyle => ({
   fontSize: typography.fontSize[size],
   fontWeight: typography.fontWeight[weight],
-  color: colors[color],
+  color: colors[colorKey],
 });
 // （未使用の共通スタイル群は削除しました）
