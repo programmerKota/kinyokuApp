@@ -315,7 +315,8 @@ const AuthScreen: React.FC = () => {
             autoComplete="email"
             textContentType="emailAddress"
             placeholder="sample@example.com"
-            placeholderTextColor={colors.textSecondary}
+            // プレースホルダーはより薄い色に（ダークでも弱めに見える）
+            placeholderTextColor={colors.textTertiary}
             onBlur={() => setEmailTouched(true)}
             style={[styles.input, (emailTouched || triedSubmit) && emailErr ? styles.inputError : null]}
           />
@@ -468,7 +469,8 @@ const createAuthStyles = (colors: any) => StyleSheet.create({
   pillText: { color: colors.textSecondary, fontWeight: '700' },
   pillTextActive: { color: colors.textPrimary },
   label: { color: colors.textSecondary, fontWeight: '700', marginBottom: 6, marginTop: spacing.lg },
-  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing.lg, paddingVertical: 16, backgroundColor: colors.backgroundSecondary },
+  // 入力文字がダークでも読めるように text color を明示
+  input: { borderWidth: 1, borderColor: colors.borderPrimary, borderRadius: 12, paddingHorizontal: spacing.lg, paddingVertical: 16, backgroundColor: colors.backgroundSecondary, color: colors.textPrimary },
   inputError: { borderColor: colors.error },
   hint: { color: colors.textSecondary, fontSize: 12, marginTop: 6 },
   hintError: { color: colors.error, fontSize: 12, marginTop: 6 },
