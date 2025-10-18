@@ -139,6 +139,19 @@ const TournamentsScreen: React.FC = () => {
                   /* noop */
                 }
 
+                // 追加フォールバック: 参加者スナップショットから作成者名/アバターを補完
+                if (!owner) {
+                  try {
+                    const ownerPart = participants.find((p) => p.userId === tournament.ownerId);
+                    if (ownerPart) {
+                      owner = {
+                        displayName: ownerPart.userName,
+                        photoURL: ownerPart.userAvatar ?? undefined,
+                      } as any;
+                    }
+                  } catch { /* noop */ }
+                }
+
                 return {
                   id: tournament.id,
                   name: tournament.name,
@@ -155,6 +168,17 @@ const TournamentsScreen: React.FC = () => {
               }),
             );
             setTournaments(convertedTournaments);
+            // プロフィールプリウォーム（一覧のオーナー）
+            try {
+              const ids = Array.from(new Set(convertedTournaments.map((t) => t.ownerId)));
+              if (ids.length > 0) {
+                const unsub = ProfileCache.getInstance().subscribeMany(ids, () => {});
+                setProfilesUnsub((prev) => {
+                  try { prev?.(); } catch { }
+                  return unsub;
+                });
+              }
+            } catch { }
             // 作成者のライブな名前/アバターは各カード内（useDisplayProfile）で解決
           } catch (error) {
             handleError(

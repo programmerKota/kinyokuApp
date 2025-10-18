@@ -41,9 +41,32 @@ export class FirestoreUserService {
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
+      // 統一: ProfileCache と同じ署名URL解決を適用し、画面間のアバターURL差異をなくす
+      const resolveSigned = async (
+        url?: string,
+      ): Promise<string | undefined> => {
+        try {
+          if (!url) return undefined;
+          const marker = "/storage/v1/object/public/";
+          const i = url.indexOf(marker);
+          if (i === -1) return url;
+          const rest = url.substring(i + marker.length);
+          const j = rest.indexOf("/");
+          if (j === -1) return url;
+          const bucket = rest.substring(0, j);
+          const pathWithQ = rest.substring(j + 1);
+          const path = pathWithQ.split("?")[0];
+          const { data: signed } = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(path, 60 * 60 * 24 * 7);
+          return signed?.signedUrl || url;
+        } catch {
+          return url;
+        }
+      };
       return {
         displayName: data.displayName ?? "ユーザー",
-        photoURL: data.photoURL ?? undefined,
+        photoURL: await resolveSigned((data as any).photoURL ?? undefined),
       } as any;
     } catch (e) {
       console.warn("getUserById failed", e);
@@ -71,7 +94,6 @@ export class FirestoreUserService {
 }
 
 export default FirestoreUserService;
-
 
 
 
