@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from "@app/config/supabase.config";
 import { featureFlags } from "@app/config/featureFlags.config";
 import AuthScreen from "@features/auth/screens/AuthScreen";
@@ -26,21 +25,9 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    let intervalId: any | undefined;
     (async () => {
       try {
-        if (bypass) return; // already allowed
-        // 開発用バイパス（AsyncStorage）
-        try {
-          const devBypass = await AsyncStorage.getItem('__dev_auth_bypass');
-          if (devBypass === '1') {
-            if (mounted) {
-              setSignedIn(true);
-              setChecking(false);
-              return;
-            }
-          }
-        } catch { }
+        if (bypass) return; // already allowed (E2E / featureFlags only)
         const { data } = await supabase.auth.getSession();
         const ok = !!data?.session?.user?.id;
         if (mounted) setSignedIn(ok);
@@ -51,16 +38,8 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => {
       setSignedIn(!!sess?.user?.id);
     });
-    // 開発用: バイパスキーのポーリング（Expo Goでの簡易回避）
-    intervalId = setInterval(async () => {
-      try {
-        const devBypass = await AsyncStorage.getItem('__dev_auth_bypass');
-        if (devBypass === '1') setSignedIn(true);
-      } catch { }
-    }, 1000);
     return () => {
       try { sub?.subscription?.unsubscribe(); } catch { }
-      if (intervalId) clearInterval(intervalId);
     };
   }, []);
 
