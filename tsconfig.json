@@ -15,4 +15,8 @@
       "@project-types/*": ["src/types/*"]
     }
   }
+  ,
+  "exclude": [
+    "supabase/functions/**"
+  ]
 }

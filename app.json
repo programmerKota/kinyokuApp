@@ -34,9 +34,14 @@
           "action": "VIEW",
           "autoVerify": false,
           "data": [
-            { "scheme": "abstinence" }
+            {
+              "scheme": "abstinence"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -51,7 +56,8 @@
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-router"
     ],
     "extra": {
       "EXPO_PUBLIC_SUPABASE_URL": "https://tssfhgfkelsuslpwschl.supabase.co",

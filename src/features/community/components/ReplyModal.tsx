@@ -15,7 +15,7 @@ import {
 
 import { useModerationGuard } from "@shared/hooks/useModerationGuard";
 import { colors, spacing, typography } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { uiStyles } from "@shared/ui/styles";
 import { getBlockLeftMargin } from "@shared/utils/nameUtils";
 
 interface ReplyModalProps {

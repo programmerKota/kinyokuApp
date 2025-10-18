@@ -86,11 +86,7 @@ const AuthScreen: React.FC = () => {
         const refresh_token_q = u.searchParams.get('refresh_token');
         let data: any = null; let error: any = null;
         if (Platform.OS === 'web') {
-          const lastEmail = u.searchParams.get('email') || (await AsyncStorage.getItem(LAST_MAGIC_EMAIL_KEY));
-          if (code && lastEmail && !access_token_q && !refresh_token_q) {
-            const res = await supabase.auth.verifyOtp({ token_hash: code, type: 'magiclink', email: lastEmail });
-            data = res.data; error = res.error;
-          } else if (code || access_token_q || refresh_token_q) {
+          if (code || access_token_q || refresh_token_q) {
             ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
           } else {
             // No recognizable auth params; ignore
@@ -110,18 +106,7 @@ const AuthScreen: React.FC = () => {
         if (error) {
           console.error('exchangeCodeForSession error:', error);
           // WebでPKCEのstateが失われた場合のフォールバック
-          if (Platform.OS === 'web') {
-            try {
-              const code = u.searchParams.get('code');
-              const lastEmail = await AsyncStorage.getItem(LAST_MAGIC_EMAIL_KEY);
-              if (code && lastEmail) {
-                const res = await supabase.auth.verifyOtp({ token_hash: code, type: 'magiclink', email: lastEmail });
-                if (!res.error) {
-                  data = res.data;
-                }
-              }
-            } catch { }
-          }
+          if (Platform.OS === 'web') { /* no-op */ }
         }
         if (data?.session) {
           console.log('exchangeCodeForSession success:', !!data?.session);
@@ -246,36 +231,28 @@ const AuthScreen: React.FC = () => {
       setSubmitting('magic');
       const emailTrimmed = email.trim();
       try { await AsyncStorage.setItem(LAST_MAGIC_EMAIL_KEY, emailTrimmed); } catch { }
+      const redirectToWithEmail = `${getRedirectTo()}?email=${encodeURIComponent(emailTrimmed)}`;
       if (tab === 'signup') {
-        // 既存登録チェック: shouldCreateUser=false で試行し、既存ならエラー無し→既存扱い
-        const precheck = await supabase.auth.signInWithOtp({
-          email: emailTrimmed,
-          options: { emailRedirectTo: getRedirectTo(), shouldCreateUser: false },
-        });
-        if (!precheck.error) {
-          // 既存ユーザーのため登録フローは止める
-          setEmailErr('このメールアドレスは既に登録されています。ログインをご利用ください。');
-          return;
-        }
-        // ユーザーが存在しない場合のみ登録リンクを送る（emailをURLに付与）
-        const redirectToWithEmail = `${getRedirectTo()}?email=${encodeURIComponent(emailTrimmed)}`;
-        await supabase.auth.signInWithOtp({
+        const { error } = await supabase.auth.signInWithOtp({
           email: emailTrimmed,
           options: { emailRedirectTo: redirectToWithEmail, shouldCreateUser: true },
         });
-        setInfoMsg('リンクをメールに送信しました');
+        if (error) {
+          setEmailErr('メールの送信に失敗しました。時間をおいて再度お試しください。');
+          return;
+        }
+        setInfoMsg('登録用のリンクをメールに送信しました');
       } else {
-        const redirectToWithEmail = `${getRedirectTo()}?email=${encodeURIComponent(emailTrimmed)}`;
-        const res = await supabase.auth.signInWithOtp({
+        const { error } = await supabase.auth.signInWithOtp({
           email: emailTrimmed,
           options: { emailRedirectTo: redirectToWithEmail, shouldCreateUser: false },
         });
-        if (res?.error) {
-          setEmailErr('このメールアドレスは登録がありません。新規登録からお試しください。');
+        if (error) {
+          setEmailErr('このメールアドレスは登録がありません。新規登録をご利用ください。');
           setEmailTouched(true);
           return;
         }
-        setInfoMsg('リンクをメールに送信しました');
+        setInfoMsg('ログイン用のリンクをメールに送信しました');
       }
     } catch (e) {
       setEmailErr('メールの送信に失敗しました。時間をおいて再度お試しください。');
@@ -525,6 +502,10 @@ const createAuthStyles = (colors: any) => StyleSheet.create({
 });
 
 export default AuthScreen;
+
+
+
+
 
 
 

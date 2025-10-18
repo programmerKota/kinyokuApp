@@ -3,7 +3,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 import { colors, spacing, typography, shadows } from "@shared/theme";
-import uiStyles from "@shared/ui/styles";
+import { uiStyles } from "@shared/ui/styles";
 
 interface StatsCardProps {
   title: string;
