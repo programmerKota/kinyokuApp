@@ -2,6 +2,8 @@
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Pressable, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
+import Modal from '@shared/components/Modal';
+import LegalContent from '@features/legal/components/LegalContent';
 
 import DSButton from '@shared/designSystem/components/DSButton';
 import { spacing, typography, useAppTheme } from '@shared/theme';
@@ -37,6 +39,7 @@ const AuthScreen: React.FC = () => {
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [submitting, setSubmitting] = useState<null | 'login' | 'signup' | 'reset' | 'oauth' | 'magic'>(null);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+  const [legalModal, setLegalModal] = useState<{ visible: boolean; type: 'terms' | 'privacy' }>({ visible: false, type: 'terms' });
   // 開発用バイパスは無効化（状態は廃止）
   // const [devBypass, setDevBypass] = useState(false);
 
@@ -422,7 +425,7 @@ const AuthScreen: React.FC = () => {
                       {agreeTermsTos ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                     </TouchableOpacity>
                     <Text style={styles.termsLineSmall}>
-                      <Text style={styles.linkGoogle} onPress={() => Linking.openURL(TERMS_URL)}>利用規約</Text>
+                      <Text style={styles.linkGoogle} onPress={() => setLegalModal({ visible: true, type: 'terms' })}>利用規約</Text>
                       <Text> に同意する</Text>
                     </Text>
                   </View>
@@ -438,7 +441,7 @@ const AuthScreen: React.FC = () => {
                       {agreeTermsPrivacy ? <Ionicons name="checkmark" size={14} color={colors.primary} /> : null}
                     </TouchableOpacity>
                     <Text style={styles.termsLineSmall}>
-                      <Text style={styles.linkGoogle} onPress={() => Linking.openURL(PRIVACY_URL)}>プライバシーポリシー</Text>
+                      <Text style={styles.linkGoogle} onPress={() => setLegalModal({ visible: true, type: 'privacy' })}>プライバシーポリシー</Text>
                       <Text> に同意する</Text>
                     </Text>
                   </View>
@@ -453,6 +456,14 @@ const AuthScreen: React.FC = () => {
           )}
         </View>
       </View>
+      <Modal
+        visible={legalModal.visible}
+        onClose={() => setLegalModal((s) => ({ ...s, visible: false }))}
+        title={legalModal.type === 'terms' ? '利用規約' : 'プライバシーポリシー'}
+        maxWidth={560}
+      >
+        <LegalContent type={legalModal.type} />
+      </Modal>
     </ScrollView>
   );
 };
@@ -508,3 +519,4 @@ const createAuthStyles = (colors: any) => StyleSheet.create({
 });
 
 export default AuthScreen;
+
