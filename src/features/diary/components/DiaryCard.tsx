@@ -47,7 +47,7 @@ const DiaryCard: React.FC<Props> = ({
             userName={displayName || "ユーザー"}
             userAvatar={displayAvatar}
             averageDays={averageDays}
-            onPress={() => onAuthorPress?.(authorId, authorName)}
+            onPress={() => onAuthorPress?.(authorId, displayName)}
             size="small"
             showRank={false}
             showTitle={true}

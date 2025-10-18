@@ -10,7 +10,7 @@ import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface ReplyCardProps {
   reply: CommunityComment;
-  onPress?: () => void;
+  onPress?: (userId: string, userName: string, userAvatar?: string) => void;
   authorAverageDays?: number;
 }
 
@@ -26,7 +26,12 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
     reply.authorName,
     reply.authorAvatar,
   );
-  const containerProps = onPress ? { activeOpacity: 0.8, onPress } : {};
+  const containerProps = onPress
+    ? {
+        activeOpacity: 0.8,
+        onPress: () => onPress?.(reply.authorId, name, avatar),
+      }
+    : {};
 
   return (
     <Container style={styles.container} {...containerProps}>

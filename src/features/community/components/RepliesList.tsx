@@ -13,20 +13,20 @@ import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface RepliesListProps {
   postId: string;
-  onUserPress: (userId: string, userName: string) => void;
+  onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
   allowBlockedReplies?: boolean;
 }
 
 type RowProps = {
   reply: CommunityComment;
   avgDays: number;
-  onUserPress: (userId: string, userName: string) => void;
+  onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
 };
 
 const ReplyRow: React.FC<RowProps> = memo(({ reply, avgDays, onUserPress }) => (
   <ReplyCard
     reply={reply}
-    onPress={() => onUserPress(reply.authorId, reply.authorName)}
+    onPress={(uid, uname, uavatar) => onUserPress(uid, uname, uavatar)}
     authorAverageDays={avgDays}
   />
 ));

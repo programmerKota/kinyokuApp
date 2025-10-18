@@ -326,7 +326,7 @@ const PostListRow: React.FC<{
       {visible && (
         <RepliesList
           postId={item.id}
-          onUserPress={(uid, uname) => onUserPress(uid, uname)}
+          onUserPress={(uid, uname, uavatar) => onUserPress(uid, uname, uavatar)}
           allowBlockedReplies={allowBlockedReplies}
         />
       )}
