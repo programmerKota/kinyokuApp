@@ -197,6 +197,12 @@ const AuthScreen: React.FC = () => {
       setSubmitting(null);
     }
   }, [tab, canSubmit, email, password]);
+  // Visual state for buttons and icon colors
+  const loginDisabled = !email || !!submitting;
+  const signupDisabled = !canSubmit || !!submitting;
+  const googleDisabled = submitting === 'oauth' || (tab === 'signup' && !(agreeTermsTos && agreeTermsPrivacy));
+  const loginMailColor = loginDisabled ? colors.gray500 : screenThemes.auth.accent;
+  const signupMailColor = signupDisabled ? colors.gray500 : screenThemes.auth.accent;
 
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
     try {
@@ -340,16 +346,15 @@ const AuthScreen: React.FC = () => {
             <Pressable
               accessibilityRole="button"
               onPress={() => { try { void sendMagicLink(); } catch { } }}
-              disabled={!email || !!submitting}
+              disabled={loginDisabled}
               style={({ pressed }) => [
                 styles.googleBtn,
-                { marginTop: spacing.lg, opacity: pressed ? 0.9 : 1 },
-                (!email || !!submitting) ? { opacity: 0.6 } : null,
+                { marginTop: spacing.lg, opacity: pressed ? 0.92 : 1 }, loginDisabled ? styles.googleBtnDisabled : styles.googleBtnEnabled,
               ]}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="mail" size={18} color={screenThemes.auth.accent} style={{ marginRight: 8 }} />
-                <Text style={styles.googleText}>{submitting === 'magic' ? 'リンク送信中…' : 'メールでログイン'}</Text>
+                <Ionicons name="mail" size={18} color={loginMailColor} style={{ marginRight: 8 }} />
+                <Text style={[styles.googleText, googleDisabled ? styles.googleTextDisabled : null]}>{submitting === 'magic' ? 'リンク送信中…' : 'メールでログイン'}</Text>
               </View>
             </Pressable>
           ) : null}
@@ -367,16 +372,15 @@ const AuthScreen: React.FC = () => {
             <Pressable
               accessibilityRole="button"
               onPress={() => { try { void sendMagicLink(); } catch { } }}
-              disabled={!canSubmit || !!submitting}
+              disabled={signupDisabled}
               style={({ pressed }) => [
                 styles.googleBtn,
-                { marginTop: spacing.md, opacity: pressed ? 0.9 : 1 },
-                (!canSubmit || !!submitting) ? { opacity: 0.6 } : null,
+                { marginTop: spacing.md, opacity: pressed ? 0.92 : 1 }, signupDisabled ? styles.googleBtnDisabled : styles.googleBtnEnabled,
               ]}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="mail" size={18} color={screenThemes.auth.accent} style={{ marginRight: 8 }} />
-                <Text style={styles.googleText}>{submitting === 'magic' ? 'リンク送信中…' : 'メールで登録'}</Text>
+                <Ionicons name="mail" size={18} color={signupMailColor} style={{ marginRight: 8 }} />
+                <Text style={[styles.googleText, googleDisabled ? styles.googleTextDisabled : null]}>{submitting === 'magic' ? 'リンク送信中…' : 'メールで登録'}</Text>
               </View>
             </Pressable>
           ) : null}
@@ -393,11 +397,10 @@ const AuthScreen: React.FC = () => {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => { try { void startOAuth('google'); } catch { } }}
-                  disabled={submitting === 'oauth' || (tab === 'signup' && !(agreeTermsTos && agreeTermsPrivacy))}
+                  disabled={googleDisabled}
                   style={({ pressed }) => [
                     styles.googleBtn,
-                    { opacity: pressed ? 0.9 : 1 },
-                    (submitting === 'oauth' || (tab === 'signup' && !(agreeTermsTos && agreeTermsPrivacy))) ? { opacity: 0.6 } : null,
+                    { opacity: pressed ? 0.92 : 1 }, googleDisabled ? styles.googleBtnDisabled : styles.googleBtnEnabled,
                   ]}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
@@ -406,7 +409,7 @@ const AuthScreen: React.FC = () => {
                       style={styles.googleIcon}
                       resizeMode="contain"
                     />
-                    <Text style={styles.googleText}>{tab === 'signup' ? 'Googleで登録' : 'Googleでログイン'}</Text>
+                    <Text style={[styles.googleText, googleDisabled ? styles.googleTextDisabled : null]}>{tab === 'signup' ? 'Googleで登録' : 'Googleでログイン'}</Text>
                   </View>
                 </Pressable>
               ) : null}
@@ -512,11 +515,28 @@ const createAuthStyles = (colors: any) => StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
   },
-  googleText: { color: '#3c4043', fontWeight: '700' },
+  googleBtnEnabled: { borderColor: '#dadce0', backgroundColor: colors.backgroundSecondary },
+  googleBtnDisabled: { borderColor: colors.gray300, backgroundColor: colors.gray100 },
+  googleText: { color: colors.textPrimary, fontWeight: '700' },
+  googleTextDisabled: { color: colors.gray500, fontWeight: '700' },
   googleIcon: { width: 18, height: 18, marginRight: 8 },
   infoBanner: { marginTop: spacing.sm, paddingVertical: 10, paddingHorizontal: spacing.md, backgroundColor: '#ECFDF5', borderRadius: 8, borderWidth: 1, borderColor: '#A7F3D0' },
   infoText: { color: '#065F46', fontSize: 12 },
 });
 
 export default AuthScreen;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
