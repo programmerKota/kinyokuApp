@@ -76,8 +76,9 @@ const Modal: React.FC<ModalProps> = ({
               )}
               <ScrollView
                 style={styles.content}
+                contentContainerStyle={styles.contentInner}
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
               >
                 {children}
               </ScrollView>
@@ -104,7 +105,7 @@ const createStyles = (mode: "light" | "dark") => {
     },
     keyboardAvoidingView: {
       width: "100%",
-      maxHeight: "100%",
+      maxHeight: "90%",
       justifyContent: "center",
       alignItems: "center",
     },
@@ -113,7 +114,7 @@ const createStyles = (mode: "light" | "dark") => {
       borderRadius: 16,
       width: "100%",
       maxWidth: 400,
-      maxHeight: "100%",
+      maxHeight: "90%",
       shadowColor: shadows.xl.shadowColor,
       shadowOffset: shadows.xl.shadowOffset,
       shadowOpacity: shadows.xl.shadowOpacity,
@@ -151,7 +152,11 @@ const createStyles = (mode: "light" | "dark") => {
     content: {
       padding: spacing["2xl"],
     },
+    contentInner: {
+      paddingBottom: spacing["2xl"],
+    },
   });
 };
 
 export default Modal;
+
