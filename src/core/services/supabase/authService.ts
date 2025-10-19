@@ -29,17 +29,14 @@ export const getRedirectTo = () => {
     const isExpoGo = (Constants as any)?.appOwnership === "expo";
 
     if (isExpoGo) {
-      // In Expo Go, use hardcoded proxy URL that matches Supabase allow list
-      // This is already registered in Supabase Dashboard
-      const proxyUrl =
-        "https://auth.expo.io/@kota007/abstinence-challenge/auth/callback";
+      // In Expo Go, use expo-auth-session proxy.
+      // Ensure you’ve added the resulting URL to Supabase Redirect URLs:
+      //   https://auth.expo.io/@<owner>/<slug>
+      const url = makeRedirectUri({ useProxy: true });
       try {
-        console.log(
-          "[getRedirectTo] Mode: Expo Go (Proxy URL - Fixed), URL:",
-          proxyUrl,
-        );
+        console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url);
       } catch {}
-      return proxyUrl;
+      return url;
     }
 
     // In EAS Dev Client or standalone build, use custom scheme

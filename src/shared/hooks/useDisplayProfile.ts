@@ -15,11 +15,12 @@ export const useDisplayProfile = (
 ) => {
   const live = useProfile(userId);
   return useMemo(() => {
-    const name = (live?.displayName ?? fallbackName ?? 'ユーザー').trim();
-    const avatar = live?.photoURL ?? fallbackAvatar;
+    const rawName = (live?.displayName ?? fallbackName ?? 'ユーザー');
+    const nameTrimmed = (typeof rawName === 'string' ? rawName.trim() : 'ユーザー');
+    const name = nameTrimmed.length > 0 ? nameTrimmed : 'ユーザー';
+    const avatar = live?.photoURL ?? (fallbackAvatar && fallbackAvatar.trim() ? fallbackAvatar : undefined);
     return { name, avatar } as const;
   }, [live?.displayName, live?.photoURL, fallbackName, fallbackAvatar]);
 };
 
 export default useDisplayProfile;
-

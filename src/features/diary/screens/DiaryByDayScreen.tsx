@@ -36,6 +36,8 @@ interface DayDiaryItem {
   userId: string;
   content: string;
   createdAt: Date | string | { toDate?: () => Date };
+  authorName?: string;
+  authorAvatar?: string;
 }
 
 // NOTE: Defining row component OUTSIDE the screen component keeps the
@@ -84,6 +86,7 @@ const DiaryByDayScreen: React.FC = () => {
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
+  const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const blockedSet = useBlockedIds();
@@ -155,6 +158,19 @@ const DiaryByDayScreen: React.FC = () => {
       try { (task as any)?.cancel?.(); } catch { }
     };
   }, [day, blockedSet]);
+
+  // Prefetch and live-merge author profiles (name/avatar) similar to community screens
+  useEffect(() => {
+    const ids = Array.from(new Set(items.map((it) => it.userId)));
+    if (ids.length === 0) {
+      setProfilesMap(new Map());
+      return;
+    }
+    const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+      setProfilesMap(map);
+    });
+    return () => { try { unsub?.(); } catch { } };
+  }, [items]);
 
   // 選択中の「日」のみRealtime購読して差分適用（負荷抑制）
   useEffect(() => {
@@ -277,11 +293,14 @@ const DiaryByDayScreen: React.FC = () => {
   const renderItem = React.useCallback(
     ({ item }: { item: DayDiaryItem }) => {
       const avgDays = userAverageDays.get(item.userId) ?? 0;
+      const prof = profilesMap.get(item.userId);
+      const authorName = prof?.displayName ?? item.authorName;
+      const authorAvatar = prof?.photoURL ?? item.authorAvatar;
       return (
         <DiaryItemRow
           item={item}
-          authorName={undefined}
-          authorAvatar={undefined}
+          authorName={authorName}
+          authorAvatar={authorAvatar}
           averageDays={avgDays}
           onAuthorPress={(uid, uname) =>
             navigateToUserDetail(
@@ -294,7 +313,7 @@ const DiaryByDayScreen: React.FC = () => {
         />
       );
     },
-    [userAverageDays, navigation],
+    [userAverageDays, profilesMap, navigation],
   );
 
   const canPostForSelectedDay =

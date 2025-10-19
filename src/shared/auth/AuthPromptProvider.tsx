@@ -131,9 +131,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
     try {
       setAuthing(provider as any);
-      const redirectTo = (typeof window !== 'undefined' && Platform.OS === 'web')
-        ? window.location.origin
-        : getRedirectTo();
+      const redirectTo = getRedirectTo();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {

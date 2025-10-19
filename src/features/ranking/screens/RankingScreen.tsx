@@ -14,6 +14,7 @@ import RankingListItem from "@features/ranking/components/RankingListItem";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { useFollowingIds } from "@shared/state/followStore";
 import { useThemedStyles, useAppTheme, spacing, typography, shadows } from "@shared/theme";
+import ProfileCache, { type UserProfileLite } from "@core/services/profileCache";
 import { createUiStyles } from "@shared/ui/styles";
 
 const RankingScreen: React.FC = () => {
@@ -35,6 +36,7 @@ const RankingScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"all" | "following">("all");
   const [showTiers, setShowTiers] = useState(false);
   const followingIds = useFollowingIds();
+  const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
 
   useEffect(() => {
     void refreshRankings();
@@ -120,6 +122,34 @@ const RankingScreen: React.FC = () => {
       setLoadingMore(false);
     }
   };
+
+  // Prefetch and live-merge profiles for current list of ranking userIds
+  useEffect(() => {
+    const ids = Array.from(new Set(rankings.map((r) => r.id)));
+    if (ids.length === 0) {
+      setProfilesMap(new Map());
+      return;
+    }
+    const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+      setProfilesMap(map);
+    });
+    return () => {
+      try { unsub?.(); } catch { }
+    };
+  }, [rankings]);
+
+  // Enrich rankings with live profile data so list renders stable values immediately
+  const enrichedRankings = useMemo(() => {
+    if (!rankings || rankings.length === 0) return rankings;
+    return rankings.map((r) => {
+      const p = profilesMap.get(r.id);
+      return {
+        ...r,
+        name: (p?.displayName ?? r.name) as any,
+        avatar: (p?.photoURL ?? r.avatar) as any,
+      } as UserRanking;
+    });
+  }, [rankings, profilesMap]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -227,7 +257,7 @@ const RankingScreen: React.FC = () => {
 
       <FlatList
         style={styles.content}
-        data={rankings}
+        data={enrichedRankings}
         renderItem={renderRankingItem}
         keyExtractor={(item) => item.id}
         onEndReachedThreshold={0.5}

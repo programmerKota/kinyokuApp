@@ -64,78 +64,7 @@ const AuthScreen: React.FC = () => {
     (async () => { /* no-op */ })();
   }, []);
 
-  // モバイルのディープリンクで返ってきたURLからセッションを確立
-  useEffect(() => {
-    const handleUrl = async (url?: string | null) => {
-      if (!url) return;
-      try {
-        console.log('[AuthScreen] handleUrl called with:', url);
-        let base = 'https://localhost';
-        try {
-          if (Platform.OS === 'web' && typeof window !== 'undefined' && (window as any)?.location?.origin) {
-            base = (window as any).location.origin as string;
-          }
-        } catch { }
-        let u: URL;
-        try {
-          u = new URL(url);
-        } catch {
-          u = new URL(url ?? '', base);
-        }
-        // Only proceed when known auth params exist
-        const code = u.searchParams.get('code');
-        const access_token_q = u.searchParams.get('access_token');
-        const refresh_token_q = u.searchParams.get('refresh_token');
-        let data: any = null; let error: any = null;
-        if (Platform.OS === 'web') {
-          if (code || access_token_q || refresh_token_q) {
-            ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
-          } else {
-            // No recognizable auth params; ignore
-            return;
-          }
-        } else {
-          // Native: handle magic link tokens or PKCE code
-          if (access_token_q && refresh_token_q) {
-            ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
-          } else if (code) {
-            ({ data, error } = await supabase.auth.exchangeCodeForSession(url));
-          } else {
-            // Not an auth callback; ignore
-            return;
-          }
-        }
-        if (error) {
-          console.error('exchangeCodeForSession error:', error);
-          // WebでPKCEのstateが失われた場合のフォールバック
-          if (Platform.OS === 'web') { /* no-op */ }
-        }
-        if (data?.session) {
-          console.log('exchangeCodeForSession success:', !!data?.session);
-          try { await AsyncStorage.setItem(KNOWN_USER_KEY, '1'); } catch { }
-          // WebではURLに付与されたクエリを消しておく
-          if (typeof window !== 'undefined' && Platform.OS === 'web') {
-            try { window.history.replaceState({}, document.title, window.location.pathname); } catch { }
-          }
-        }
-      } catch (e) {
-        console.error('exchangeCodeForSession threw:', e);
-      }
-    };
-
-    // コールドスタートで開かれた場合
-    Linking.getInitialURL().then((u) => { void handleUrl(u); }).catch(() => { });
-    // フォアグラウンドで受け取った場合
-    const sub = Linking.addEventListener('url', (ev) => { void handleUrl(ev.url); });
-    // Webは現在URLから直接処理（リダイレクトで再読み込みされたケース）
-    if (typeof window !== 'undefined' && Platform.OS === 'web') {
-      try {
-        const hasAuthParams = /code=|access_token=|refresh_token=/.test(window.location.href);
-        if (hasAuthParams) { void handleUrl(window.location.href); }
-      } catch { }
-    }
-    return () => { try { sub.remove(); } catch { } };
-  }, []);
+  // Deep link handling is centralized in initSupabaseAuthDeepLinks() (see App.tsx)
 
   const validateEmail = useCallback((v: string) => {
     if (!v.trim()) return 'メールアドレスを入力してください。';
@@ -194,9 +123,7 @@ const AuthScreen: React.FC = () => {
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
     try {
       setSubmitting('oauth');
-      const redirectTo = (typeof window !== 'undefined' && Platform.OS === 'web')
-        ? window.location.origin
-        : getRedirectTo();
+      const redirectTo = getRedirectTo();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {
@@ -519,7 +446,6 @@ const createAuthStyles = (colors: any) => StyleSheet.create({
 });
 
 export default AuthScreen;
-
 
 
 
