@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Pressa
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import Modal from '@shared/components/Modal';
+import * as WebBrowser from 'expo-web-browser';
 import LegalContent from '@features/legal/components/LegalContent';
 
 import DSButton from '@shared/designSystem/components/DSButton';
@@ -68,6 +69,7 @@ const AuthScreen: React.FC = () => {
     const handleUrl = async (url?: string | null) => {
       if (!url) return;
       try {
+        console.log('[AuthScreen] handleUrl called with:', url);
         let base = 'https://localhost';
         try {
           if (Platform.OS === 'web' && typeof window !== 'undefined' && (window as any)?.location?.origin) {
@@ -207,7 +209,22 @@ const AuthScreen: React.FC = () => {
         return;
       }
       if (Platform.OS !== 'web') {
-        await Linking.openURL(data.url);
+        // Prefer in-app auth session to ensure return to app
+        try {
+          // For native, we need to use the custom scheme URL
+          // The redirectTo sent to Supabase might be different (proxy for Expo Go)
+          // but WebBrowser needs the actual deep link that will open the app
+          const scheme = Linking.createURL('');
+          const returnUrl = `${scheme}auth/callback`;
+          console.log('[AuthScreen] OAuth redirectTo (for Supabase) =', redirectTo);
+          console.log('[AuthScreen] OAuth start url =', data.url);
+          console.log('[AuthScreen] WebBrowser returnUrl (for app return) =', returnUrl);
+          const res = await WebBrowser.openAuthSessionAsync(data.url, returnUrl);
+          console.log('[AuthScreen] WebBrowser result:', res?.type);
+        } catch (e) {
+          console.error('[AuthScreen] WebBrowser error:', e);
+          await Linking.openURL(data.url);
+        }
       } else {
         try { (window as any).location.href = data.url; } catch { }
       }

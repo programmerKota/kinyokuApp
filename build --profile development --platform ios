@@ -1,0 +1,181 @@
+warning: in the working copy of 'src/core/services/supabase/authService.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/src/core/services/supabase/authService.ts b/src/core/services/supabase/authService.ts[m
+[1mindex 1924bcc..8c02704 100644[m
+[1m--- a/src/core/services/supabase/authService.ts[m
+[1m+++ b/src/core/services/supabase/authService.ts[m
+[36m@@ -1,4 +1,5 @@[m
+ import * as Linking from "expo-linking";[m
+[32m+[m[32mimport { makeRedirectUri } from "expo-auth-session";[m
+ import { Platform } from "react-native";[m
+ import Constants from "expo-constants";[m
+ [m
+[36m@@ -8,26 +9,57 @@[m [mlet initialized = false;[m
+ [m
+ // Returns a redirect URL for Supabase Auth that works across:[m
+ // - Native (EAS/Dev Client): <scheme>://auth/callback[m
+[31m-// - Expo Go: exp://.../--/auth/callback (Linking.createURL)[m
+[32m+[m[32m// - Expo Go: uses expo-auth-session proxy (https://auth.expo.io/...)[m
+ // - Web: https://<origin>/auth/callback[m
+ export const getRedirectTo = () => {[m
+   try {[m
+[31m-    if (Platform.OS === "web" && typeof window !== "undefined" && (window as any)?.location?.origin) {[m
+[31m-      return `${(window as any).location.origin}/auth/callback`;[m
+[32m+[m[32m    if ([m
+[32m+[m[32m      Platform.OS === "web" &&[m
+[32m+[m[32m      typeof window !== "undefined" &&[m
+[32m+[m[32m      (window as any)?.location?.origin[m
+[32m+[m[32m    ) {[m
+[32m+[m[32m      const url = `${(window as any).location.origin}/auth/callback`;[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        console.log("[getRedirectTo] Mode: Web, URL:", url);[m
+[32m+[m[32m      } catch {}[m
+[32m+[m[32m      return url;[m
+     }[m
+[31m-    // On native, prefer explicit app scheme so tapping email link opens the app[m
+[31m-    const scheme = (Constants?.expoConfig as any)?.scheme[m
+[31m-      || (Constants as any)?.manifest?.scheme[m
+[31m-      || "abstinence"; // fallback; replace if you change app.json scheme[m
+ [m
+[31m-    // In Expo Go, createURL is correct (exp://...)[m
+[31m-    const isExpoGo = (Constants as any)?.appOwnership === 'expo';[m
+[31m-    if (isExpoGo) return Linking.createURL("auth/callback");[m
+[32m+[m[32m    // Check if running in Expo Go[m
+[32m+[m[32m    const isExpoGo = (Constants as any)?.appOwnership === "expo";[m
+[32m+[m
+[32m+[m[32m    if (isExpoGo) {[m
+[32m+[m[32m      // In Expo Go, use hardcoded proxy URL that matches Supabase allow list[m
+[32m+[m[32m      // This is already registered in Supabase Dashboard[m
+[32m+[m[32m      const proxyUrl =[m
+[32m+[m[32m        "https://auth.expo.io/@kota007/abstinence-challenge/auth/callback";[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        console.log([m
+[32m+[m[32m          "[getRedirectTo] Mode: Expo Go (Proxy URL - Fixed), URL:",[m
+[32m+[m[32m          proxyUrl,[m
+[32m+[m[32m        );[m
+[32m+[m[32m      } catch {}[m
+[32m+[m[32m      return proxyUrl;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    // In EAS Dev Client or standalone build, use custom scheme[m
+[32m+[m[32m    const scheme =[m
+[32m+[m[32m      (Constants?.expoConfig as any)?.scheme ||[m
+[32m+[m[32m      (Constants as any)?.manifest?.scheme ||[m
+[32m+[m[32m      "abstinence";[m
+ [m
+[31m-    return `${scheme}://auth/callback`;[m
+[31m-  } catch {[m
+[32m+[m[32m    const url = `${scheme}://auth/callback`;[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      console.log("[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:", url);[m
+[32m+[m[32m    } catch {}[m
+[32m+[m[32m    return url;[m
+[32m+[m[32m  } catch (e) {[m
+     // Safe fallback[m
+[31m-    return Linking.createURL("auth/callback");[m
+[32m+[m[32m    const url = Linking.createURL("auth/callback");[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      console.log("[getRedirectTo] Mode: Fallback, URL:", url);[m
+[32m+[m[32m    } catch {}[m
+[32m+[m[32m    return url;[m
+   }[m
+ };[m
+ [m
+[36m@@ -37,20 +69,70 @@[m [mexport async function initSupabaseAuthDeepLinks() {[m
+ [m
+   const handle = async ({ url }: { url: string }) => {[m
+     try {[m
+[31m-      const { queryParams } = Linking.parse(url);[m
+[31m-      const code = (queryParams?.code as string) || "";[m
+[32m+[m[32m      // debug[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        console.log("[auth] deep link url:", url);[m
+[32m+[m[32m      } catch {}[m
+[32m+[m
+[32m+[m[32m      // Robustly parse both query (?a=b) and hash (#a=b) tokens[m
+[32m+[m[32m      const parsed = Linking.parse(url);[m
+[32m+[m[32m      const qp = parsed?.queryParams ?? {};[m
+[32m+[m[32m      const rawHash = (() => {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          const u = new URL(url);[m
+[32m+[m[32m          return (u.hash ?? "").replace(/^#/, "");[m
+[32m+[m[32m        } catch {[m
+[32m+[m[32m          return "";[m
+[32m+[m[32m        }[m
+[32m+[m[32m      })();[m
+[32m+[m[32m      const hp = (() => {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          return Object.fromEntries(new URLSearchParams(rawHash).entries());[m
+[32m+[m[32m        } catch {[m
+[32m+[m[32m          return {};[m
+[32m+[m[32m        }[m
+[32m+[m[32m      })() as Record<string, string>;[m
+[32m+[m
+[32m+[m[32m      // OAuth PKCE flow: code parameter[m
+[32m+[m[32m      const code = (qp?.code as string) || (hp?.code as string) || "";[m
+       if (code) {[m
+         await supabase.auth.exchangeCodeForSession(code);[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          console.log("[auth] exchange via code ok");[m
+[32m+[m[32m        } catch {}[m
+         return;[m
+       }[m
+ [m
+[31m-      const access_token = (queryParams?.access_token as string) || "";[m
+[31m-      const refresh_token = (queryParams?.refresh_token as string) || "";[m
+[32m+[m[32m      // Implicit flow: access_token + refresh_token[m
+[32m+[m[32m      const access_token =[m
+[32m+[m[32m        (qp?.access_token as string) || (hp?.access_token as string) || "";[m
+[32m+[m[32m      const refresh_token =[m
+[32m+[m[32m        (qp?.refresh_token as string) || (hp?.refresh_token as string) || "";[m
+       if (access_token && refresh_token) {[m
+         await supabase.auth.setSession({ access_token, refresh_token });[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          console.log("[auth] setSession via hash tokens ok");[m
+[32m+[m[32m        } catch {}[m
+[32m+[m[32m        return;[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      // Magic link / Email verification: token_hash + type[m
+[32m+[m[32m      const token_hash =[m
+[32m+[m[32m        (qp?.token_hash as string) || (hp?.token_hash as string) || "";[m
+[32m+[m[32m      const type = ((qp?.type as string) || (hp?.type as string) || "") as any;[m
+[32m+[m[32m      if (token_hash && type) {[m
+[32m+[m[32m        const email =[m
+[32m+[m[32m          (qp?.email as string) || (hp?.email as string) || "" || undefined;[m
+[32m+[m[32m        await supabase.auth.verifyOtp({ type, token_hash, email } as any);[m
+[32m+[m[32m        try {[m
+[32m+[m[32m          console.log("[auth] verifyOtp via token_hash ok");[m
+[32m+[m[32m        } catch {}[m
+         return;[m
+       }[m
+     } catch (e) {[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        console.error("[auth] deep link handle error:", e);[m
+[32m+[m[32m      } catch {}[m
+       // noop: let caller surface auth state via UI if needed[m
+     }[m
+   };[m
+[36m@@ -88,10 +170,7 @@[m [mexport async function sendMagicLink(email: string) {[m
+   if (error) throw error;[m
+ }[m
+ [m
+[31m-export async function signUpWithEmailPassword([m
+[31m-  email: string,[m
+[31m-  password: string,[m
+[31m-) {[m
+[32m+[m[32mexport async function signUpWithEmailPassword(email: string, password: string) {[m
+   const redirectTo = getRedirectTo();[m
+   const { data, error } = await supabase.auth.signUp({[m
+     email,[m
+[36m@@ -102,10 +181,7 @@[m [mexport async function signUpWithEmailPassword([m
+   return data;[m
+ }[m
+ [m
+[31m-export async function signInWithEmailPassword([m
+[31m-  email: string,[m
+[31m-  password: string,[m
+[31m-) {[m
+[32m+[m[32mexport async function signInWithEmailPassword(email: string, password: string) {[m
+   const { data, error } = await supabase.auth.signInWithPassword({[m
+     email,[m
+     password,[m

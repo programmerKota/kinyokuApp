@@ -2,6 +2,7 @@
   "expo": {
     "name": "abstinence-challenge",
     "slug": "abstinence-challenge",
+    "owner": "kota007",
     "scheme": "abstinence",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.abstinence",
-      "buildNumber": "5",
+      "buildNumber": "7",
       "infoPlist": {
         "NSCameraUsageDescription": "プロフィール画像の撮影にカメラを使用します。",
         "NSPhotoLibraryUsageDescription": "プロフィール画像・日記画像の選択にフォトライブラリを使用します。",
@@ -38,10 +39,7 @@
               "scheme": "abstinence"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

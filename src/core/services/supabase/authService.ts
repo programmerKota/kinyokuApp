@@ -1,4 +1,5 @@
 import * as Linking from "expo-linking";
+import { makeRedirectUri } from "expo-auth-session";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
@@ -8,26 +9,57 @@ let initialized = false;
 
 // Returns a redirect URL for Supabase Auth that works across:
 // - Native (EAS/Dev Client): <scheme>://auth/callback
-// - Expo Go: exp://.../--/auth/callback (Linking.createURL)
+// - Expo Go: uses expo-auth-session proxy (https://auth.expo.io/...)
 // - Web: https://<origin>/auth/callback
 export const getRedirectTo = () => {
   try {
-    if (Platform.OS === "web" && typeof window !== "undefined" && (window as any)?.location?.origin) {
-      return `${(window as any).location.origin}/auth/callback`;
+    if (
+      Platform.OS === "web" &&
+      typeof window !== "undefined" &&
+      (window as any)?.location?.origin
+    ) {
+      const url = `${(window as any).location.origin}/auth/callback`;
+      try {
+        console.log("[getRedirectTo] Mode: Web, URL:", url);
+      } catch {}
+      return url;
     }
-    // On native, prefer explicit app scheme so tapping email link opens the app
-    const scheme = (Constants?.expoConfig as any)?.scheme
-      || (Constants as any)?.manifest?.scheme
-      || "abstinence"; // fallback; replace if you change app.json scheme
 
-    // In Expo Go, createURL is correct (exp://...)
-    const isExpoGo = (Constants as any)?.appOwnership === 'expo';
-    if (isExpoGo) return Linking.createURL("auth/callback");
+    // Check if running in Expo Go
+    const isExpoGo = (Constants as any)?.appOwnership === "expo";
 
-    return `${scheme}://auth/callback`;
-  } catch {
+    if (isExpoGo) {
+      // In Expo Go, use hardcoded proxy URL that matches Supabase allow list
+      // This is already registered in Supabase Dashboard
+      const proxyUrl =
+        "https://auth.expo.io/@kota007/abstinence-challenge/auth/callback";
+      try {
+        console.log(
+          "[getRedirectTo] Mode: Expo Go (Proxy URL - Fixed), URL:",
+          proxyUrl,
+        );
+      } catch {}
+      return proxyUrl;
+    }
+
+    // In EAS Dev Client or standalone build, use custom scheme
+    const scheme =
+      (Constants?.expoConfig as any)?.scheme ||
+      (Constants as any)?.manifest?.scheme ||
+      "abstinence";
+
+    const url = `${scheme}://auth/callback`;
+    try {
+      console.log("[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:", url);
+    } catch {}
+    return url;
+  } catch (e) {
     // Safe fallback
-    return Linking.createURL("auth/callback");
+    const url = Linking.createURL("auth/callback");
+    try {
+      console.log("[getRedirectTo] Mode: Fallback, URL:", url);
+    } catch {}
+    return url;
   }
 };
 
@@ -37,20 +69,70 @@ export async function initSupabaseAuthDeepLinks() {
 
   const handle = async ({ url }: { url: string }) => {
     try {
-      const { queryParams } = Linking.parse(url);
-      const code = (queryParams?.code as string) || "";
+      // debug
+      try {
+        console.log("[auth] deep link url:", url);
+      } catch {}
+
+      // Robustly parse both query (?a=b) and hash (#a=b) tokens
+      const parsed = Linking.parse(url);
+      const qp = parsed?.queryParams ?? {};
+      const rawHash = (() => {
+        try {
+          const u = new URL(url);
+          return (u.hash ?? "").replace(/^#/, "");
+        } catch {
+          return "";
+        }
+      })();
+      const hp = (() => {
+        try {
+          return Object.fromEntries(new URLSearchParams(rawHash).entries());
+        } catch {
+          return {};
+        }
+      })() as Record<string, string>;
+
+      // OAuth PKCE flow: code parameter
+      const code = (qp?.code as string) || (hp?.code as string) || "";
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
+        try {
+          console.log("[auth] exchange via code ok");
+        } catch {}
         return;
       }
 
-      const access_token = (queryParams?.access_token as string) || "";
-      const refresh_token = (queryParams?.refresh_token as string) || "";
+      // Implicit flow: access_token + refresh_token
+      const access_token =
+        (qp?.access_token as string) || (hp?.access_token as string) || "";
+      const refresh_token =
+        (qp?.refresh_token as string) || (hp?.refresh_token as string) || "";
       if (access_token && refresh_token) {
         await supabase.auth.setSession({ access_token, refresh_token });
+        try {
+          console.log("[auth] setSession via hash tokens ok");
+        } catch {}
+        return;
+      }
+
+      // Magic link / Email verification: token_hash + type
+      const token_hash =
+        (qp?.token_hash as string) || (hp?.token_hash as string) || "";
+      const type = ((qp?.type as string) || (hp?.type as string) || "") as any;
+      if (token_hash && type) {
+        const email =
+          (qp?.email as string) || (hp?.email as string) || "" || undefined;
+        await supabase.auth.verifyOtp({ type, token_hash, email } as any);
+        try {
+          console.log("[auth] verifyOtp via token_hash ok");
+        } catch {}
         return;
       }
     } catch (e) {
+      try {
+        console.error("[auth] deep link handle error:", e);
+      } catch {}
       // noop: let caller surface auth state via UI if needed
     }
   };
@@ -88,10 +170,7 @@ export async function sendMagicLink(email: string) {
   if (error) throw error;
 }
 
-export async function signUpWithEmailPassword(
-  email: string,
-  password: string,
-) {
+export async function signUpWithEmailPassword(email: string, password: string) {
   const redirectTo = getRedirectTo();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -102,10 +181,7 @@ export async function signUpWithEmailPassword(
   return data;
 }
 
-export async function signInWithEmailPassword(
-  email: string,
-  password: string,
-) {
+export async function signInWithEmailPassword(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
