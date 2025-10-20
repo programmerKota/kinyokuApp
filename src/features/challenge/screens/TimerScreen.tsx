@@ -72,8 +72,8 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
         return;
       }
       await stopChallenge(true);
-      if (completed) {
-        console.log("Challenge completed");
+      if (completed && __DEV__) {
+        try { console.log("Challenge completed"); } catch {}
       }
     } catch (error) {
       handleError(

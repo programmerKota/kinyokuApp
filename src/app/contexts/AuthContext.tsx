@@ -147,7 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         ]);
       }
     } catch (error) {
-      console.error("AuthContext: load failed", error);
+      if (__DEV__) {
+        try { console.error("AuthContext: load failed", error); } catch {}
+      }
       const fallbackUser: User = {
         uid: "fallback-user",
         displayName: "User",
@@ -156,7 +158,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         createdAt: new Date(),
         updatedAt: new Date(),
       } as unknown as User;
-      console.log("AuthContext: fallbackUser", fallbackUser);
+      if (__DEV__) {
+        try { console.log("AuthContext: fallbackUser", fallbackUser); } catch {}
+      }
       setUser(fallbackUser);
     } finally {
       setLoading(false);
@@ -245,6 +249,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         createdAt: prev?.createdAt || new Date(),
         updatedAt: new Date(),
       } as User));
+
+      // Prime ProfileCache so all screens reflect immediately (do not wait for Realtime)
+      try {
+        const { ProfileCache } = await import("@core/services/profileCache");
+        if (suid) ProfileCache.getInstance().prime(suid, { displayName, photoURL: finalAvatar });
+      } catch {}
 
       // RevenueCat へプロフィール属性を反映（ベストエフォート）
       try {

@@ -63,6 +63,7 @@ const TournamentsScreen: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [myIds, setMyIds] = useState<Set<string>>(new Set());
+  const [profilesMap, setProfilesMap] = useState<Map<string, any>>(new Map());
   const [profilesUnsub, setProfilesUnsub] = useState<(() => void) | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<{
@@ -75,9 +76,24 @@ const TournamentsScreen: React.FC = () => {
 
   // 表示フィルター: すべて / 参加中
   const [filter, setFilter] = useState<"all" | "joined">("all");
+
+  // プロフィール情報でトーナメント情報を enrichする
+  const enrichedTournaments = useMemo(() => {
+    if (!tournaments || tournaments.length === 0) return tournaments;
+    return tournaments.map((t) => {
+      const prof = profilesMap.get(t.ownerId);
+      if (!prof) return t;
+      return {
+        ...t,
+        ownerName: prof.displayName ?? t.ownerName,
+        ownerAvatar: prof.photoURL ?? t.ownerAvatar,
+      } as Tournament;
+    });
+  }, [tournaments, profilesMap]);
+
   const visibleTournaments = useMemo(
-    () => (filter === "joined" ? tournaments.filter((t) => t.isJoined) : tournaments),
-    [filter, tournaments],
+    () => (filter === "joined" ? enrichedTournaments.filter((t) => t.isJoined) : enrichedTournaments),
+    [filter, enrichedTournaments],
   );
 
   // トーナメント一覧の購読
@@ -168,18 +184,19 @@ const TournamentsScreen: React.FC = () => {
               }),
             );
             setTournaments(convertedTournaments);
-            // プロフィールプリウォーム（一覧のオーナー）
+            // プロフィールをリアルタイム購読
             try {
               const ids = Array.from(new Set(convertedTournaments.map((t) => t.ownerId)));
               if (ids.length > 0) {
-                const unsub = ProfileCache.getInstance().subscribeMany(ids, () => {});
+                const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+                  setProfilesMap(map);
+                });
                 setProfilesUnsub((prev) => {
                   try { prev?.(); } catch { }
                   return unsub;
                 });
               }
             } catch { }
-            // 作成者のライブな名前/アバターは各カード内（useDisplayProfile）で解決
           } catch (error) {
             handleError(
               error,

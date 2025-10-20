@@ -1,7 +1,9 @@
 ﻿import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
+import AvatarImage from "@shared/components/AvatarImage";
 import Button from "@shared/components/Button";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 
@@ -260,5 +262,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default React.memo(TournamentCard);
-import AvatarImage from "@shared/components/AvatarImage";
-import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";

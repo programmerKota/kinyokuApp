@@ -4,7 +4,7 @@
     "slug": "abstinence-challenge",
     "owner": "kota007",
     "scheme": "abstinence",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.abstinence",
-      "buildNumber": "7",
+      "buildNumber": "8",
       "infoPlist": {
         "NSCameraUsageDescription": "プロフィール画像の撮影にカメラを使用します。",
         "NSPhotoLibraryUsageDescription": "プロフィール画像・日記画像の選択にフォトライブラリを使用します。",

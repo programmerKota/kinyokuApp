@@ -41,10 +41,9 @@ const Modal: React.FC<ModalProps> = ({
     onClose();
   };
 
-  const handleContentPress = (event: GestureResponderEvent) => {
-    // モーダル内部タップでキーボードを閉じる
-    event.stopPropagation();
-    Keyboard.dismiss();
+  const handleContentPress = (_event: GestureResponderEvent) => {
+    // モーダル内部のタップは背面の閉じる処理に伝播させない
+    // キーボードはTextInputが自前で管理するためここでは閉じない
   };
 
   return (
@@ -60,29 +59,31 @@ const Modal: React.FC<ModalProps> = ({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
           >
-            {/* Do not intercept presses inside content; it blocks nested buttons (OAuth, etc.) */}
-            <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
-              {!hideHeader && (
-                <View style={styles.header}>
-                  <Text style={styles.title}>{title}</Text>
-                  {showCloseButton && (
-                    <TouchableWithoutFeedback onPress={onClose}>
-                      <View style={styles.closeButton}>
-                        <Text style={styles.closeButtonText}>x</Text>
-                      </View>
-                    </TouchableWithoutFeedback>
-                  )}
-                </View>
-              )}
-              <ScrollView
-                style={styles.content}
-                contentContainerStyle={styles.contentInner}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={true}
-              >
-                {children}
-              </ScrollView>
-            </View>
+            {/* 内側はタップを背面に伝播させない */}
+            <TouchableWithoutFeedback onPress={handleContentPress}>
+              <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
+                {!hideHeader && (
+                  <View style={styles.header}>
+                    <Text style={styles.title}>{title}</Text>
+                    {showCloseButton && (
+                      <TouchableWithoutFeedback onPress={onClose}>
+                        <View style={styles.closeButton}>
+                          <Text style={styles.closeButtonText}>x</Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    )}
+                  </View>
+                )}
+                <ScrollView
+                  style={styles.content}
+                  contentContainerStyle={styles.contentInner}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={true}
+                >
+                  {children}
+                </ScrollView>
+              </View>
+            </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
         </View>
       </TouchableWithoutFeedback>

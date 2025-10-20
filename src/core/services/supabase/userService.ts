@@ -81,13 +81,12 @@ export class FirestoreUserService {
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("profiles")
-      .upsert({
-        id: userId,
+      .update({
         displayName: profile.displayName,
         photoURL: profile.photoURL ?? null,
         updatedAt: now,
-        createdAt: now,
       })
+      .eq("id", userId)
       .single();
     if (error) throw error;
   }

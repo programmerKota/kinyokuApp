@@ -84,7 +84,7 @@ export class CommunityService {
     if (!supabaseConfig?.isConfigured)
       return { items: [], nextCursor: undefined };
     let query = supabase
-      .from("community_posts")
+      .from("community_posts_v")
       .select("*")
       .order("createdAt", { ascending: false })
       .limit(pageSize);
@@ -115,7 +115,7 @@ export class CommunityService {
     const result = (await withRetry(
       async () =>
         await supabase
-          .from("community_posts")
+          .from("community_posts_v")
           .select("*")
           .eq("authorId", userId)
           .order("createdAt", { ascending: false }),
@@ -173,7 +173,9 @@ export class CommunityService {
         .eq("id", authorId)
         .maybeSingle();
       if (prof) {
-        authorName = (prof as any).displayName ?? null;
+        const raw = (prof as any).displayName as string | undefined;
+        // Never persist an email-like value as authorName; let view fall back to profiles or 'ユーザー'
+        authorName = raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
         authorAvatar = (prof as any).photoURL ?? null;
       }
     } catch {
@@ -262,7 +264,7 @@ export class CommunityService {
   static async getPostReplies(postId: string): Promise<CommunityComment[]> {
     if (!supabaseConfig?.isConfigured) return [];
     const { data, error } = await supabase
-      .from("community_comments")
+      .from("community_comments_v")
       .select("*")
       .eq("postId", postId)
       .order("createdAt", { ascending: true });
@@ -442,7 +444,7 @@ export class CommunityService {
 
     const init = async () => {
       const { data, error } = await supabase
-        .from("community_posts")
+        .from("community_posts_v")
         .select("*")
         .order("createdAt", { ascending: false })
         .limit(max);
@@ -670,11 +672,11 @@ export class CommunityService {
         current = [];
         callback([]);
       } else {
-        const { data, error } = await supabase
-          .from("community_posts")
-          .select("*")
-          .in("authorId", userIds)
-          .order("createdAt", { ascending: false });
+      const { data, error } = await supabase
+        .from("community_posts_v")
+        .select("*")
+        .in("authorId", userIds)
+        .order("createdAt", { ascending: false });
         if (error) throw error;
         current = ((data || []) as unknown as SupaPostRow[]).map(
           toFirestoreCommunityPost,

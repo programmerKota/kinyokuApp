@@ -294,7 +294,9 @@ const DiaryByDayScreen: React.FC = () => {
     ({ item }: { item: DayDiaryItem }) => {
       const avgDays = userAverageDays.get(item.userId) ?? 0;
       const prof = profilesMap.get(item.userId);
-      const authorName = prof?.displayName ?? item.authorName;
+      // プロフィールが存在しない場合は「削除されたユーザー」と表示
+      const hasProfile = profilesMap.has(item.userId);
+      const authorName = prof?.displayName ?? (hasProfile ? item.authorName : '削除されたユーザー');
       const authorAvatar = prof?.photoURL ?? item.authorAvatar;
       return (
         <DiaryItemRow
@@ -434,6 +436,7 @@ const DiaryByDayScreen: React.FC = () => {
             tintColor={colors.primary}
           />
         }
+        extraData={{ pv: profilesMap, av: userAverageDays }}
       />
 
       <TouchableOpacity

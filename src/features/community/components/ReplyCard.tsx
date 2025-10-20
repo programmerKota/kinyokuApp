@@ -107,5 +107,9 @@ const createStyles = (colors: any) => StyleSheet.create({
 
 export default React.memo(
   ReplyCard,
-  (a, b) => a.reply.id === b.reply.id && a.reply.content === b.reply.content,
+  (a, b) =>
+    a.reply.id === b.reply.id &&
+    a.reply.content === b.reply.content &&
+    ((a.reply as any).authorName ?? "") === ((b.reply as any).authorName ?? "") &&
+    ((a.reply as any).authorAvatar ?? "") === ((b.reply as any).authorAvatar ?? ""),
 );

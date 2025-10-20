@@ -10,6 +10,7 @@ import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { ReplyCountStore } from "@shared/state/replyStore";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
+import ProfileCache, { type UserProfileLite } from "@core/services/profileCache";
 
 interface RepliesListProps {
   postId: string;
@@ -46,6 +47,9 @@ const RepliesList: React.FC<RepliesListProps> = ({
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
+  const [profilesMap, setProfilesMap] = useState<
+    Map<string, UserProfileLite | undefined>
+  >(new Map());
 
   useEffect(() => {
     const unsubscribe = CommunityService.subscribeToPostReplies(
@@ -70,6 +74,19 @@ const RepliesList: React.FC<RepliesListProps> = ({
     );
     return unsubscribe;
   }, [postId, allowBlockedReplies, blockedSet]);
+
+  // Prefetch and live-merge author profiles similar to profile header
+  useEffect(() => {
+    const ids = Array.from(new Set(replies.map((r) => r.authorId)));
+    if (ids.length === 0) {
+      setProfilesMap(new Map());
+      return;
+    }
+    const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+      setProfilesMap(map);
+    });
+    return () => { try { unsub?.(); } catch {} };
+  }, [replies]);
 
   // Local fallback: if a reply was added from this client but Realtime is delayed,
   // nudge refresh by fetching the latest replies on emit.
@@ -117,12 +134,22 @@ const RepliesList: React.FC<RepliesListProps> = ({
   };
 
   const renderItem = useCallback(({ item }: { item: CommunityComment }) => (
-    <ReplyRow
-      reply={item}
-      avgDays={userAverageDays.get(item.authorId) || 0}
-      onUserPress={onUserPress}
-    />
-  ), [userAverageDays, onUserPress]);
+    (() => {
+      const prof = profilesMap.get(item.authorId);
+      const merged: CommunityComment = {
+        ...item,
+        authorName: prof?.displayName ?? (item as any).authorName,
+        authorAvatar: prof?.photoURL ?? (item as any).authorAvatar,
+      } as any;
+      return (
+        <ReplyRow
+          reply={merged}
+          avgDays={userAverageDays.get(item.authorId) || 0}
+          onUserPress={onUserPress}
+        />
+      );
+    })()
+  ), [userAverageDays, onUserPress, profilesMap]);
 
   if (replies.length === 0) return null;
 
@@ -136,6 +163,8 @@ const RepliesList: React.FC<RepliesListProps> = ({
       windowSize={9}
       maxToRenderPerBatch={10}
       removeClippedSubviews
+      // ensure rows update when profile map or averages change
+      extraData={{ pv: profilesMap, av: userAverageDays }}
     />
   );
 };

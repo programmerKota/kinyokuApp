@@ -8,6 +8,7 @@ import {
 } from "react-native";
 
 import AvatarImage from "@shared/components/AvatarImage";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
 
 interface MessageBubbleProps {
@@ -31,6 +32,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const { mode } = useAppTheme();
   const styles = useMemo(() => createStyles(mode), [mode]);
+  const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
+    message.authorId,
+    message.authorName,
+    message.avatar,
+  );
+
   if (message.type === "system") {
     return (
       <View style={styles.systemContainer}>
@@ -49,27 +56,27 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             style={styles.avatarContainer}
             activeOpacity={0.8}
             onPress={() =>
-              onUserPress(message.authorId, message.authorName, message.avatar)
+              onUserPress(message.authorId, displayName, displayAvatar)
             }
           >
-            {message.avatar ? (
-              <AvatarImage uri={message.avatar} size={32} />
+            {displayAvatar ? (
+              <AvatarImage uri={displayAvatar} size={32} />
             ) : (
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {(message.authorName || "ユーザー").charAt(0)}
+                  {(displayName || "ユーザー").charAt(0)}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
         ) : (
           <View style={styles.avatarContainer}>
-            {message.avatar ? (
-              <AvatarImage uri={message.avatar} size={32} />
+            {displayAvatar ? (
+              <AvatarImage uri={displayAvatar} size={32} />
             ) : (
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {(message.authorName || "ユーザー").charAt(0)}
+                  {(displayName || "ユーザー").charAt(0)}
                 </Text>
               </View>
             )}
@@ -83,15 +90,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               onPress={() =>
                 onUserPress(
                   message.authorId,
-                  message.authorName,
-                  message.avatar,
+                  displayName,
+                  displayAvatar,
                 )
               }
             >
-              <Text style={styles.authorName}>{message.authorName || "ユーザー"}</Text>
+              <Text style={styles.authorName}>{displayName || "ユーザー"}</Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.authorName}>{message.authorName || "ユーザー"}</Text>
+            <Text style={styles.authorName}>{displayName || "ユーザー"}</Text>
           ))}
         {/* Bubble */}
         <View
@@ -258,8 +265,7 @@ export default React.memo(MessageBubble, (prev, next) => {
     prev.isOwn === next.isOwn &&
     a.id === b.id &&
     a.text === b.text &&
-    a.authorName === b.authorName &&
-    a.avatar === b.avatar &&
+    a.authorId === b.authorId &&
     a.type === b.type &&
     a.timestamp.getTime() === b.timestamp.getTime()
   );

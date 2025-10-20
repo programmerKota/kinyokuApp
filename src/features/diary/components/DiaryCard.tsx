@@ -81,8 +81,6 @@ const createStyles = (mode: "light" | "dark") => {
 
 export default React.memo(DiaryCard, (a, b) =>
   a.authorId === b.authorId &&
-  a.authorName === b.authorName &&
-  a.authorAvatar === b.authorAvatar &&
   a.content === b.content &&
   String(a.createdAt) === String(b.createdAt) &&
   a.averageDays === b.averageDays,

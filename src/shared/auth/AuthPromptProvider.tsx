@@ -9,7 +9,7 @@ import { colors, spacing, typography } from '@shared/theme';
 import { screenThemes } from '@shared/theme/screenThemes';
 import { supabase, supabaseConfig } from '@app/config/supabase.config';
 import { featureFlags } from '@app/config/featureFlags.config';
-import { signInWithEmailPassword, signUpWithEmailPassword, sendMagicLink, resetPassword, initSupabaseAuthDeepLinks, getRedirectTo } from '@core/services/supabase/authService';
+import { signInWithEmailPassword, signUpWithEmailPassword, sendMagicLink, resetPassword, initSupabaseAuthDeepLinks, getRedirectTo, startOAuthFlow } from '@core/services/supabase/authService';
 
 type Ctx = {
   requireAuth: () => Promise<boolean>;
@@ -131,23 +131,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
     try {
       setAuthing(provider as any);
-      const redirectTo = getRedirectTo();
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any,
-        options: {
-          redirectTo,
-          skipBrowserRedirect: Platform.OS !== 'web',
-        },
-      });
-      if (error || !data?.url) {
-        console.error('OAuth start failed', error);
-        return;
-      }
-      if (Platform.OS !== 'web') {
-        await Linking.openURL(data.url);
-      } else {
-        try { window.location.href = data.url; } catch { }
-      }
+      await startOAuthFlow(provider as any);
     } finally {
       setAuthing(null);
     }

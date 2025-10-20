@@ -12,6 +12,23 @@ import { useFonts } from "expo-font";
 import { ThemeProvider } from "@shared/theme";
 
 const App = () => {
+  // Silence all console outputs across the app (no runtime logs)
+  try {
+    const noop = () => {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).log = noop;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).info = noop;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).warn = noop;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).error = noop;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).debug = noop;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (console as any).trace = noop;
+  } catch {}
+
   // Preload icon fonts to prevent first‑paint flicker of vector icons
   const [fontsLoaded] = useFonts((Ionicons as any).font ?? {});
   useEffect(() => {

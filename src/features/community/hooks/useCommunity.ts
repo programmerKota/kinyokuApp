@@ -4,6 +4,9 @@ import { useAuth } from "@app/contexts/AuthContext";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { CommunityService } from "@core/services/firestore";
 import { UserStatsService } from "@core/services/userStatsService";
+import ProfileCache, {
+  type UserProfileLite,
+} from "@core/services/profileCache";
 import type { CommunityPost } from "@project-types";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useFollowingIds } from "@shared/state/followStore";
@@ -68,6 +71,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
+  const [profilesMap, setProfilesMap] = useState<
+    Map<string, UserProfileLite | undefined>
+  >(new Map());
   const [cursor, setCursor] = useState<unknown>(undefined as unknown);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -102,7 +108,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         const next = new Set(likedPosts);
         set.forEach((id) => next.add(id));
         setLikedPosts(next);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     },
     [user, likedPosts],
   );
@@ -147,7 +155,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       // Using `set` to refresh existing values as posts update via Realtime.
       try {
         const { ReplyCountStore } = await import("@shared/state/replyStore");
-        filtered.forEach((p) => ReplyCountStore.setFromServer(p.id, p.comments || 0));
+        filtered.forEach((p) =>
+          ReplyCountStore.setFromServer(p.id, p.comments || 0),
+        );
       } catch {}
       return filtered;
     },
@@ -253,7 +263,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             }
           })();
           break;
-                case "my":
+        case "my":
           // Always fetch fresh on tab focus
           setPosts([]);
           setCursor(undefined);
@@ -263,7 +273,9 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             (async () => {
               try {
                 const list = await CommunityService.getUserPosts(user.uid);
-                const normalized = await normalizePosts(list as CommunityPost[]);
+                const normalized = await normalizePosts(
+                  list as CommunityPost[],
+                );
                 setPosts(normalized);
                 void initializeLikedPosts(normalized);
                 void initializeUserAverageDays(normalized);
@@ -303,7 +315,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
             setRefreshing(false);
           }
           break;
-        }
+      }
     };
     run();
     return () => {
@@ -357,6 +369,37 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   useEffect(() => {
     setPosts((prev) => prev.filter((p) => !blockedSet.has(p.authorId)));
   }, [blockedSet]);
+
+  // Prefetch and live-merge author profiles (name/avatar)
+  useEffect(() => {
+    const ids = Array.from(new Set(posts.map((p) => p.authorId)));
+    if (ids.length === 0) {
+      setProfilesMap(new Map());
+      return;
+    }
+    const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+      setProfilesMap(map);
+    });
+    return () => {
+      try {
+        unsub?.();
+      } catch {}
+    };
+  }, [posts]);
+
+  // Enrich posts with live profile data
+  const enrichedPosts = useMemo(() => {
+    if (!posts || posts.length === 0) return posts;
+    return posts.map((p) => {
+      const prof = profilesMap.get(p.authorId);
+      if (!prof) return p;
+      return {
+        ...p,
+        authorName: prof.displayName ?? p.authorName,
+        authorAvatar: prof.photoURL ?? p.authorAvatar,
+      } as CommunityPost;
+    });
+  }, [posts, profilesMap]);
 
   // actions
   const handleRefresh = useCallback(async () => {
@@ -503,16 +546,25 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       try {
         // Reconcile optimistic UI with server result
         const prevState = (() => {
-          try { return (require("@shared/state/likeStore") as any).LikeStore.get(postId); } catch { return undefined; }
+          try {
+            return (require("@shared/state/likeStore") as any).LikeStore.get(
+              postId,
+            );
+          } catch {
+            return undefined;
+          }
         })() as { isLiked: boolean; likes: number } | undefined;
 
         const liked = await CommunityService.toggleLike(postId);
 
         try {
           const { LikeStore } = require("@shared/state/likeStore");
-          const cur = LikeStore.get(postId) || prevState || { isLiked: false, likes: 0 };
+          const cur = LikeStore.get(postId) ||
+            prevState || { isLiked: false, likes: 0 };
           const needsAdjust = cur.isLiked !== liked;
-          const nextLikes = needsAdjust ? Math.max(0, (cur.likes || 0) + (liked ? 1 : -1)) : cur.likes;
+          const nextLikes = needsAdjust
+            ? Math.max(0, (cur.likes || 0) + (liked ? 1 : -1))
+            : cur.likes;
           LikeStore.set(postId, { isLiked: liked, likes: nextLikes });
         } catch {}
       } catch (e) {
@@ -520,7 +572,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         try {
           const { LikeStore } = require("@shared/state/likeStore");
           const cur = LikeStore.get(postId) || { isLiked: false, likes: 0 };
-          LikeStore.set(postId, { isLiked: !cur.isLiked, likes: Math.max(0, (cur.likes || 0) + (cur.isLiked ? 1 : -1)) });
+          LikeStore.set(postId, {
+            isLiked: !cur.isLiked,
+            likes: Math.max(0, (cur.likes || 0) + (cur.isLiked ? 1 : -1)),
+          });
         } catch {}
       } finally {
         setLikingIds((prev) => {
@@ -594,7 +649,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 
   const state: UseCommunityState = useMemo(
     () => ({
-      posts,
+      posts: enrichedPosts,
       likedPosts,
       followingUsers,
       replyCounts,
@@ -609,7 +664,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       hasMore,
     }),
     [
-      posts,
+      enrichedPosts,
       likedPosts,
       followingUsers,
       replyCounts,
@@ -643,10 +698,3 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
 };
 
 export default useCommunity;
-
-
-
-
-
-
-

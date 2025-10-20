@@ -143,9 +143,11 @@ const RankingScreen: React.FC = () => {
     if (!rankings || rankings.length === 0) return rankings;
     return rankings.map((r) => {
       const p = profilesMap.get(r.id);
+      // プロフィールが存在しない場合は「削除されたユーザー」と表示
+      const hasProfile = profilesMap.has(r.id);
       return {
         ...r,
-        name: (p?.displayName ?? r.name) as any,
+        name: (p?.displayName ?? (hasProfile ? r.name : '削除されたユーザー')) as any,
         avatar: (p?.photoURL ?? r.avatar) as any,
       } as UserRanking;
     });
@@ -267,6 +269,7 @@ const RankingScreen: React.FC = () => {
         maxToRenderPerBatch={24}
         initialNumToRender={12}
         showsVerticalScrollIndicator={false}
+        extraData={{ pv: profilesMap, avg: avgDaysMap }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

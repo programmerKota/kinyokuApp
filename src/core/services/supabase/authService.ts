@@ -2,6 +2,8 @@ import * as Linking from "expo-linking";
 import { makeRedirectUri } from "expo-auth-session";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as WebBrowser from "expo-web-browser";
 
 import { supabase } from "@app/config/supabase.config";
 
@@ -19,9 +21,9 @@ export const getRedirectTo = () => {
       (window as any)?.location?.origin
     ) {
       const url = `${(window as any).location.origin}/auth/callback`;
-      try {
-        console.log("[getRedirectTo] Mode: Web, URL:", url);
-      } catch {}
+      if (__DEV__) {
+        try { console.log("[getRedirectTo] Mode: Web, URL:", url); } catch {}
+      }
       return url;
     }
 
@@ -32,10 +34,11 @@ export const getRedirectTo = () => {
       // In Expo Go, use expo-auth-session proxy.
       // Ensure you’ve added the resulting URL to Supabase Redirect URLs:
       //   https://auth.expo.io/@<owner>/<slug>
-      const url = makeRedirectUri({ useProxy: true });
-      try {
-        console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url);
-      } catch {}
+      // useProxy option exists at runtime; cast to any to avoid type drift across SDKs
+      const url = (makeRedirectUri as any)({ useProxy: true });
+      if (__DEV__) {
+        try { console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url); } catch {}
+      }
       return url;
     }
 
@@ -46,16 +49,16 @@ export const getRedirectTo = () => {
       "abstinence";
 
     const url = `${scheme}://auth/callback`;
-    try {
-      console.log("[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:", url);
-    } catch {}
+    if (__DEV__) {
+      try { console.log("[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:", url); } catch {}
+    }
     return url;
   } catch (e) {
     // Safe fallback
     const url = Linking.createURL("auth/callback");
-    try {
-      console.log("[getRedirectTo] Mode: Fallback, URL:", url);
-    } catch {}
+    if (__DEV__) {
+      try { console.log("[getRedirectTo] Mode: Fallback, URL:", url); } catch {}
+    }
     return url;
   }
 };
@@ -67,9 +70,9 @@ export async function initSupabaseAuthDeepLinks() {
   const handle = async ({ url }: { url: string }) => {
     try {
       // debug
-      try {
-        console.log("[auth] deep link url:", url);
-      } catch {}
+      if (__DEV__) {
+        try { console.log("[auth] deep link url:", url); } catch {}
+      }
 
       // Robustly parse both query (?a=b) and hash (#a=b) tokens
       const parsed = Linking.parse(url);
@@ -94,9 +97,7 @@ export async function initSupabaseAuthDeepLinks() {
       const code = (qp?.code as string) || (hp?.code as string) || "";
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
-        try {
-          console.log("[auth] exchange via code ok");
-        } catch {}
+        if (__DEV__) { try { console.log("[auth] exchange via code ok"); } catch {} }
         return;
       }
 
@@ -107,9 +108,7 @@ export async function initSupabaseAuthDeepLinks() {
         (qp?.refresh_token as string) || (hp?.refresh_token as string) || "";
       if (access_token && refresh_token) {
         await supabase.auth.setSession({ access_token, refresh_token });
-        try {
-          console.log("[auth] setSession via hash tokens ok");
-        } catch {}
+        if (__DEV__) { try { console.log("[auth] setSession via hash tokens ok"); } catch {} }
         return;
       }
 
@@ -117,19 +116,19 @@ export async function initSupabaseAuthDeepLinks() {
       const token_hash =
         (qp?.token_hash as string) || (hp?.token_hash as string) || "";
       const type = ((qp?.type as string) || (hp?.type as string) || "") as any;
+      // Flag pending password recovery so UI can prompt even if event name differs
+      if (type === "recovery") {
+        try { await AsyncStorage.setItem("__auth_pending_recovery", "1"); } catch {}
+      }
       if (token_hash && type) {
         const email =
           (qp?.email as string) || (hp?.email as string) || "" || undefined;
         await supabase.auth.verifyOtp({ type, token_hash, email } as any);
-        try {
-          console.log("[auth] verifyOtp via token_hash ok");
-        } catch {}
+        if (__DEV__) { try { console.log("[auth] verifyOtp via token_hash ok"); } catch {} }
         return;
       }
     } catch (e) {
-      try {
-        console.error("[auth] deep link handle error:", e);
-      } catch {}
+      if (__DEV__) { try { console.error("[auth] deep link handle error:", e); } catch {} }
       // noop: let caller surface auth state via UI if needed
     }
   };
@@ -206,4 +205,37 @@ export async function updatePassword(newPassword: string) {
 
 export async function signOut() {
   await supabase.auth.signOut();
+}
+
+// Unified OAuth launcher used by UI screens
+export async function startOAuthFlow(
+  provider: "google" | "apple" | "twitter" | "amazon" | "line",
+) {
+  const redirectTo = getRedirectTo();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider as any,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: Platform.OS !== "web",
+    },
+  });
+  if (error || !data?.url) {
+    if (__DEV__) {
+      try { console.error("[auth] OAuth start failed", error); } catch {}
+    }
+    throw error ?? new Error("OAUTH_START_FAILED");
+  }
+
+  if (Platform.OS === "web") {
+    try { (window as any).location.href = data.url; } catch {}
+    return;
+  }
+
+  // Native: prefer in-app auth session so user returns to app
+  try {
+    const returnUrl = Linking.createURL("auth/callback");
+    await WebBrowser.openAuthSessionAsync(data.url, returnUrl);
+  } catch (e) {
+    try { await Linking.openURL(data.url); } catch {}
+  }
 }

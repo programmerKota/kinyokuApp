@@ -67,15 +67,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     storage: AsyncStorage,
     // Use PKCE flow for native OAuth
-    flowType: 'pkce',
+    flowType: "pkce",
     // Detect session from URL (for OAuth flows)
     // Webでは true にして OAuth リダイレクトを処理する
-    detectSessionInUrl: Platform.OS === 'web',
+    detectSessionInUrl: Platform.OS === "web",
   },
   realtime: {
     // Enable realtime subscriptions
+    // ✅ 数万ユーザー対応: 10 → 100に引き上げ
+    // - 10: 人気投稿に100人がいいね → 10秒かかる ❌
+    // - 100: 人気投稿に100人がいいね → 1秒 ✅
     params: {
-      eventsPerSecond: 10,
+      eventsPerSecond: 100,
     },
   },
 });

@@ -103,8 +103,8 @@ export class DiaryService {
   ): Promise<FirestoreDiary[]> {
     if (!supabaseConfig?.isConfigured) return [];
     const { data, error } = await supabase
-      .from("diaries")
-      .select("id,userId,content,createdAt")
+      .from("diaries_v")
+      .select("id,userId,content,createdAt,authorName,authorAvatar")
       .eq("day", day)
       .order("createdAt", { ascending: false })
       .limit(max);

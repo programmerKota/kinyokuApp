@@ -55,8 +55,8 @@ export class RankingService {
           const duration = Math.max(0, Math.floor((now - start) / 1000));
           return {
             id: r.userId,
-            name: "ユーザー",
-            avatar: undefined,
+            name: "ユーザー", // ProfileCache経由で画面側で解決
+            avatar: undefined, // ProfileCache経由で画面側で解決
             averageTime: duration,
             totalChallenges: 1,
             completedChallenges: 0,
