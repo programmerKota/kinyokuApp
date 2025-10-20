@@ -78,16 +78,17 @@ export class FirestoreUserService {
     userId: string,
     profile: { displayName: string; photoURL?: string },
   ): Promise<void> {
+    // Upsert to handle first-time users whose row hasn't been created yet
     const now = new Date().toISOString();
+    const payload = {
+      id: userId,
+      displayName: profile.displayName,
+      photoURL: profile.photoURL ?? null,
+      updatedAt: now,
+    } as const;
     const { error } = await supabase
       .from("profiles")
-      .update({
-        displayName: profile.displayName,
-        photoURL: profile.photoURL ?? null,
-        updatedAt: now,
-      })
-      .eq("id", userId)
-      .single();
+      .upsert(payload, { onConflict: "id" });
     if (error) throw error;
   }
 }

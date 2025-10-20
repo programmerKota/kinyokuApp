@@ -157,11 +157,18 @@ export async function signInWithGoogle() {
   });
 }
 
-export async function sendMagicLink(email: string) {
+export async function sendMagicLink(
+  email: string,
+  opts?: { shouldCreateUser?: boolean },
+) {
   const redirectTo = getRedirectTo();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    options: {
+      emailRedirectTo: redirectTo,
+      // login用は false、signup用は true を明示
+      shouldCreateUser: opts?.shouldCreateUser ?? false,
+    } as any,
   });
   if (error) throw error;
 }

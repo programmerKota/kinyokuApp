@@ -1,4 +1,4 @@
-ï»¿import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,7 +61,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doLogin = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint('ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã¨ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„');
+      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚ÆƒpƒXƒ[ƒh‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
       return;
     }
     try {
@@ -70,7 +70,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã¾ãŸã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒæ­£ã—ãã‚ã‚Šã¾ã›ã‚“');
+      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚Ü‚½‚ÍƒpƒXƒ[ƒh‚ª³‚µ‚­‚ ‚è‚Ü‚¹‚ñ');
     } finally {
       setAuthing(null);
     }
@@ -78,7 +78,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doSignup = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint('ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã¨ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„');
+      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚ÆƒpƒXƒ[ƒh‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
       return;
     }
     try {
@@ -87,7 +87,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—ã«å¤±æ•—ã—ã¾ã—ãŸ');
+      setEmailHint('ƒTƒCƒ“ƒAƒbƒv‚É¸”s‚µ‚Ü‚µ‚½');
     } finally {
       setAuthing(null);
     }
@@ -95,33 +95,33 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleMagic = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint('æ­£ã—ã„ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„');
+      setEmailHint('³‚µ‚¢ƒ[ƒ‹ƒAƒhƒŒƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
       return;
     }
     try {
       setAuthing('magic');
-      setEmailHint('ãƒ¡ãƒ¼ãƒ«ã‚’é€ä¿¡ã—ã¾ã—ãŸã€‚å—ä¿¡ãƒˆãƒ¬ã‚¤ã‚’ã”ç¢ºèªãã ã•ã„');
-      await sendMagicLink(email.trim());
+      setEmailHint('ƒ[ƒ‹‚ğ‘—M‚µ‚Ü‚µ‚½BóMƒgƒŒƒC‚ğ‚²Šm”F‚­‚¾‚³‚¢');
+      await sendMagicLink(email.trim(), { shouldCreateUser: mode === 'signup' });
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ãƒ¡ãƒ¼ãƒ«ã®é€ä¿¡ã«å¤±æ•—ã—ã¾ã—ãŸã€‚æ™‚é–“ã‚’ãŠã„ã¦ãŠè©¦ã—ãã ã•ã„');
+      setEmailHint('ƒ[ƒ‹‚Ì‘—M‚É¸”s‚µ‚Ü‚µ‚½BŠÔ‚ğ‚¨‚¢‚Ä‚¨‚µ‚­‚¾‚³‚¢');
     } finally {
       setAuthing(null);
     }
-  }, [email, close]);
+  }, [email, close, mode]);
 
   const doResetPassword = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint('æ­£ã—ã„ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„');
+      setEmailHint('³‚µ‚¢ƒ[ƒ‹ƒAƒhƒŒƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
       return;
     }
     try {
       setAuthing('reset');
       await resetPassword(email.trim());
-      setEmailHint('ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å†è¨­å®šãƒ¡ãƒ¼ãƒ«ã‚’é€ä¿¡ã—ã¾ã—ãŸ');
+      setEmailHint('ƒpƒXƒ[ƒhÄİ’èƒ[ƒ‹‚ğ‘—M‚µ‚Ü‚µ‚½');
     } catch {
-      setEmailHint('ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å†è¨­å®šãƒ¡ãƒ¼ãƒ«ã®é€ä¿¡ã«å¤±æ•—ã—ã¾ã—ãŸ');
+      setEmailHint('ƒpƒXƒ[ƒhÄİ’èƒ[ƒ‹‚Ì‘—M‚É¸”s‚µ‚Ü‚µ‚½');
     } finally {
       setAuthing(null);
     }
@@ -169,18 +169,18 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           padding: spacing['2xl'],
           marginBottom: spacing['2xl'],
         }}>
-          <Text style={{ color: 'white', fontWeight: '800', fontSize: typography.fontSize['2xl'] }}>ã‚ˆã†ã“ã</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã«ãƒ­ã‚°ã‚¤ãƒ³ã—ã¦æ©Ÿèƒ½ã‚’åˆ©ç”¨ã§ãã¾ã™</Text>
+          <Text style={{ color: 'white', fontWeight: '800', fontSize: typography.fontSize['2xl'] }}>‚æ‚¤‚±‚»</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>ƒAƒJƒEƒ“ƒg‚ÉƒƒOƒCƒ“‚µ‚Ä‹@”\‚ğ—˜—p‚Å‚«‚Ü‚·</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: spacing.lg }}>
             <DSButton
-              title="ãƒ­ã‚°ã‚¤ãƒ³"
+              title="ƒƒOƒCƒ“"
               variant={mode === 'login' ? 'secondary' : 'ghost'}
               onPress={() => setMode('login')}
               textColor={mode === 'login' ? undefined : 'white'}
               style={mode === 'login' ? undefined : { borderColor: 'rgba(255,255,255,0.5)' }}
             />
             <DSButton
-              title="æ–°è¦ç™»éŒ²"
+              title="V‹K“o˜^"
               variant={mode === 'signup' ? 'secondary' : 'ghost'}
               onPress={() => setMode('signup')}
               textColor={mode === 'signup' ? undefined : 'white'}
@@ -209,7 +209,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             onBlur={() => setEmailFocus(false)}
           />
           <TextInput
-            placeholder="ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰"
+            placeholder="ƒpƒXƒ[ƒh"
             placeholderTextColor={colors.textSecondary}
             value={password}
             onChangeText={(t) => setPassword(t)}
@@ -230,38 +230,38 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             <Text style={{ color: colors.error }}>{emailHint}</Text>
           ) : null}
 
-          {/* é€ä¿¡ã¯1å›ã«åˆ¶é™ */}
+          {/* ‘—M‚Í1‰ñ‚É§ŒÀ */}
           <DSButton
             title={
               mode === 'login'
-                ? (authing === 'login' ? 'ãƒ­ã‚°ã‚¤ãƒ³ä¸­â€¦' : 'ãƒ­ã‚°ã‚¤ãƒ³')
-                : (authing === 'signup' ? 'ç™»éŒ²ä¸­â€¦' : 'æ–°è¦ç™»éŒ²')
+                ? (authing === 'login' ? 'ƒƒOƒCƒ“’†c' : 'ƒƒOƒCƒ“')
+                : (authing === 'signup' ? '“o˜^’†c' : 'V‹K“o˜^')
             }
             onPress={() => { void (mode === 'login' ? doLogin() : doSignup()); }}
             loading={authing === (mode === 'login' ? 'login' : 'signup')}
             style={{ width: '100%' }}
           />
 
-          {/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å¿˜ã‚ŒãŸæ–¹ã¯ä¸‹ã®ãƒ¡ãƒ¼ãƒ«ã‚’ã”åˆ©ç”¨ãã ã•ã„ */}
+          {/* ƒpƒXƒ[ƒh‚ğ–Y‚ê‚½•û‚Í‰º‚Ìƒ[ƒ‹‚ğ‚²—˜—p‚­‚¾‚³‚¢ */}
           <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
             {mode === 'login' ? (
               <Text style={{ color: colors.textSecondary }}>
-                ã‚¢ã‚«ã‚¦ãƒ³ãƒˆãŒå¿…è¦ã§ã™ã‹ï¼Ÿ
+                ƒAƒJƒEƒ“ƒg‚ª•K—v‚Å‚·‚©H
                 <Text
                   onPress={() => setMode('signup')}
                   style={{ color: colors.primary, fontWeight: '700' }}
                 >
-                  æ–°è¦ç™»éŒ²
+                  V‹K“o˜^
                 </Text>
               </Text>
             ) : (
               <Text style={{ color: colors.textSecondary }}>
-                ã™ã§ã«ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã‚’ãŠæŒã¡ã§ã™ã‹ï¼Ÿ
+                ‚·‚Å‚ÉƒAƒJƒEƒ“ƒg‚ğ‚¨‚¿‚Å‚·‚©H
                 <Text
                   onPress={() => setMode('login')}
                   style={{ color: colors.primary, fontWeight: '700' }}
                 >
-                  ãƒ­ã‚°ã‚¤ãƒ³
+                  ƒƒOƒCƒ“
                 </Text>
               </Text>
             )}
@@ -269,8 +269,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
           {anyOAuth ? (
             <View style={{ alignItems: 'center', marginTop: spacing.sm, gap: 10 }}>
-              <Text style={{ color: colors.textSecondary }}>ã¾ãŸã¯</Text>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>ä»–ã®ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã§ãƒ­ã‚°ã‚¤ãƒ³</Text>
+              <Text style={{ color: colors.textSecondary }}>‚Ü‚½‚Í</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>‘¼‚ÌƒAƒJƒEƒ“ƒg‚ÅƒƒOƒCƒ“</Text>
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
                 {oauthConfig.twitter && (
                   <Pressable
