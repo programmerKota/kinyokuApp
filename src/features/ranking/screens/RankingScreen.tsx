@@ -555,8 +555,8 @@ const createStyles = (mode: "light" | "dark") => {
       marginBottom: 8,
     },
     tierBadge: {
-      backgroundColor: "#E0F2FE",
-      color: "#0369A1",
+      backgroundColor: colors.backgroundSecondary,
+      color: colors.textPrimary,
       paddingHorizontal: 12,
       paddingVertical: 4,
       borderRadius: 12,
@@ -567,7 +567,7 @@ const createStyles = (mode: "light" | "dark") => {
     },
     tierRule: {
       fontSize: 13,
-      color: "#374151",
+      color: colors.textPrimary,
       lineHeight: 18,
       marginLeft: 4,
     },

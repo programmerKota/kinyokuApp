@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { ViewStyle } from "react-native";
 import { Image, View, StyleSheet, Platform } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface AvatarImageProps {
   uri?: string;
@@ -144,7 +145,13 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
           }}
         />
       ) : (
-        <View style={[styles.placeholder, { borderRadius: radius }]} />
+        <View style={[styles.placeholder, { borderRadius: radius }]}>
+          <Ionicons
+            name="person"
+            size={size * 0.6}
+            color="#999"
+          />
+        </View>
       )}
     </View>
   );
@@ -159,6 +166,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: "#EEE",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
