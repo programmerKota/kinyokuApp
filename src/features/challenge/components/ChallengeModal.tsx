@@ -1,5 +1,6 @@
 ﻿import React, { useState, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, FlatList } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import Button from "@shared/components/Button";
 import Modal from "@shared/components/Modal";
@@ -32,6 +33,12 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [daysPickerVisible, setDaysPickerVisible] = useState(false);
+  const dayOptions = useMemo(() => Array.from({ length: 1000 }, (_, i) => i + 1), []);
+  React.useEffect(() => {
+    if (!visible && daysPickerVisible) {
+      setDaysPickerVisible(false);
+    }
+  }, [visible]);
 
   const penaltyOptions = paymentsConfig.penaltyOptions;
 
@@ -48,13 +55,20 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
           >
             目標日数
           </Text>
-          <TouchableOpacity
-            style={styles.selectField}
-            activeOpacity={0.8}
-            onPress={() => setDaysPickerVisible(true)}
+          <Pressable
+            style={({ pressed }) => [
+              styles.selectField,
+              pressed && styles.selectFieldPressed,
+            ]}
+            onPress={() => {
+              try { console.log('日数選択フィールドがタップされました'); } catch {}
+              setDaysPickerVisible(true);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={styles.selectFieldText}>{goalDays}日</Text>
-          </TouchableOpacity>
+            <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+          </Pressable>
         </View>
 
         <View style={{ marginTop: spacing.lg }}>
@@ -109,47 +123,93 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
             loading={isStarting}
           />
         </View>
-      </Modal>
 
-      {/* 目標日数のプルダウン（リスト） */}
-      <Modal
-        visible={daysPickerVisible}
-        onClose={() => setDaysPickerVisible(false)}
-        title="目標日数を選択"
-      >
-        <View style={{ maxHeight: 360 }}>
-          <View style={styles.daysList}>
-            {Array.from({ length: 1000 }, (_, i) => i + 1).map((d) => {
-              const selected = goalDays === d;
-              return (
-                <TouchableOpacity
-                  key={d}
-                  style={[styles.dayRow, selected && styles.dayRowSelected]}
-                  onPress={() => {
-                    onGoalDaysChange(d);
-                    setDaysPickerVisible(false);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.dayRowText,
-                      selected && styles.dayRowTextSelected,
-                    ]}
-                  >
-                    {d}日
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+        {/* 目標日数のインラインオーバーレイ（ネストModal回避） */}
+        {daysPickerVisible && (
+          <View style={styles.inlinePickerOverlay} pointerEvents="box-none">
+            <Pressable style={styles.inlinePickerBackdrop} onPress={() => setDaysPickerVisible(false)} />
+            <View style={styles.inlinePickerPanel}>
+              <Text style={styles.inlinePickerTitle}>目標日数を選択</Text>
+              <FlatList
+                data={dayOptions}
+                keyExtractor={(item) => String(item)}
+                initialNumToRender={30}
+                maxToRenderPerBatch={30}
+                windowSize={6}
+                bounces={false}
+                renderItem={({ item: d }) => {
+                  const selected = goalDays === d;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.dayRow, selected && styles.dayRowSelected]}
+                      onPress={() => {
+                        onGoalDaysChange(d);
+                        setDaysPickerVisible(false);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.dayRowText,
+                          selected && styles.dayRowTextSelected,
+                        ]}
+                      >
+                        {d}日
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+                style={{ maxHeight: 320 }}
+              />
+              <View style={styles.modalButtons}>
+                <Button
+                  title="キャンセル"
+                  onPress={() => setDaysPickerVisible(false)}
+                  variant="secondary"
+                  style={styles.modalButton}
+                />
+              </View>
+            </View>
           </View>
-        </View>
+        )}
       </Modal>
     </>
   );
 };
 
 const createStyles = (colors: any) => StyleSheet.create({
+  inlinePickerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inlinePickerBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  inlinePickerPanel: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 12,
+    padding: spacing.md,
+    maxHeight: 380,
+  },
+  inlinePickerTitle: {
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    textAlign: "center",
+  },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -192,6 +252,15 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.backgroundSecondary,
+    minHeight: 48, // タップしやすい高さを確保
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  selectFieldPressed: {
+    backgroundColor: colors.backgroundTertiary,
+    borderColor: colors.primary,
   },
   selectFieldText: {
     fontSize: typography.fontSize.base,

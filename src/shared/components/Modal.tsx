@@ -5,6 +5,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Pressable,
   TouchableWithoutFeedback,
   Keyboard,
   KeyboardAvoidingView,
@@ -22,6 +23,12 @@ interface ModalProps {
   showCloseButton?: boolean;
   hideHeader?: boolean;
   maxWidth?: number;
+  animationType?: "none" | "slide" | "fade";
+  presentationStyle?:
+    | "fullScreen"
+    | "pageSheet"
+    | "formSheet"
+    | "overFullScreen";
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -32,6 +39,8 @@ const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   hideHeader = false,
   maxWidth,
+  animationType = "slide",
+  presentationStyle = "overFullScreen",
 }) => {
   const { mode } = useAppTheme();
   const styles = useMemo(() => createStyles(mode), [mode]);
@@ -41,52 +50,49 @@ const Modal: React.FC<ModalProps> = ({
     onClose();
   };
 
-  const handleContentPress = (_event: GestureResponderEvent) => {
-    // モーダル内部のタップは背面の閉じる処理に伝播させない
-    // キーボードはTextInputが自前で管理するためここでは閉じない
-  };
-
   return (
     <RNModal
       visible={visible}
-      animationType="slide"
+      animationType={animationType}
       transparent
       onRequestClose={onClose}
+      presentationStyle={presentationStyle as any}
+      statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={handleBackdropPress}>
-        <View style={styles.overlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.keyboardAvoidingView}
-          >
-            {/* 内側はタップを背面に伝播させない */}
-            <TouchableWithoutFeedback onPress={handleContentPress}>
-              <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
-                {!hideHeader && (
-                  <View style={styles.header}>
-                    <Text style={styles.title}>{title}</Text>
-                    {showCloseButton && (
-                      <TouchableWithoutFeedback onPress={onClose}>
-                        <View style={styles.closeButton}>
-                          <Text style={styles.closeButtonText}>x</Text>
-                        </View>
-                      </TouchableWithoutFeedback>
-                    )}
-                  </View>
+      <View style={styles.overlay}>
+        {/* Backdrop press area behind the content */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleBackdropPress} />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoidingView}
+        >
+          <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
+            {!hideHeader && (
+              <View style={styles.header}>
+                <Text style={styles.title}>{title}</Text>
+                {showCloseButton && (
+                  <TouchableWithoutFeedback onPress={onClose}>
+                    <View style={styles.closeButton}>
+                      <Text style={styles.closeButtonText}>x</Text>
+                    </View>
+                  </TouchableWithoutFeedback>
                 )}
-                <ScrollView
-                  style={styles.content}
-                  contentContainerStyle={styles.contentInner}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={true}
-                >
-                  {children}
-                </ScrollView>
               </View>
-            </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
-        </View>
-      </TouchableWithoutFeedback>
+            )}
+            <View style={styles.contentWrap}>
+              <ScrollView
+                style={styles.content}
+                contentContainerStyle={styles.contentInner}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={true}
+              >
+                {children}
+              </ScrollView>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
     </RNModal>
   );
 };
@@ -103,6 +109,7 @@ const createStyles = (mode: "light" | "dark") => {
       alignItems: "center",
       paddingHorizontal: spacing.xl,
       paddingVertical: spacing["4xl"],
+      position: "relative",
     },
     keyboardAvoidingView: {
       width: "100%",
@@ -153,6 +160,11 @@ const createStyles = (mode: "light" | "dark") => {
     content: {
       padding: spacing["2xl"],
     },
+    contentWrap: {
+      position: "relative",
+      width: "100%",
+      flexGrow: 1,
+    },
     contentInner: {
       paddingBottom: spacing["2xl"],
     },
@@ -160,4 +172,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default Modal;
-
