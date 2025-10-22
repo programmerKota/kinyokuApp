@@ -75,15 +75,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
               onPress={() => onView(`user:${tournament.ownerId}`)}
               activeOpacity={0.8}
             >
-              {ownerAvatar ? (
-                <View style={styles.ownerAvatarWrap}>
-                  <AvatarImage uri={ownerAvatar} size={32} />
-                </View>
-              ) : (
-                <View style={styles.ownerAvatar}>
-                  <Text style={styles.ownerAvatarText}>{(ownerName || 'U').charAt(0)}</Text>
-                </View>
-              )}
+              <AvatarImage uri={ownerAvatar} size={32} />
             </TouchableOpacity>
           </View>
         </View>

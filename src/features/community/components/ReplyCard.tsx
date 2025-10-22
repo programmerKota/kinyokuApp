@@ -37,13 +37,7 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
     <Container style={styles.container} {...containerProps}>
       <View style={styles.header}>
         <View style={styles.avatarWrapper}>
-          {avatar ? (
-            <AvatarImage uri={avatar} size={32} />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>{(name || "ユーザー").charAt(0)}</Text>
-            </View>
-          )}
+          <AvatarImage uri={avatar} size={32} />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.author}>{name || "ユーザー"}</Text>
