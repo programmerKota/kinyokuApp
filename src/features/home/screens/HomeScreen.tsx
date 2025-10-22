@@ -1,6 +1,7 @@
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useState, useMemo } from "react";
-import { SafeAreaView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";

@@ -49,17 +49,8 @@ const MainTabs: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({
-          focused,
-          color,
-          size,
-        }: {
-          focused: boolean;
-          color: string;
-          size: number;
-        }) => {
+        tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
-
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Tournaments") {
@@ -71,7 +62,6 @@ const MainTabs: React.FC = () => {
           } else {
             iconName = "help-outline";
           }
-
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: colors.primary,
@@ -84,33 +74,18 @@ const MainTabs: React.FC = () => {
           paddingTop: 8,
           height: 88,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-        },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: "500" },
         headerShown: false,
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: "ホーム" }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: "ホーム" }} />
       <Tab.Screen
         name="Tournaments"
         component={TournamentStackNavigator}
         options={{ tabBarLabel: "トーナメント" }}
       />
-      <Tab.Screen
-        name="Community"
-        component={CommunityScreen}
-        options={{ tabBarLabel: "コミュニティ" }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={ProfileScreen}
-        options={{ tabBarLabel: "設定" }}
-      />
+      <Tab.Screen name="Community" component={CommunityScreen} options={{ tabBarLabel: "コミュニティ" }} />
+      <Tab.Screen name="Settings" component={ProfileScreen} options={{ tabBarLabel: "設定" }} />
     </Tab.Navigator>
   );
 };
@@ -118,16 +93,16 @@ const MainTabs: React.FC = () => {
 const RootNavigator: React.FC = () => {
   const isE2E = (() => {
     try {
-      if (typeof window !== 'undefined') {
-        return new URLSearchParams(window.location.search).get('e2e') === '1';
+      if (typeof window !== "undefined") {
+        return new URLSearchParams(window.location.search).get("e2e") === "1";
       }
-    } catch { }
+    } catch {}
     return false;
   })();
   const { navigationTheme } = useAppTheme();
   return (
     <NavigationContainer theme={navigationTheme}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? 'E2E' : 'MainTabs'}>
+      <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? "E2E" : "MainTabs"}>
         <RootStack.Screen name="MainTabs" component={MainTabs} />
         <RootStack.Screen name="History" component={HistoryStackNavigator} />
         <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
@@ -136,15 +111,11 @@ const RootNavigator: React.FC = () => {
         <RootStack.Screen name="FollowList" component={FollowListScreen} />
         <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
         <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-        {/* DEV/テスト用 */}
-        {DevCrudTestScreen && (
-          <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
-        )}
-        {/* Web/E2E用の固定画面 */}
+        {DevCrudTestScreen && <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />}
         <RootStack.Screen name="E2E" component={E2EScreen} />
       </RootStack.Navigator>
     </NavigationContainer>
-  )
+  );
 };
 
 export default RootNavigator;

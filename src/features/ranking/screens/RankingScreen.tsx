@@ -1,8 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -143,11 +144,11 @@ const RankingScreen: React.FC = () => {
     if (!rankings || rankings.length === 0) return rankings;
     return rankings.map((r) => {
       const p = profilesMap.get(r.id);
-      // プロフィールが存在しない場合は「削除されたユーザー」と表示
+      // 繝励Ο繝輔ぅ繝ｼ繝ｫ縺悟ｭ伜惠縺励↑縺・ｴ蜷医・縲悟炎髯､縺輔ｌ縺溘Θ繝ｼ繧ｶ繝ｼ縲阪→陦ｨ遉ｺ
       const hasProfile = profilesMap.has(r.id);
       return {
         ...r,
-        name: (p?.displayName ?? (hasProfile ? r.name : '削除されたユーザー')) as any,
+        name: (p?.displayName ?? (hasProfile ? r.name : '蜑企勁縺輔ｌ縺溘Θ繝ｼ繧ｶ繝ｼ')) as any,
         avatar: (p?.photoURL ?? r.avatar) as any,
       } as UserRanking;
     });
@@ -233,11 +234,11 @@ const RankingScreen: React.FC = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.title}>ランキング</Text>
+        <Text style={styles.title}>繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</Text>
         <View style={styles.placeholder} />
       </View>
 
-      {/* タブ切り替え */}
+      {/* 繧ｿ繝門・繧頑崛縺・*/}
       <View style={uiStyles.tabBar}>
         <TouchableOpacity
           style={[uiStyles.tab, activeTab === "all" && uiStyles.tabActive]}
@@ -245,7 +246,7 @@ const RankingScreen: React.FC = () => {
             if (activeTab !== "all") setActiveTab("all");
           }}
         >
-          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>全体</Text>
+          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>All</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[uiStyles.tab, activeTab === "following" && uiStyles.tabActive]}
@@ -253,7 +254,7 @@ const RankingScreen: React.FC = () => {
             if (activeTab !== "following") setActiveTab("following");
           }}
         >
-          <Text style={[uiStyles.tabText, activeTab === "following" && uiStyles.tabTextActive]}>フォロー</Text>
+          <Text style={[uiStyles.tabText, activeTab === "following" && uiStyles.tabTextActive]}>繝輔か繝ｭ繝ｼ</Text>
         </TouchableOpacity>
       </View>
 
@@ -283,7 +284,7 @@ const RankingScreen: React.FC = () => {
         ListFooterComponent={
           loadingMore ? (
             <View style={{ padding: 16, alignItems: "center" }}>
-              <Text style={{ color: "#6B7280" }}>読み込み中...</Text>
+              <Text style={{ color: "#6B7280" }}>隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...</Text>
             </View>
           ) : null
         }
@@ -291,150 +292,150 @@ const RankingScreen: React.FC = () => {
           <View style={styles.descriptionCard}>
             <View style={styles.descriptionHeader}>
               <Ionicons name="trophy" size={24} color={colors.warning} />
-              <Text style={styles.descriptionTitle}>ランキング</Text>
+              <Text style={styles.descriptionTitle}>繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</Text>
               <TouchableOpacity
                 onPress={() => setShowTiers((v) => !v)}
                 style={{ marginLeft: 'auto' }}
               >
                 <Text style={{ color: '#2563EB', fontWeight: '600' }}>
-                  {showTiers ? '説明を非表示' : '説明を表示'}
+                  {showTiers ? '隱ｬ譏弱ｒ髱櫁｡ｨ遉ｺ' : '隱ｬ譏弱ｒ陦ｨ遉ｺ'}
                 </Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.descriptionText}>
-              現在の継続時間でランキングしています。
+              迴ｾ蝨ｨ縺ｮ邯咏ｶ壽凾髢薙〒繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ縺励※縺・∪縺吶・
             </Text>
             {showTiers && (
               <View style={styles.tierCard}>
-                <Text style={styles.tierTitle}>階級について</Text>
+                <Text style={styles.tierTitle}>髫守ｴ壹↓縺､縺・※</Text>
                 <Text style={styles.tierText}>
-                  禁欲の現在の継続日数（挑戦中の記録）に応じて階級（称号）が上がります。目安は以下の通りです。
+                  遖∵ｬｲ縺ｮ迴ｾ蝨ｨ縺ｮ邯咏ｶ壽律謨ｰ・域倦謌ｦ荳ｭ縺ｮ險倬鹸・峨↓蠢懊§縺ｦ髫守ｴ夲ｼ育ｧｰ蜿ｷ・峨′荳翫′繧翫∪縺吶ら岼螳峨・莉･荳九・騾壹ｊ縺ｧ縺吶・
                 </Text>
                 <ScrollView
                   style={styles.tierScrollView}
                   showsVerticalScrollIndicator={false}
                 >
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>訓練兵 🔰</Text>
+                    <Text style={styles.tierBadge}>險鍋ｷｴ蜈ｵ 伐</Text>
                     <Text style={styles.tierRule}>
-                      0日: 禁欲のスタート地点。まずは1日から始めましょう。
+                      0譌･: 遖∵ｬｲ縺ｮ繧ｹ繧ｿ繝ｼ繝亥慍轤ｹ縲ゅ∪縺壹・1譌･縺九ｉ蟋九ａ縺ｾ縺励ｇ縺・・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>二等兵 🔰⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 1</Text>
                     <Text style={styles.tierRule}>
-                      1日: 初回の達成。習慣化への第一歩です。
+                      1譌･: 蛻晏屓縺ｮ驕疲・縲らｿ呈・蛹悶∈縺ｮ隨ｬ荳豁ｩ縺ｧ縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>一等兵 🔰⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 2</Text>
                     <Text style={styles.tierRule}>
-                      2日: 少しずつ習慣が身についてきます。
+                      2譌･: 蟆代＠縺壹▽鄙呈・縺瑚ｺｫ縺ｫ縺､縺・※縺阪∪縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>上等兵 🔰⭐⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 3</Text>
                     <Text style={styles.tierRule}>
-                      3〜6日: 1週間を目指す段階。体調の変化を感じ始めます。
+                      3縲・譌･: 1騾ｱ髢薙ｒ逶ｮ謖・☆谿ｵ髫弱ゆｽ楢ｪｿ縺ｮ螟牙喧繧呈─縺伜ｧ九ａ縺ｾ縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>兵長 🪙</Text>
+                    <Text style={styles.tierBadge}>Tier 4</Text>
                     <Text style={styles.tierRule}>
-                      7〜13日: 1週間達成！安定期に入り、集中力が向上します。
+                      7縲・3譌･: 1騾ｱ髢馴＃謌撰ｼ∝ｮ牙ｮ壽悄縺ｫ蜈･繧翫・寔荳ｭ蜉帙′蜷台ｸ翫＠縺ｾ縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>伍長 🛡️⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 5</Text>
                     <Text style={styles.tierRule}>
-                      14〜20日: 2週間を超えて、生活リズムが整ってきます。
+                      14縲・0譌･: 2騾ｱ髢薙ｒ雜・∴縺ｦ縲∫函豢ｻ繝ｪ繧ｺ繝縺梧紛縺｣縺ｦ縺阪∪縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>軍曹 🛡️⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 6</Text>
                     <Text style={styles.tierRule}>
-                      21〜29日: 3週間達成。習慣が定着し、自信がついてきます。
+                      21縲・9譌･: 3騾ｱ髢馴＃謌舌らｿ呈・縺悟ｮ夂捩縺励∬・菫｡縺後▽縺・※縺阪∪縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>軍長 🛡️⭐⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 7</Text>
                     <Text style={styles.tierRule}>
-                      30〜39日: 1ヶ月達成！体調と集中力の変化を強く実感します。
+                      30縲・9譌･: 1繝ｶ譛磯＃謌撰ｼ∽ｽ楢ｪｿ縺ｨ髮・ｸｭ蜉帙・螟牙喧繧貞ｼｷ縺丞ｮ滓─縺励∪縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>准尉 🎗️</Text>
+                    <Text style={styles.tierBadge}>Tier 8</Text>
                     <Text style={styles.tierRule}>
-                      40〜49日: 長期継続の段階。周囲にも良い影響を与え始めます。
+                      40縲・9譌･: 髟ｷ譛溽ｶ咏ｶ壹・谿ｵ髫弱ょ捉蝗ｲ縺ｫ繧り憶縺・ｽｱ髻ｿ繧剃ｸ弱∴蟋九ａ縺ｾ縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>少尉 🎖️⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 9</Text>
                     <Text style={styles.tierRule}>
-                      50〜59日:
-                      2ヶ月近く継続。意思決定がクリアになり、判断力が向上。
+                      50縲・9譌･:
+                      2繝ｶ譛郁ｿ代￥邯咏ｶ壹よэ諤晄ｱｺ螳壹′繧ｯ繝ｪ繧｢縺ｫ縺ｪ繧翫∝愛譁ｭ蜉帙′蜷台ｸ翫・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>中尉 🎖️⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 10</Text>
                     <Text style={styles.tierRule}>
-                      60〜69日: 2ヶ月達成！反射的な衝動が弱まり、自制心が向上。
+                      60縲・9譌･: 2繝ｶ譛磯＃謌撰ｼ∝渚蟆・噪縺ｪ陦晏虚縺悟ｼｱ縺ｾ繧翫∬・蛻ｶ蠢・′蜷台ｸ翫・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>大尉 🎖️⭐⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 11</Text>
                     <Text style={styles.tierRule}>
-                      70〜99日: 3ヶ月近く継続。生活が整い、目標達成能力が向上。
+                      70縲・9譌･: 3繝ｶ譛郁ｿ代￥邯咏ｶ壹ら函豢ｻ縺梧紛縺・∫岼讓咎＃謌占・蜉帙′蜷台ｸ翫・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>少佐 🏆⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 12</Text>
                     <Text style={styles.tierRule}>
-                      100〜149日:
-                      100日達成！継続は最強の資産。ロールモデル的存在。
+                      100縲・49譌･:
+                      100譌･驕疲・・∫ｶ咏ｶ壹・譛蠑ｷ縺ｮ雉・肇縲ゅΟ繝ｼ繝ｫ繝｢繝・Ν逧・ｭ伜惠縲・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>中佐 🏆⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 13</Text>
                     <Text style={styles.tierRule}>
-                      150〜199日: 5ヶ月継続。周囲の行動にも好影響を与える存在。
+                      150縲・99譌･: 5繝ｶ譛育ｶ咏ｶ壹ょ捉蝗ｲ縺ｮ陦悟虚縺ｫ繧ょ･ｽ蠖ｱ髻ｿ繧剃ｸ弱∴繧句ｭ伜惠縲・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>大佐 🏆⭐⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 14</Text>
                     <Text style={styles.tierRule}>
-                      200〜299日:
-                      半年以上継続。継続力が人生のあらゆる面で活かされます。
+                      200縲・99譌･:
+                      蜊雁ｹｴ莉･荳顔ｶ咏ｶ壹らｶ咏ｶ壼鴨縺御ｺｺ逕溘・縺ゅｉ繧・ｋ髱｢縺ｧ豢ｻ縺九＆繧後∪縺吶・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>小将 🏵️⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 15</Text>
                     <Text style={styles.tierRule}>
-                      300〜399日: 10ヶ月継続。禁欲の達人として尊敬される存在。
+                      300縲・99譌･: 10繝ｶ譛育ｶ咏ｶ壹らｦ∵ｬｲ縺ｮ驕比ｺｺ縺ｨ縺励※蟆頑噴縺輔ｌ繧句ｭ伜惠縲・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>中将 🏵️⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 16</Text>
                     <Text style={styles.tierRule}>
-                      400〜499日: 1年以上継続。継続の真の価値を理解した存在。
+                      400縲・99譌･: 1蟷ｴ莉･荳顔ｶ咏ｶ壹らｶ咏ｶ壹・逵溘・萓｡蛟､繧堤炊隗｣縺励◆蟄伜惠縲・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>大将 🏵️⭐⭐⭐</Text>
+                    <Text style={styles.tierBadge}>Tier 17</Text>
                     <Text style={styles.tierRule}>
-                      500〜999日: 1年半以上継続。継続の神として崇められる存在。
+                      500縲・99譌･: 1蟷ｴ蜊贋ｻ･荳顔ｶ咏ｶ壹らｶ咏ｶ壹・逾槭→縺励※蟠・ａ繧峨ｌ繧句ｭ伜惠縲・
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
-                    <Text style={styles.tierBadge}>ナポレオン 👑</Text>
+                    <Text style={styles.tierBadge}>繝翫・繝ｬ繧ｪ繝ｳ 荘</Text>
                     <Text style={styles.tierRule}>
-                      1000日以上:
-                      3年近く継続。伝説的存在。継続の皇帝として永遠に語り継がれる。
+                      1000譌･莉･荳・
+                      3蟷ｴ霑代￥邯咏ｶ壹ゆｼ晁ｪｬ逧・ｭ伜惠縲らｶ咏ｶ壹・逧・ｸ昴→縺励※豌ｸ驕縺ｫ隱槭ｊ邯吶′繧後ｋ縲・
                     </Text>
                   </View>
                 </ScrollView>
                 <Text style={styles.tierNote}>
-                  階級は「現在の継続日数（挑戦中の記録）」から算出されます。停止・失敗で継続日数はリセットされますが、次の挑戦で少しずつ押し上げましょう。
+                  髫守ｴ壹・縲檎樟蝨ｨ縺ｮ邯咏ｶ壽律謨ｰ・域倦謌ｦ荳ｭ縺ｮ險倬鹸・峨阪°繧臥ｮ怜・縺輔ｌ縺ｾ縺吶ょ●豁｢繝ｻ螟ｱ謨励〒邯咏ｶ壽律謨ｰ縺ｯ繝ｪ繧ｻ繝・ヨ縺輔ｌ縺ｾ縺吶′縲∵ｬ｡縺ｮ謖第姶縺ｧ蟆代＠縺壹▽謚ｼ縺嶺ｸ翫￡縺ｾ縺励ｇ縺・・
                 </Text>
               </View>
             )}
@@ -443,13 +444,13 @@ const RankingScreen: React.FC = () => {
               if (currentUserRank) {
                 return (
                   <Text style={styles.currentUserRank}>
-                    あなたの順位: {rankings.length}人中{currentUserRank}位
+                    縺ゅ↑縺溘・鬆・ｽ・ {rankings.length}莠ｺ荳ｭ{currentUserRank}菴・
                   </Text>
                 );
               } else {
                 return (
                   <Text style={styles.participantCount}>
-                    参加者: {rankings.length}人
+                    蜿ょ刈閠・ {rankings.length}莠ｺ
                   </Text>
                 );
               }
@@ -459,9 +460,11 @@ const RankingScreen: React.FC = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="trophy-outline" size={64} color={colors.textSecondary} />
-            <Text style={styles.emptyTitle}>ランキングデータがありません</Text>
+            <Text style={styles.emptyTitle}>繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ繝・・繧ｿ縺後≠繧翫∪縺帙ｓ</Text>
             <Text style={styles.emptyText}>
-              {activeTab === 'following' ? 'フォローしているユーザーに対象者がいません' : 'チャレンジを完了したユーザーがいるとランキングが表示されます'}
+              {activeTab === 'following'
+                ? 'No rankings from following users yet'
+                : 'No rankings yet'}
             </Text>
           </View>
         }
@@ -692,3 +695,4 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default RankingScreen;
+

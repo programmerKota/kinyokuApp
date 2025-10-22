@@ -1,16 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -33,9 +25,9 @@ const HistoryScreen: React.FC = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  // 進行中の時間表示は各カード側で処理するため、画面全体の毎秒再レンダは不要
+  // 騾ｲ陦御ｸｭ縺ｮ譎る俣陦ｨ遉ｺ縺ｯ蜷・き繝ｼ繝牙・縺ｧ蜃ｦ逅・☆繧九◆繧√∫判髱｢蜈ｨ菴薙・豈守ｧ貞・繝ｬ繝ｳ繝縺ｯ荳崎ｦ・
 
-  // Firestoreからデータを取得
+  // Firestore縺九ｉ繝・・繧ｿ繧貞叙蠕・
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.uid) {
@@ -43,7 +35,7 @@ const HistoryScreen: React.FC = () => {
       }
 
       try {
-        // チャレンジ履歴を取得
+        // 繝√Ε繝ｬ繝ｳ繧ｸ螻･豁ｴ繧貞叙蠕・
         const firestoreChallenges = await ChallengeService.getUserChallenges(
           user.uid,
         );
@@ -81,7 +73,7 @@ const HistoryScreen: React.FC = () => {
         }));
         setChallenges(challengesData);
 
-        // 支払い履歴を取得（ベストエフォート）
+        // 謾ｯ謇輔＞螻･豁ｴ繧貞叙蠕暦ｼ医・繧ｹ繝医お繝輔か繝ｼ繝茨ｼ・
         try {
           const list = await PaymentFirestoreService.getUserPayments(user.uid);
           const mapped: Payment[] = list.map((p) => ({
@@ -99,7 +91,7 @@ const HistoryScreen: React.FC = () => {
           setPayments([]);
         }
       } catch (error) {
-        console.error("データの取得に失敗しました:", error);
+        console.error("繝・・繧ｿ縺ｮ蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆:", error);
       }
     };
 
@@ -114,7 +106,7 @@ const HistoryScreen: React.FC = () => {
     }
 
     try {
-      // チャレンジ履歴を再取得
+      // 繝√Ε繝ｬ繝ｳ繧ｸ螻･豁ｴ繧貞・蜿門ｾ・
       const firestoreChallenges = await ChallengeService.getUserChallenges(
         user.uid,
       );
@@ -152,7 +144,7 @@ const HistoryScreen: React.FC = () => {
       }));
       setChallenges(challengesData);
 
-      // 支払い履歴を再取得
+      // 謾ｯ謇輔＞螻･豁ｴ繧貞・蜿門ｾ・
       try {
         const list = await PaymentFirestoreService.getUserPayments(user.uid);
         const mapped: Payment[] = list.map((p) => ({
@@ -170,7 +162,7 @@ const HistoryScreen: React.FC = () => {
         setPayments([]);
       }
     } catch (error) {
-      console.error("データの再取得に失敗しました:", error);
+      console.error("繝・・繧ｿ縺ｮ蜀榊叙蠕励↓螟ｱ謨励＠縺ｾ縺励◆:", error);
     } finally {
       setRefreshing(false);
     }
@@ -189,7 +181,7 @@ const HistoryScreen: React.FC = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.title}>履歴</Text>
+        <Text style={styles.title}>螻･豁ｴ</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -206,13 +198,13 @@ const HistoryScreen: React.FC = () => {
           />
         }
       >
-        {/* あなたの記録カード */}
+        {/* 縺ゅ↑縺溘・險倬鹸繧ｫ繝ｼ繝・*/}
         <View style={styles.recordCard}>
           <View style={styles.recordHeader}>
             <View style={styles.waveIcon}>
               <Ionicons name="pulse" size={24} color={colors.white} />
             </View>
-            <Text style={styles.recordTitle}>あなたの記録</Text>
+            <Text style={styles.recordTitle}>縺ゅ↑縺溘・險倬鹸</Text>
           </View>
 
           <View style={styles.recordStats}>
@@ -220,7 +212,7 @@ const HistoryScreen: React.FC = () => {
               <View style={styles.statIcon}>
                 <Ionicons name="time" size={20} color={colors.white} />
               </View>
-              <Text style={styles.statLabel}>平均時間</Text>
+              <Text style={styles.statLabel}>Average Duration</Text>
               {(() => {
                 const formatted = StatsService.formatDuration(
                   challengeStats.averageTime,
@@ -230,7 +222,7 @@ const HistoryScreen: React.FC = () => {
                 return (
                   <>
                     <Text style={styles.statValue}>
-                      {challengeStats.averageTime > 0 ? days : "0日"}
+                      {challengeStats.averageTime > 0 ? days : "0譌･"}
                     </Text>
                     <Text style={styles.statSubValue}>
                       {challengeStats.averageTime > 0 ? time : "00:00:00"}
@@ -244,7 +236,7 @@ const HistoryScreen: React.FC = () => {
               <View style={styles.statIcon}>
                 <Ionicons name="trophy" size={20} color={colors.white} />
               </View>
-              <Text style={styles.statLabel}>最長記録</Text>
+              <Text style={styles.statLabel}>譛髟ｷ險倬鹸</Text>
               {(() => {
                 const formatted = StatsService.formatDuration(
                   challengeStats.longestTime,
@@ -254,7 +246,7 @@ const HistoryScreen: React.FC = () => {
                 return (
                   <>
                     <Text style={styles.statValue}>
-                      {challengeStats.longestTime > 0 ? days : "0日"}
+                      {challengeStats.longestTime > 0 ? days : "0譌･"}
                     </Text>
                     <Text style={styles.statSubValue}>
                       {challengeStats.longestTime > 0 ? time : "00:00:00"}
@@ -269,18 +261,18 @@ const HistoryScreen: React.FC = () => {
             <View style={styles.challengeIcon}>
               <Ionicons name="flag" size={20} color={colors.white} />
             </View>
-            <Text style={styles.challengeLabel}>チャレンジ回数</Text>
+            <Text style={styles.challengeLabel}>繝√Ε繝ｬ繝ｳ繧ｸ蝗樊焚</Text>
             <Text style={styles.challengeValue}>
-              {challengeStats.totalChallenges}回
+              {challengeStats.totalChallenges}蝗・
             </Text>
           </View>
         </View>
 
-        {/* 過去の記録セクション */}
+        {/* 驕主悉縺ｮ險倬鹸繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ */}
         <View style={styles.pastRecordsSection}>
           <View style={styles.pastRecordsHeader}>
             <Ionicons name="trophy" size={20} color={colors.textSecondary} />
-            <Text style={styles.pastRecordsTitle}>過去の記録</Text>
+            <Text style={styles.pastRecordsTitle}>驕主悉縺ｮ險倬鹸</Text>
           </View>
 
           {challenges.length > 0 ? (
@@ -304,19 +296,19 @@ const HistoryScreen: React.FC = () => {
               <View style={styles.leafIcon}>
                 <Ionicons name="leaf" size={32} color={colors.gray300} />
               </View>
-              <Text style={styles.emptyTitle}>まだ記録がありません</Text>
+              <Text style={styles.emptyTitle}>縺ｾ縺險倬鹸縺後≠繧翫∪縺帙ｓ</Text>
               <Text style={styles.emptyText}>
-                最初のチャレンジを始めましょう！
+                譛蛻昴・繝√Ε繝ｬ繝ｳ繧ｸ繧貞ｧ九ａ縺ｾ縺励ｇ縺・ｼ・
               </Text>
             </View>
           )}
         </View>
 
-        {/* 支払い履歴セクション */}
+        {/* 謾ｯ謇輔＞螻･豁ｴ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ */}
         <View style={styles.pastRecordsSection}>
           <View style={styles.pastRecordsHeader}>
             <Ionicons name="card" size={20} color={colors.textSecondary} />
-            <Text style={styles.pastRecordsTitle}>支払い履歴</Text>
+            <Text style={styles.pastRecordsTitle}>謾ｯ謇輔＞螻･豁ｴ</Text>
           </View>
 
           {payments.length > 0 ? (
@@ -340,8 +332,8 @@ const HistoryScreen: React.FC = () => {
               <View style={styles.leafIcon}>
                 <Ionicons name="cash" size={32} color={colors.gray300} />
               </View>
-              <Text style={styles.emptyTitle}>支払い履歴はありません</Text>
-              <Text style={styles.emptyText}>ペナルティ支払いがここに表示されます</Text>
+              <Text style={styles.emptyTitle}>謾ｯ謇輔＞螻･豁ｴ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</Text>
+              <Text style={styles.emptyText}>No payment history yet</Text>
             </View>
           )}
         </View>
@@ -518,3 +510,4 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default HistoryScreen;
+

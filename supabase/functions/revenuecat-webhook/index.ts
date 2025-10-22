@@ -50,10 +50,12 @@ serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method Not Allowed" }, { status: 405 });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  // Use service role to bypass RLS for server-side webhook processing
+  // Use service role to bypass RLS for server-side webhook processing (required)
   const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-  const adminClient = createClient(supabaseUrl, serviceRole || anonKey);
+  if (!supabaseUrl || !serviceRole) {
+    return json({ error: "server_misconfigured" }, { status: 500 });
+  }
+  const adminClient = createClient(supabaseUrl, serviceRole);
 
   try {
     const raw = await req.text();

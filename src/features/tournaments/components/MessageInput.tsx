@@ -39,6 +39,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
           multiline
           maxLength={500}
           placeholderTextColor={colors.textTertiary}
+          selectionColor={colors.primary}
+          underlineColorAndroid="transparent"
         />
         <TouchableOpacity
           style={[
@@ -91,6 +93,7 @@ const createStyles = (mode: "light" | "dark") => {
       maxHeight: 100,
       fontSize: typography.fontSize.base,
       backgroundColor: colors.backgroundSecondary,
+      color: colors.textPrimary,
     },
     sendButton: {
       backgroundColor: colors.info,
@@ -114,3 +117,6 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default React.memo(MessageInput);
+
+
+

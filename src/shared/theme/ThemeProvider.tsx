@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { Appearance, Platform, Text, View, ScrollView, SafeAreaView, TextInput } from "react-native";
+import { Appearance, Platform, Text, View, ScrollView, TextInput } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Provider as PaperProvider, MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
 import { DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationDefaultTheme, type Theme as NavigationTheme } from "@react-navigation/native";

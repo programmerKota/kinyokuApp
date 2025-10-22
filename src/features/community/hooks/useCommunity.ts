@@ -155,9 +155,15 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       // Using `set` to refresh existing values as posts update via Realtime.
       try {
         const { ReplyCountStore } = await import("@shared/state/replyStore");
-        filtered.forEach((p) =>
-          ReplyCountStore.setFromServer(p.id, p.comments || 0),
-        );
+        filtered.forEach((p) => {
+          ReplyCountStore.setFromServer(p.id, p.comments || 0);
+        });
+        // Also refresh like counters from server snapshot while preserving local isLiked
+        const { LikeStore } = await import("@shared/state/likeStore");
+        filtered.forEach((p) => {
+          const cur = LikeStore.get(p.id) || { isLiked: false, likes: 0 };
+          LikeStore.setFromServer(p.id, { isLiked: cur.isLiked, likes: p.likes || 0 });
+        });
       } catch {}
       return filtered;
     },
@@ -608,7 +614,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     const ok = await requireAuth();
     if (!ok) return;
     await CommunityService.addReply(replyingTo, { content: replyText.trim() });
-    setReplyCounts((prev) => incrementCountMap(prev, replyingTo, 1));
     // Update only the counter for this post (bubble)
     try {
       const { ReplyCountStore } = await import("@shared/state/replyStore");

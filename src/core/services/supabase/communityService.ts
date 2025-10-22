@@ -198,7 +198,6 @@ export class CommunityService {
       .select("id")
       .single();
     if (error) throw error;
-    await this.updatePostReplyCount(postId, 1);
     try {
       // Local nudge so UI refreshes instantly even if Realtime is delayed
       const { ReplyEventBus } = await import("@shared/state/replyEventBus");
@@ -214,7 +213,6 @@ export class CommunityService {
       .delete()
       .eq("id", replyId);
     if (error) throw error;
-    await this.updatePostReplyCount(postId, -1);
   }
 
   static async deletePost(postId: string): Promise<void> {
@@ -232,35 +230,8 @@ export class CommunityService {
     if (delPost.error) throw delPost.error;
   }
 
-  static async updatePostReplyCount(
-    postId: string,
-    delta: number,
-  ): Promise<void> {
-    if (!supabaseConfig?.isConfigured) return;
-    const { error } = await supabase.rpc("increment_post_comments", {
-      p_post_id: postId,
-      p_delta: delta,
-    });
-    if (error) {
-      // Fallback: read-modify-write
-      try {
-        const { data: row, error: selErr } = await supabase
-          .from("community_posts")
-          .select("comments")
-          .eq("id", postId)
-          .maybeSingle();
-        if (selErr) throw selErr;
-        if (!row) return;
-        const next = Math.max(0, (row as any).comments * 1 + delta);
-        await supabase
-          .from("community_posts")
-          .update({ comments: next, updatedAt: new Date().toISOString() })
-          .eq("id", postId);
-      } catch (e) {
-        Logger.warn("CommunityService.updatePostReplyCount.fallback", e, { postId, delta });
-      }
-    }
-  }
+  // DB トリガーで community_posts.comments は更新されるため、
+  // 手動インクリメントは不要（重複更新を防止）
 
   static async getPostReplies(postId: string): Promise<CommunityComment[]> {
     if (!supabaseConfig?.isConfigured) return [];
@@ -342,19 +313,32 @@ export class CommunityService {
         .channel(`realtime:community_comments:${postId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "community_comments",
-            filter: `postId=eq.${postId}`,
-          },
+          { event: "INSERT", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
           (payload: any) => {
-            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
-            const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            const row = payload.new || undefined;
             if (!row) return;
             if ((row as any).postId !== postId) return;
-            applyChange(type, row);
+            applyChange("INSERT", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            if ((row as any).postId !== postId) return;
+            applyChange("UPDATE", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
+          (payload: any) => {
+            const row = payload.old || undefined;
+            if (!row) return;
+            if ((row as any).postId !== postId) return;
+            applyChange("DELETE", row);
           },
         )
         .subscribe();
@@ -459,13 +443,20 @@ export class CommunityService {
         .channel("realtime:community_posts:recent")
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "community_posts" },
+          { event: "INSERT", schema: "public", table: "community_posts" },
           (payload: any) => {
-            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
-            const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            const row = payload.new || undefined;
             if (!row) return;
-            applyChange(type, row);
+            applyChange("INSERT", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "community_posts" },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("UPDATE", row);
           },
         )
         .subscribe();
@@ -571,18 +562,29 @@ export class CommunityService {
         .channel(`realtime:community_posts:user:${userId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "community_posts",
-            filter: `authorId=eq.${userId}`,
-          },
+          { event: "INSERT", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
           (payload: any) => {
-            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
-            const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            const row = payload.new || undefined;
             if (!row) return;
-            applyChange(type, row);
+            applyChange("INSERT", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("UPDATE", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
+          (payload: any) => {
+            const row = payload.old || undefined;
+            if (!row) return;
+            applyChange("DELETE", row);
           },
         )
         .subscribe();
@@ -736,7 +738,6 @@ export class CommunityService {
         .delete()
         .eq("id", likeId);
       if (error) throw error;
-      await this.updatePostLikeCount(postId, -1);
       return false;
     }
 
@@ -744,39 +745,11 @@ export class CommunityService {
       .from("community_likes")
       .insert({ id: likeId, userId, postId });
     if (error) throw error;
-    await this.updatePostLikeCount(postId, 1);
     return true;
   }
 
-  static async updatePostLikeCount(
-    postId: string,
-    delta: number,
-  ): Promise<void> {
-    if (!supabaseConfig?.isConfigured) return;
-    const { error } = await supabase.rpc("increment_post_likes", {
-      p_post_id: postId,
-      p_delta: delta,
-    });
-    if (error) {
-      // Fallback: read-modify-write
-      try {
-        const { data: row, error: selErr } = await supabase
-          .from("community_posts")
-          .select("likes")
-          .eq("id", postId)
-          .maybeSingle();
-        if (selErr) throw selErr;
-        if (!row) return;
-        const next = Math.max(0, (row as any).likes * 1 + delta);
-        await supabase
-          .from("community_posts")
-          .update({ likes: next, updatedAt: new Date().toISOString() })
-          .eq("id", postId);
-      } catch (e) {
-        Logger.warn("CommunityService.updatePostLikeCount.fallback", e, { postId, delta });
-      }
-    }
-  }
+  // DB トリガーで community_posts.likes は更新されるため、
+  // 手動インクリメントは不要（重複更新を防止）
 
   static async isPostLikedByUser(
     postId: string,

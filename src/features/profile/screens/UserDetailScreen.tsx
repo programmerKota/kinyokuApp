@@ -6,16 +6,8 @@ import {
   useFocusEffect,
 } from "@react-navigation/native";
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import {
@@ -787,3 +779,4 @@ const createStyles = (colors: any) => StyleSheet.create({
 });
 
 export default UserDetailScreen;
+

@@ -3,14 +3,8 @@ import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 // Firebase Timestamp は使用せず Date を利用
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  Alert,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, TouchableOpacity, Alert, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { supabase } from "@app/config/supabase.config";
@@ -542,3 +536,4 @@ const FilterTabs: React.FC<{
     </SafeAreaView>
   );
 };
+

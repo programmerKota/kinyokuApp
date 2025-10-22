@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from '@shared/theme/AppStatusBar';
 import TimerScreen from '@features/challenge/screens/TimerScreen';
 import { colors, useAppTheme } from '@shared/theme';

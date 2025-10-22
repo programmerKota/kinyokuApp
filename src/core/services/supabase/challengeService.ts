@@ -184,25 +184,26 @@ export class ChallengeService {
         .channel(`realtime:challenges:active:${userId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "challenges",
-            filter: `userId=eq.${userId}`,
+          { event: "INSERT", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          async () => {
+            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
+            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
           },
-          async (payload: any) => {
-            const row = (payload.new || payload.old) as
-              | { userId?: string }
-              | undefined;
-            if (!row) return;
-            if ((row.userId as any) !== userId) return;
-            try {
-              const ch = await ChallengeService.getActiveChallenge(userId);
-              callback(ch);
-            } catch (e) {
-              Logger.warn("ChallengeService.subscription", e, { userId });
-              callback(null);
-            }
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          async () => {
+            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
+            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          async () => {
+            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
+            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
           },
         )
         .subscribe();

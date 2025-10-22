@@ -298,21 +298,26 @@ export class TournamentService {
 
     const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
       if (!row || row.tournamentId !== tournamentId) return;
-      if (type === "INSERT") {
-        const item = { ...row, createdAt: toTs(row.createdAt) } as any;
-        current = [item, ...current].sort(sortDesc);
-      } else if (type === "UPDATE") {
-        const idx = current.findIndex((r) => r.id === row.id);
-        const item = { ...row, createdAt: toTs(row.createdAt) } as any;
-        if (idx >= 0) {
-          const copy = [...current];
-          copy[idx] = { ...copy[idx], ...item };
-          current = copy.sort(sortDesc);
-        } else {
-          current = [item, ...current].sort(sortDesc);
-        }
-      } else if (type === "DELETE") {
+      // Keep only pending requests in the local list to match UI expectations
+      if (type === "DELETE") {
         current = current.filter((r) => r.id !== row.id);
+        emit();
+        return;
+      }
+      const isPending = String(row.status) === "pending";
+      const idx = current.findIndex((r) => r.id === row.id);
+      if (!isPending) {
+        if (idx >= 0) current = [...current.slice(0, idx), ...current.slice(idx + 1)];
+        emit();
+        return;
+      }
+      const item = { ...row, createdAt: toTs(row.createdAt) } as any;
+      if (idx >= 0) {
+        const copy = [...current];
+        copy[idx] = { ...copy[idx], ...item };
+        current = copy.sort(sortDesc);
+      } else {
+        current = [item, ...current].sort(sortDesc);
       }
       emit();
     };
@@ -322,6 +327,7 @@ export class TournamentService {
         .from("tournament_join_requests")
         .select("*")
         .eq("tournamentId", tournamentId)
+        .eq("status", "pending")
         .order("createdAt", { ascending: false });
       if (error) throw error;
       current = (data || []).map((row) => ({
@@ -334,19 +340,18 @@ export class TournamentService {
         .channel(`realtime:tournament_join_requests:${tournamentId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "tournament_join_requests",
-            filter: `tournamentId=eq.${tournamentId}`,
-          },
-          (payload: any) => {
-            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
-            const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
-            if (!row) return;
-            applyChange(type, row);
-          },
+          { event: "INSERT", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
+          (payload: any) => { const row = payload.new || undefined; if (!row) return; applyChange("INSERT", row); },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
+          (payload: any) => { const row = payload.new || undefined; if (!row) return; applyChange("UPDATE", row); },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
+          (payload: any) => { const row = payload.old || undefined; if (!row) return; applyChange("DELETE", row); },
         )
         .subscribe();
     };
@@ -539,13 +544,29 @@ export class TournamentService {
         .channel("realtime:tournaments")
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "tournaments" },
+          { event: "INSERT", schema: "public", table: "tournaments" },
           (payload: any) => {
-            const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
-            const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
+            const row = payload.new || undefined;
             if (!row) return;
-            applyChange(type, row);
+            applyChange("INSERT", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "tournaments" },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("UPDATE", row);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "tournaments" },
+          (payload: any) => {
+            const row = payload.old || undefined;
+            if (!row) return;
+            applyChange("DELETE", row);
           },
         )
         .subscribe();

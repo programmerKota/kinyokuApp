@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, StyleSheet, View, FlatList, TouchableOpacity, Text } from "react-native";
+import { StyleSheet, View, FlatList, TouchableOpacity, Text } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";

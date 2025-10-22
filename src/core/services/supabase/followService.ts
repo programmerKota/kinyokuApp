@@ -125,12 +125,7 @@ export class FollowService {
         .channel(`realtime:follows:${effectiveFollowerId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "follows",
-            filter: `followerId=eq.${effectiveFollowerId}`,
-          },
+          { event: "INSERT", schema: "public", table: "follows", filter: `followerId=eq.${effectiveFollowerId}` },
           async (payload: any) => {
             const row = (payload.new || payload.old) as
               | { followerId?: string }
@@ -146,6 +141,16 @@ export class FollowService {
             } catch (_e) {
               // ignore
             }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "follows", filter: `followerId=eq.${effectiveFollowerId}` },
+          async (payload: any) => {
+            try {
+              const userIds = await FollowService.getFollowingUserIds(effectiveFollowerId);
+              callback(userIds);
+            } catch { /* ignore */ }
           },
         )
         .subscribe();
@@ -181,12 +186,7 @@ export class FollowService {
         .channel(`realtime:follows:followers:${followeeId}`)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "follows",
-            filter: `followeeId=eq.${followeeId}`,
-          },
+          { event: "INSERT", schema: "public", table: "follows", filter: `followeeId=eq.${followeeId}` },
           async () => {
             try {
               const userIds = await FollowService.getFollowerUserIds(followeeId);
@@ -194,6 +194,16 @@ export class FollowService {
             } catch {
               // ignore
             }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "follows", filter: `followeeId=eq.${followeeId}` },
+          async () => {
+            try {
+              const userIds = await FollowService.getFollowerUserIds(followeeId);
+              callback(userIds);
+            } catch { /* ignore */ }
           },
         )
         .subscribe();

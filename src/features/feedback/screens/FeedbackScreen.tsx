@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useMemo, useState, useCallback } from "react";
-import { SafeAreaView, StyleSheet, View, TextInput, Text, Platform, TouchableOpacity, Alert, Linking } from "react-native";
+import { StyleSheet, View, TextInput, Text, Platform, TouchableOpacity, Alert, Linking } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";

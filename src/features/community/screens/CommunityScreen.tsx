@@ -2,16 +2,8 @@
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, RefreshControl, KeyboardAvoidingView, Platform } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";

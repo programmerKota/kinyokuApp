@@ -1,19 +1,8 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  FlatList,
-  ScrollView,
-  RefreshControl,
-  TextInput,
-  Alert,
-  InteractionManager,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView, RefreshControl, TextInput, Alert, InteractionManager } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
@@ -181,7 +170,7 @@ const DiaryByDayScreen: React.FC = () => {
       .channel(`realtime:diaries:day:${day}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        { event: "INSERT", schema: "public", table: "diaries", filter: `day=eq.${day}` },
         (payload) => {
           const row = (payload.new || payload.old) as any;
           if (!row) return;
@@ -229,6 +218,45 @@ const DiaryByDayScreen: React.FC = () => {
             }
             return next;
           });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        (payload) => {
+          const row = (payload.new || payload.old) as any;
+          if (!row) return;
+          const mapped = {
+            id: row.id as string,
+            userId: row.userId as string,
+            content: row.content as string,
+            createdAt:
+              (row.createdAt as any)?.toDate?.() ||
+              (typeof row.createdAt === "string" ? new Date(row.createdAt) : row.createdAt),
+          } as DayDiaryItem;
+          setItems((prev) => {
+            let next = prev;
+            const visible = !blockedSet.has(mapped.userId);
+            const idx = next.findIndex((it) => it.id === mapped.id);
+            if (!visible) {
+              if (idx !== -1) next = [...next.slice(0, idx), ...next.slice(idx + 1)];
+              return next;
+            }
+            if (idx === -1) next = [mapped, ...next];
+            else { next = [...next]; next[idx] = mapped; }
+            next = next.slice().sort((a, b) => (new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime()));
+            return next;
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        (payload) => {
+          const row = (payload.new || payload.old) as any;
+          if (!row) return;
+          const mapped = { id: row.id as string, userId: row.userId as string } as DayDiaryItem;
+          setItems((prev) => prev.filter((it) => it.id !== mapped.id));
         },
       );
 
@@ -625,3 +653,4 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default DiaryByDayScreen;
+
