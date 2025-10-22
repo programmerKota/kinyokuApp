@@ -305,25 +305,17 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
             }));
 
             setParticipants(converted);
-
-            // 参加者ごとの平均日数を取得
-            const averageDaysMap = new Map<string, number>();
-            for (const participant of converted) {
-              try {
-                const days = await UserStatsService.getUserCurrentDaysForRank(
-                  participant.id,
-                );
-                averageDaysMap.set(participant.id, days);
-              } catch (error) {
-                console.error(
-                  "ユーザーの平均日数取得に失敗",
-                  participant.id,
-                  error,
-                );
-                averageDaysMap.set(participant.id, 0);
-              }
+            // 参加者ごとの平均日数を一括取得（N+1回クエリを回避）
+            try {
+              const ids = converted.map((p) => p.id);
+              const daysMap = await UserStatsService.getManyUsersCurrentDaysForRank(ids);
+              setUserAverageDays(daysMap);
+            } catch (error) {
+              console.error("平均日数の一括取得に失敗", error);
+              const fallback = new Map<string, number>();
+              converted.forEach((p) => fallback.set(p.id, 0));
+              setUserAverageDays(fallback);
             }
-            setUserAverageDays(averageDaysMap);
           },
         );
 

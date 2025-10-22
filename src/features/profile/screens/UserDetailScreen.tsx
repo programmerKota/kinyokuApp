@@ -19,6 +19,7 @@ import type { FirestoreCommunityPost } from "@core/services/firestore";
 import { UserStatsService } from "@core/services/userStatsService";
 import PostList from "@features/community/components/PostList";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
+import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import AvatarImage from "@shared/components/AvatarImage";
 import { getRankDisplayByDays } from "@core/services/rankService";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
@@ -338,7 +339,8 @@ const UserDetailScreen: React.FC = () => {
 
       {/* プロフィールヘッダーは PostList の ListHeaderComponent に移動し、スクロールに追従させる */}
 
-      {/* 投稿一覧 */}
+      {/* 投稿一覧（キーボード表示時にレイアウトを持ち上げて、スクロール調整が効くように） */}
+      <KeyboardAwareScrollView style={styles.scrollView}>
       <PostList
         posts={postsData}
         likedPosts={likedPosts}
@@ -459,6 +461,7 @@ const UserDetailScreen: React.FC = () => {
         }}
         loadingMore={loadingMore}
       />
+      </KeyboardAwareScrollView>
 
       {/* 返信入力フィールド */}
       {replyingTo && (
@@ -482,6 +485,9 @@ const UserDetailScreen: React.FC = () => {
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.backgroundTertiary,
+  },
+  scrollView: {
     backgroundColor: colors.backgroundTertiary,
   },
   header: {

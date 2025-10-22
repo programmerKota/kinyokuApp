@@ -9,6 +9,7 @@ import AppStatusBar from "@shared/theme/AppStatusBar";
 import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import { BlockService } from "@core/services/firestore";
+import ProfileCache from "@core/services/profileCache";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { spacing, typography, useAppTheme } from "@shared/theme";
 import { navigateToUserDetail } from "@shared/utils/navigation";
@@ -38,31 +39,20 @@ const BlockedUsersScreen: React.FC = () => {
   }, [user?.uid]);
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const { FirestoreUserService } = await import(
-          "@core/services/firestore"
-        );
-        const list: SimpleUser[] = [];
-        for (const id of blockedIds) {
-          try {
-            const u = await FirestoreUserService.getUserById(id);
-            if (u)
-              list.push({
-                id,
-                displayName: u.displayName || "ユーザー",
-                photoURL: u.photoURL ?? undefined,
-              });
-          } catch { }
-        }
-        if (!cancelled) setUsers(list);
-      } catch { }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
+    if (blockedIds.size === 0) { setUsers([]); return; }
+    const ids = Array.from(blockedIds);
+    const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
+      const list: SimpleUser[] = ids.map((id) => {
+        const p = map.get(id);
+        return {
+          id,
+          displayName: (p?.displayName || "ユーザー") as string,
+          photoURL: p?.photoURL,
+        };
+      });
+      setUsers(list);
+    });
+    return () => { try { unsub?.(); } catch {} };
   }, [blockedIds]);
 
   const empty = useMemo(
