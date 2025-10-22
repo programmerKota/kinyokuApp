@@ -178,15 +178,6 @@ const CommunityScreen: React.FC = () => {
                     style={styles.emptyButton}
                   />
                 )}
-                {activeTab === "following" && (
-                  <Button
-                    title="投稿者をフォロー"
-                    onPress={() => {
-                      /* noop */
-                    }}
-                    style={styles.emptyButton}
-                  />
-                )}
               </View>
             ) : null
           }

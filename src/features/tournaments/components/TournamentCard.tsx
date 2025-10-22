@@ -62,7 +62,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
         </View>
       </View>
 
-      <Text style={styles.description} numberOfLines={2}>
+      <Text style={styles.description}>
         {tournament.description}
       </Text>
 

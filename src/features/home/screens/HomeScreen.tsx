@@ -38,23 +38,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     try {
       const v = await AsyncStorage.getItem('__post_signup_profile');
       if (v === '1') setShowProfileSetup(true);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => { void checkProfileFlag(); }, [checkProfileFlag]);
   useEffect(() => { void checkProfileFlag(); }, [user?.uid, checkProfileFlag]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <AppStatusBar />
       <ProfileEditModal
         visible={showProfileSetup}
         onClose={async () => {
           setShowProfileSetup(false);
-          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch {}
+          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch { }
         }}
         onSaved={async () => {
-          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch {}
+          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch { }
         }}
       />
       <TimerScreen
@@ -93,7 +93,7 @@ const createStyles = (mode: "light" | "dark") => {
       flexDirection: "row",
       justifyContent: "space-between",
       paddingHorizontal: 0,
-      paddingBottom: spacing.lg,
+      paddingBottom: spacing.md,
     },
     quickBtn: {
       flex: 1,

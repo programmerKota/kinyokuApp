@@ -491,7 +491,7 @@ const createStyles = (mode: "light" | "dark") => {
     },
     list: {
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.md,
+      paddingTop: spacing.sm,
       paddingBottom: spacing.xl,
     },
   });
@@ -510,7 +510,7 @@ const FilterTabs: React.FC<{
   const colors = colorSchemes[mode];
 
   return (
-    <SafeAreaView style={{ backgroundColor: colors.backgroundTertiary }}>
+    <View style={{ backgroundColor: colors.backgroundTertiary }}>
       <View style={uiStyles.tabBar}>
         <TouchableOpacity
           style={[uiStyles.tab, active === "joined" && uiStyles.tabActive]}
@@ -533,7 +533,7 @@ const FilterTabs: React.FC<{
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
