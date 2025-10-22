@@ -213,9 +213,38 @@ const UserDetailScreen: React.FC = () => {
     if (likingIds.has(postId)) return;
     setLikingIds((prev) => new Set(prev).add(postId));
     try {
-      await CommunityService.toggleLike(postId);
+      // 現在の LikeStore 状態を基準に、サーバー結果と整合させる
+      let prevState: { isLiked: boolean; likes: number } | undefined;
+      try {
+        const { LikeStore } = require("@shared/state/likeStore");
+        prevState = LikeStore.get(postId) || undefined;
+        // 楽観的にUIを先に反映（Community画面と同様）
+        const cur = prevState || { isLiked: likedPosts.has(postId), likes: (postsData.find(p=>p.id===postId)?.likes||0) } as any;
+        const nextIsLiked = !cur.isLiked;
+        const nextLikes = Math.max(0, (cur.likes || 0) + (nextIsLiked ? 1 : -1));
+        LikeStore.set(postId, { isLiked: nextIsLiked, likes: nextLikes });
+      } catch { /* ignore */ }
+
+      const liked = await CommunityService.toggleLike(postId);
+
+      try {
+        const { LikeStore } = require("@shared/state/likeStore");
+        const cur = LikeStore.get(postId) || prevState || { isLiked: false, likes: 0 };
+        const needsAdjust = cur.isLiked !== liked;
+        const nextLikes = needsAdjust ? Math.max(0, (cur.likes || 0) + (liked ? 1 : -1)) : cur.likes;
+        LikeStore.set(postId, { isLiked: liked, likes: nextLikes });
+      } catch { /* ignore */ }
     } catch (e) {
       console.warn("like toggle failed", e);
+      // 失敗時は可能ならロールバック
+      try {
+        const { LikeStore } = require("@shared/state/likeStore");
+        const cur = LikeStore.get(postId) || { isLiked: false, likes: 0 };
+        LikeStore.set(postId, {
+          isLiked: !cur.isLiked,
+          likes: Math.max(0, (cur.likes || 0) + (cur.isLiked ? 1 : -1)),
+        });
+      } catch { }
     } finally {
       setLikingIds((prev) => {
         const s = new Set(prev);
