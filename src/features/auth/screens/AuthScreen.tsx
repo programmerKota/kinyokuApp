@@ -161,8 +161,10 @@ const AuthScreen: React.FC = () => {
           const data = await signUpWithEmailPassword(email.trim(), password);
           if (data?.session?.user) {
             setInfoMsg('登録が完了しました');
+            try { await AsyncStorage.setItem('__post_signup_profile', '1'); } catch {}
           } else {
             setInfoMsg('確認メールを送信しました。メール内の手順を完了してください');
+            try { await AsyncStorage.setItem('__post_signup_profile', '1'); } catch {}
           }
         } catch (e: any) {
           const msg = String(e?.message || '登録に失敗しました');
@@ -264,6 +266,7 @@ const AuthScreen: React.FC = () => {
           return;
         }
         setInfoMsg('登録用のリンクをメールに送信しました');
+        try { await AsyncStorage.setItem('__post_signup_profile', '1'); } catch {}
       } else {
         const { error } = await supabase.auth.signInWithOtp({
           email: emailTrimmed,

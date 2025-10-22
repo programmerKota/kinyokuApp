@@ -1,5 +1,5 @@
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppStatusBar from "@shared/theme/AppStatusBar";
@@ -11,6 +11,8 @@ import DiaryButton from "@features/diary/components/DiaryButton";
 import HistoryButton from "@features/home/components/HistoryButton";
 import RankingButton from "@features/home/components/RankingButton";
 import { spacing, useAppTheme } from "@shared/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ProfileEditModal from "@features/profile/components/ProfileEditModal";
 
 // プロフィール初期設定モーダルの自動表示は廃止
 
@@ -23,6 +25,7 @@ type HomeScreenProps = {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const { mode } = useAppTheme();
   const styles = useMemo(() => createStyles(mode), [mode]);
 
@@ -30,9 +33,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setRefreshKey(prev => prev + 1);
   }, []);
 
+  // Show profile setup modal if flagged by signup flow
+  useEffect(() => {
+    (async () => {
+      try {
+        const v = await AsyncStorage.getItem('__post_signup_profile');
+        if (v === '1') setShowProfileSetup(true);
+      } catch {}
+    })();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <AppStatusBar />
+      <ProfileEditModal
+        visible={showProfileSetup}
+        onClose={async () => {
+          setShowProfileSetup(false);
+          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch {}
+        }}
+        onSaved={async () => {
+          try { await AsyncStorage.removeItem('__post_signup_profile'); } catch {}
+        }}
+      />
       <TimerScreen
         key={refreshKey}
         onChallengeStarted={refreshHomeScreen}
