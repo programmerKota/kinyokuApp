@@ -34,14 +34,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, []);
 
   // Show profile setup modal if flagged by signup flow
-  useEffect(() => {
-    (async () => {
-      try {
-        const v = await AsyncStorage.getItem('__post_signup_profile');
-        if (v === '1') setShowProfileSetup(true);
-      } catch {}
-    })();
+  const checkProfileFlag = useCallback(async () => {
+    try {
+      const v = await AsyncStorage.getItem('__post_signup_profile');
+      if (v === '1') setShowProfileSetup(true);
+    } catch {}
   }, []);
+
+  useEffect(() => { void checkProfileFlag(); }, [checkProfileFlag]);
+  useEffect(() => { void checkProfileFlag(); }, [user?.uid, checkProfileFlag]);
 
   return (
     <SafeAreaView style={styles.container}>

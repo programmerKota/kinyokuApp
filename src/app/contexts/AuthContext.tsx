@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   FirestoreUserService,
@@ -99,6 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (suid) {
           uid = suid;
           supaSessionUid = suid;
+          // If a different user has signed in on this device, do not carry over
+          // local fallback name/avatar from the previous (device) user.
+          if (localProfile.id && localProfile.id !== suid) {
+            try {
+              await Promise.all([
+                userService.setUserName(""),
+                userService.setAvatarUrl(undefined),
+              ]);
+            } catch {}
+            displayName = "";
+            avatarUrl = undefined;
+          }
           // Pull latest profile from Supabase if present
           const profResult = await withRetry(
             async () =>
@@ -113,7 +126,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (prof) {
             displayName = (prof as any).displayName || displayName || "User";
             avatarUrl = (prof as any).photoURL || avatarUrl;
+          } else {
+            // No profile row yet -> use safe defaults (avoid showing previous user's avatar)
+            displayName = displayName || "User";
+            avatarUrl = undefined;
           }
+          // If profile row is missing or effectively empty, mark for profile setup modal
+          try {
+            const emptyProfile = !prof || (!((prof as any).displayName) && !((prof as any).photoURL));
+            if (emptyProfile) {
+              await AsyncStorage.setItem("__post_signup_profile", "1");
+            }
+          } catch {}
           await tryMigrateLegacyProfile(uid, localProfile.id);
         }
       } catch {

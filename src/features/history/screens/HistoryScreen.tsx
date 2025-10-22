@@ -269,21 +269,18 @@ const HistoryScreen: React.FC = () => {
           </View>
 
           {challenges.length > 0 ? (
-            <FlatList
-              data={challenges}
-              renderItem={({ item }) => (
+            <View>
+              {challenges.map((item) => (
                 <HistoryCard
+                  key={item.id}
                   item={item}
                   type="challenge"
                   onPress={() => {
                     /* noop */
                   }}
                 />
-              )}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-            />
+              ))}
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
               <View style={styles.leafIcon}>
@@ -304,21 +301,18 @@ const HistoryScreen: React.FC = () => {
           </View>
 
           {payments.length > 0 ? (
-            <FlatList
-              data={payments}
-              renderItem={({ item }) => (
+            <View>
+              {payments.map((item) => (
                 <HistoryCard
+                  key={item.id}
                   item={item}
                   type="payment"
                   onPress={() => {
                     /* noop */
                   }}
                 />
-              )}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-            />
+              ))}
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
               <View style={styles.leafIcon}>

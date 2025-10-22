@@ -30,6 +30,9 @@ interface ModalProps {
     | "pageSheet"
     | "formSheet"
     | "overFullScreen";
+  // When true (default), wraps content in a ScrollView. Set false when children include
+  // VirtualizedList (FlatList/SectionList) to avoid nesting warning.
+  scrollable?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -42,6 +45,7 @@ const Modal: React.FC<ModalProps> = ({
   maxWidth,
   animationType = "slide",
   presentationStyle = "overFullScreen",
+  scrollable = true,
 }) => {
   const { mode } = useAppTheme();
   const styles = useMemo(() => createStyles(mode), [mode]);
@@ -84,14 +88,21 @@ const Modal: React.FC<ModalProps> = ({
               </View>
             )}
             <View style={styles.contentWrap}>
-              <ScrollView
-                style={styles.content}
-                contentContainerStyle={[styles.contentInner, { paddingBottom: contentBottomPad }]}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={true}
-              >
-                {children}
-              </ScrollView>
+              {scrollable ? (
+                <ScrollView
+                  style={styles.content}
+                  contentContainerStyle={[styles.contentInner, { paddingBottom: contentBottomPad }]}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={true}
+                  persistentScrollbar={true}
+                >
+                  {children}
+                </ScrollView>
+              ) : (
+                <View style={[styles.content, styles.contentInner, { paddingBottom: contentBottomPad }]}>
+                  {children}
+                </View>
+              )}
             </View>
           </View>
         </KeyboardAvoidingView>
