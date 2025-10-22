@@ -68,9 +68,17 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
     try {
       hideStopModal();
       if (!completed) {
-        setPaywallVisible(true);
+        const penalty = currentSession?.penaltyAmount ?? 0;
+        if (penalty > 0) {
+          // 罰金あり: 支払いモーダルを表示
+          setPaywallVisible(true);
+          return;
+        }
+        // 罰金0円: そのまま失敗として確定（支払い不要）
+        await stopChallenge(false);
         return;
       }
+      // 目標達成時
       await stopChallenge(true);
       if (completed && __DEV__) {
         try { console.log("Challenge completed"); } catch {}
