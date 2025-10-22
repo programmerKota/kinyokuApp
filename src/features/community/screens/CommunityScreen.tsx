@@ -74,7 +74,7 @@ const CommunityScreen: React.FC = () => {
   // PostList が各種描画を担当
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <AppStatusBar />
 
       <View style={uiStyles.tabBar}>
