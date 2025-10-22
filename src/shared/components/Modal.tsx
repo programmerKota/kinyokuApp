@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ModalProps {
   visible: boolean;
@@ -44,6 +45,8 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   const { mode } = useAppTheme();
   const styles = useMemo(() => createStyles(mode), [mode]);
+  const insets = useSafeAreaInsets();
+  const contentBottomPad = spacing["2xl"] + Math.max(insets.bottom, 12);
 
   const handleBackdropPress = () => {
     Keyboard.dismiss();
@@ -83,7 +86,7 @@ const Modal: React.FC<ModalProps> = ({
             <View style={styles.contentWrap}>
               <ScrollView
                 style={styles.content}
-                contentContainerStyle={styles.contentInner}
+                contentContainerStyle={[styles.contentInner, { paddingBottom: contentBottomPad }]}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
               >
@@ -123,6 +126,7 @@ const createStyles = (mode: "light" | "dark") => {
       width: "100%",
       maxWidth: 400,
       maxHeight: "90%",
+      overflow: "hidden",
       shadowColor: shadows.xl.shadowColor,
       shadowOffset: shadows.xl.shadowOffset,
       shadowOpacity: shadows.xl.shadowOpacity,
@@ -164,6 +168,9 @@ const createStyles = (mode: "light" | "dark") => {
       position: "relative",
       width: "100%",
       flexGrow: 1,
+      flexShrink: 1,
+      minHeight: 0,
+      maxHeight: "100%",
     },
     contentInner: {
       paddingBottom: spacing["2xl"],

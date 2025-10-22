@@ -23,6 +23,7 @@ import { withRetry } from "@shared/utils/net";
 import type { User } from "@project-types";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
+import { Logger } from "@shared/utils/logger";
 
 interface AuthContextType {
   user: User | null;
@@ -75,8 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       try {
         await supabase.from("profiles").delete().eq("id", legacyId);
-      } catch {}
-    } catch {}
+      } catch (e) {
+        Logger.warn("AuthContext.migrateCleanup", e);
+      }
+    } catch (e) {
+      Logger.error("AuthContext.tryMigrateLegacyProfile", e);
+    }
   };
 
   const loadUser = useCallback(async () => {

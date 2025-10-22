@@ -22,9 +22,8 @@ const FeedbackScreen: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   // 送信先メールアドレス（EXPO_PUBLIC_FEEDBACK_EMAIL があれば優先）
-  const FEEDBACK_EMAIL =
-    (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) ||
-    "support@example.com"; // TODO: 本番用に置き換え/環境変数で設定
+  const FEEDBACK_EMAIL = (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) || "";
+  const emailConfigured = FEEDBACK_EMAIL.length > 0;
 
   const canSend = useMemo(
     () => subject.trim().length > 0 && message.trim().length > 0,
@@ -33,6 +32,10 @@ const FeedbackScreen: React.FC = () => {
 
   const doSubmit = useCallback(async () => {
     if (!canSend || sending) return;
+    if (!emailConfigured) {
+      Alert.alert("設定エラー", "送信先メールが未設定です。管理者に連絡してください。");
+      return;
+    }
     setSending(true);
     try {
       const subj = subject.trim();
@@ -111,11 +114,16 @@ const FeedbackScreen: React.FC = () => {
         />
         <View style={{ height: spacing.lg }} />
         <Button
-          title={sent ? "送信しました" : "メールで送信"}
+          title={emailConfigured ? (sent ? "送信しました" : "メールで送信") : "送信先未設定"}
           onPress={() => { void doSubmit(); }}
-          disabled={!canSend || sent}
+          disabled={!canSend || sent || !emailConfigured}
           loading={sending}
         />
+        {!emailConfigured && (
+          <Text style={{ color: colors.error, marginTop: spacing.sm }}>
+            管理者: EXPO_PUBLIC_FEEDBACK_EMAIL が未設定です。
+          </Text>
+        )}
         {sent && (
           <Text style={styles.successMessage}>
             ✅ フィードバックを送信しました。ありがとうございます！

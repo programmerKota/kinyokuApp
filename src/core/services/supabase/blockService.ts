@@ -1,6 +1,7 @@
 type Unsubscribe = () => void;
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
 import { FollowService } from "./followService";
+import { Logger } from "@shared/utils/logger";
 
 export class BlockService {
   static async getBlockDocId(targetUserId: string): Promise<string> {
@@ -76,8 +77,8 @@ export class BlockService {
           .eq("blockerId", uid);
         if (error) throw error;
         if (!cancelled) callback((data || []).map((r: any) => r.blockedId));
-      } catch {
-        // ignore
+      } catch (e) {
+        Logger.warn("BlockService.tick", e);
       } finally {
         if (!cancelled)
           timer = setTimeout(() => {

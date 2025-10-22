@@ -5,6 +5,7 @@ import type { CommunityComment } from "@project-types";
 import type { FirestoreCommunityPost } from "../firestore/types";
 import ProfileCache from "../profileCache";
 import { withRetry } from "@shared/utils/net";
+import { Logger } from "@shared/utils/logger";
 
 const isHttpUrl = (v?: string | null) =>
   typeof v === "string" && /^https?:\/\//i.test(v);
@@ -178,8 +179,8 @@ export class CommunityService {
         authorName = raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
         authorAvatar = (prof as any).photoURL ?? null;
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      Logger.warn("CommunityService.addReply.profile", e, { authorId });
     }
     const now = new Date().toISOString();
 
@@ -255,8 +256,8 @@ export class CommunityService {
           .from("community_posts")
           .update({ comments: next, updatedAt: new Date().toISOString() })
           .eq("id", postId);
-      } catch {
-        // ignore
+      } catch (e) {
+        Logger.warn("CommunityService.updatePostReplyCount.fallback", e, { postId, delta });
       }
     }
   }
@@ -684,11 +685,19 @@ export class CommunityService {
         emitWithProfiles();
       }
 
+      const filterStr = userIds && userIds.length > 0
+        ? `authorId=in.(${userIds.map((id) => `"${id}"`).join(",")})`
+        : undefined;
       channel = supabase
         .channel("realtime:community_posts:following")
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "community_posts" },
+          {
+            event: "*",
+            schema: "public",
+            table: "community_posts",
+            ...(filterStr ? { filter: filterStr } : {}),
+          },
           (payload: any) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
             const row =
@@ -763,8 +772,8 @@ export class CommunityService {
           .from("community_posts")
           .update({ likes: next, updatedAt: new Date().toISOString() })
           .eq("id", postId);
-      } catch {
-        // ignore
+      } catch (e) {
+        Logger.warn("CommunityService.updatePostLikeCount.fallback", e, { postId, delta });
       }
     }
   }

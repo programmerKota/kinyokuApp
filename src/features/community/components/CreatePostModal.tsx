@@ -7,16 +7,14 @@ import {
   Alert,
   TextInput,
   TouchableOpacity,
-  Modal as RNModal,
-  KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
 } from "react-native";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useModerationGuard } from "@shared/hooks/useModerationGuard";
 import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
+import Modal from "@shared/components/Modal";
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -58,70 +56,50 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   return (
-    <RNModal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleClose}
-      statusBarTranslucent
-    >
-      <SafeAreaView style={styles.container}>
-        <AppStatusBar />
-        <View style={[uiStyles.row, styles.header]}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={colors.textPrimary} />
+    <Modal visible={visible} onClose={handleClose} title="投稿を作成" maxWidth={480}>
+      <View style={styles.content}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="今何をしていますか？"
+          placeholderTextColor={colors.textSecondary}
+          value={content}
+          onChangeText={setContent}
+          multiline
+          maxLength={280}
+          autoFocus
+        />
+
+        <View style={[uiStyles.rowBetween, styles.footer]}>
+          <View style={styles.counterContainer}>
+            <Text
+              style={[
+                styles.counter,
+                content.length > 260 && styles.counterWarning,
+              ]}
+            >
+              {content.length}/280
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            style={[
+              styles.postButton,
+              !content.trim() && styles.postButtonDisabled,
+            ]}
+            disabled={!content.trim()}
+          >
+            <Text
+              style={[
+                styles.postButtonText,
+                !content.trim() && styles.postButtonTextDisabled,
+              ]}
+            >
+              投稿
+            </Text>
           </TouchableOpacity>
         </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardAvoidingView}
-        >
-          <View style={styles.content}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="今何をしていますか？"
-              placeholderTextColor={colors.textSecondary}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              maxLength={280}
-              autoFocus
-            />
-
-            <View style={[uiStyles.rowBetween, styles.footer]}>
-              <View style={styles.counterContainer}>
-                <Text
-                  style={[
-                    styles.counter,
-                    content.length > 260 && styles.counterWarning,
-                  ]}
-                >
-                  {content.length}/280
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={handleSubmit}
-                style={[
-                  styles.postButton,
-                  !content.trim() && styles.postButtonDisabled,
-                ]}
-                disabled={!content.trim()}
-              >
-                <Text
-                  style={[
-                    styles.postButtonText,
-                    !content.trim() && styles.postButtonTextDisabled,
-                  ]}
-                >
-                  投稿
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </RNModal>
+      </View>
+    </Modal>
   );
 };
 

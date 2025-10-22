@@ -1,5 +1,6 @@
 type Unsubscribe = () => void;
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { Logger } from "@shared/utils/logger";
 
 export interface UserProfileLite {
   displayName?: string;
@@ -66,8 +67,8 @@ export class ProfileCache {
             : undefined;
           entry.data = next;
           entry.listeners.forEach((l) => l(entry.data));
-        } catch {
-          // ignore
+        } catch (e) {
+          Logger.warn("ProfileCache.initialFetch", e);
         }
       })();
 
@@ -118,7 +119,9 @@ export class ProfileCache {
       entry.unsub = () => {
         try {
           if (channel) channel.unsubscribe();
-        } catch {}
+        } catch (e) {
+          Logger.warn("ProfileCache.unsubscribe", e);
+        }
       };
     }
 
@@ -204,8 +207,8 @@ export class ProfileCache {
 
           emit();
         }
-      } catch {
-        /* ignore */
+      } catch (e) {
+        Logger.warn("ProfileCache.batchPrime", e);
       }
     })();
 

@@ -16,7 +16,8 @@ function json(data: unknown, init: ResponseInit = {}) {
 async function verifySignature(raw: string, req: Request): Promise<boolean> {
   try {
     const secret = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
-    if (!secret) return true; // allow if not configured
+    // セキュリティ: シークレット未設定時は検証失敗（fail-closed）
+    if (!secret) return false;
     const header = req.headers.get("X-RevenueCat-Signature") || req.headers.get("X-Signature");
     if (!header) return false;
     const enc = new TextEncoder();

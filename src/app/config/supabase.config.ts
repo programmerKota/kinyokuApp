@@ -44,6 +44,7 @@ const getEnv = (key: string): string | undefined => {
 // Supabase configuration
 let supabaseUrl = getEnv("EXPO_PUBLIC_SUPABASE_URL");
 let supabaseAnonKey = getEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY");
+const allowDevPlaceholder = (getEnv("EXPO_PUBLIC_ALLOW_DEV_PLACEHOLDER") || "").toLowerCase() === "true";
 
 // Note: .env/.app.jsonのみを参照するため、ローカル上書きは廃止
 
@@ -51,11 +52,18 @@ let supabaseAnonKey = getEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY");
 let isConfigured = true;
 if (!supabaseUrl || !supabaseAnonKey || !/^https?:\/\//i.test(supabaseUrl)) {
   isConfigured = false;
-  console.warn(
-    "[supabase.config] ENV not set. Using placeholder endpoint. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.",
-  );
-  supabaseUrl = "https://demo-project.supabase.co";
-  supabaseAnonKey = "demo-anon-key";
+  if (__DEV__ && allowDevPlaceholder) {
+    console.warn(
+      "[supabase.config] ENV not set. Using placeholder endpoint in DEV (explicitly allowed). Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+    supabaseUrl = "https://demo-project.supabase.co";
+    supabaseAnonKey = "demo-anon-key";
+  } else {
+    // Block app startup when env is missing (both production and dev unless explicitly allowed)
+    throw new Error(
+      "[supabase.config] ENV missing. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY (or set EXPO_PUBLIC_ALLOW_DEV_PLACEHOLDER=true for local placeholder).",
+    );
+  }
 }
 
 // Create Supabase client
@@ -78,7 +86,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // - 10: 人気投稿に100人がいいね → 10秒かかる ❌
     // - 100: 人気投稿に100人がいいね → 1秒 ✅
     params: {
-      eventsPerSecond: 100,
+      eventsPerSecond: 30,
     },
   },
 });

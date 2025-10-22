@@ -19,6 +19,7 @@ import ListFooterSpinner from "@shared/components/ListFooterSpinner";
 import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
 import { spacing, typography, useAppTheme } from "@shared/theme";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
+import { Logger } from "@shared/utils/logger";
 
 interface PostListProps {
   posts: CommunityPost[];
@@ -101,13 +102,14 @@ const PostList: React.FC<PostListProps> = ({
               const buttonBottom = (y || 0) + (h || 0);
               const delta = (buttonBottom || 0) - targetBottom;
               const newOffset = Math.max(0, (scrollYRef.current || 0) + (delta || 0));
-              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch { }
+              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch (e) { Logger.warn("PostList.scrollToOffset", e); }
             });
-          } catch {
+          } catch (e) {
+            Logger.warn("PostList.measureFallback", e);
             try {
               const index = posts.findIndex((p) => p.id === postId);
               if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.98 });
-            } catch { }
+            } catch (e2) { Logger.warn("PostList.scrollToIndexFallback", e2); }
           }
         });
       };
@@ -195,12 +197,12 @@ const PostList: React.FC<PostListProps> = ({
       onLayout={(e) => {
         try {
           viewportHRef.current = e?.nativeEvent?.layout?.height || viewportHRef.current;
-        } catch { }
+        } catch (err) { Logger.warn("PostList.onLayout", err); }
       }}
       onScroll={(e) => {
         try {
           scrollYRef.current = e?.nativeEvent?.contentOffset?.y || 0;
-        } catch { }
+        } catch (err) { Logger.warn("PostList.onScroll", err); }
       }}
       scrollEventThrottle={16}
       style={listStyle}
@@ -225,7 +227,7 @@ const PostList: React.FC<PostListProps> = ({
               animated: true,
               viewPosition: 1,
             });
-          } catch { }
+          } catch (err) { Logger.warn("PostList.onScrollToIndexFailed", err); }
         }, 80);
       }}
       ListEmptyComponent={() => {

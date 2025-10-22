@@ -30,6 +30,7 @@ import { spacing, typography, useAppTheme } from "@shared/theme";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 import { formatDateTimeJP } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import { Logger } from "@shared/utils/logger";
 
 interface DayDiaryItem {
   id: string;
@@ -146,7 +147,7 @@ const DiaryByDayScreen: React.FC = () => {
             map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
           }
           setUserAverageDays(next);
-        } catch { }
+        } catch (e) { Logger.warn("DiaryByDay.fetchAvgDays", e); }
       } finally {
         setLoading(false);
       }
@@ -155,7 +156,7 @@ const DiaryByDayScreen: React.FC = () => {
       void fetch();
     });
     return () => {
-      try { (task as any)?.cancel?.(); } catch { }
+      try { (task as any)?.cancel?.(); } catch (e) { Logger.warn("DiaryByDay.cancelTask", e); }
     };
   }, [day, blockedSet]);
 
@@ -169,7 +170,7 @@ const DiaryByDayScreen: React.FC = () => {
     const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
       setProfilesMap(map);
     });
-    return () => { try { unsub?.(); } catch { } };
+    return () => { try { unsub?.(); } catch (e) { Logger.warn("DiaryByDay.unsubscribeProfiles", e); } };
   }, [items]);
 
   // 選択中の「日」のみRealtime購読して差分適用（負荷抑制）
@@ -235,7 +236,7 @@ const DiaryByDayScreen: React.FC = () => {
 
     return () => {
       active = false;
-      try { supabase.removeChannel(channel); } catch { }
+      try { supabase.removeChannel(channel); } catch (e) { Logger.warn("DiaryByDay.removeChannel", e); }
     };
   }, [day, blockedSet]);
 
@@ -282,7 +283,7 @@ const DiaryByDayScreen: React.FC = () => {
           map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
         }
         setUserAverageDays(next);
-      } catch { }
+      } catch (e) { Logger.warn("DiaryByDay.refreshAvgDays", e); }
     } finally {
       setRefreshing(false);
     }

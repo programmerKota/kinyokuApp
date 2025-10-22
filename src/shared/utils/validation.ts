@@ -5,8 +5,6 @@ export interface ValidationResult {
   message?: string;
 }
 
-// 未使用の詳細バリデーション（メール、パスワード、電話、郵便番号、数値/範囲/URL）は削除
-
 export const validateRequired = (
   value: string,
   fieldName: string,
@@ -32,3 +30,4 @@ export const validateMaxLength = (
 
   return { isValid: true };
 };
+

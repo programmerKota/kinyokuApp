@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 
-import { supabase } from "@app/config/supabase.config";
+import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
 const styles = {
   container: { flex: 1, padding: 16, backgroundColor: "#fff" },
@@ -37,10 +37,10 @@ const SupabaseCrudTestScreen: React.FC = () => {
     setLogs([]);
 
     try {
-      const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-      const anon = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      const url = supabaseConfig.url;
+      const anon = supabaseConfig.anonKey;
       append(`Using URL: ${url ?? "<unset>"}`);
-      append(`AnonKey: ${anon ? anon.substring(0, 8) + "..." : "<unset>"}`);
+      append(`AnonKey: ${anon ? String(anon).substring(0, 8) + "..." : "<unset>"}`);
 
       // 1) insert
       append("Inserting row...");
@@ -114,7 +114,6 @@ const SupabaseCrudTestScreen: React.FC = () => {
 };
 
 export default SupabaseCrudTestScreen;
-
 
 
 

@@ -265,7 +265,7 @@ export class TournamentService {
         status: "joined",
         joinedAt: now,
       },
-      { onConflict: "tournamentId,userId" as any },
+      { onConflict: "tournamentId,userId" },
     );
     if (upsertPart.error) throw upsertPart.error;
   }

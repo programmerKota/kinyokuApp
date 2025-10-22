@@ -1,4 +1,4 @@
-// 日付関連のユーティリティ関数（使用中のもののみ残しています）
+// 日付関連のユーティリティ関数（使用中のもののみ）
 
 export const formatDuration = (seconds: number): string => {
   const days = Math.floor(seconds / (24 * 3600));
@@ -19,7 +19,7 @@ export type DateLike =
   | null
   | undefined;
 
-// 共通: Date/Firestore.Timestamp/文字列などから Date に変換（安全版）
+// 共通: Date/Firestore.Timestamp/数値などから Date に変換（安全版）
 export const toDate = (input: DateLike): Date => {
   if (!input) return new Date();
   if (input instanceof Date) return input;
@@ -37,7 +37,7 @@ export const toDate = (input: DateLike): Date => {
   return new Date();
 };
 
-// 共通: 日本語の日時表示（例: 2024/9/10 12:34）
+// 共通: 日本語の日時表示（例: 2024/09/10 12:34）
 export const formatDateTimeJP = (value: DateLike): string => {
   const date = toDate(value);
   const options: Intl.DateTimeFormatOptions = {
@@ -47,12 +47,11 @@ export const formatDateTimeJP = (value: DateLike): string => {
     hour: "2-digit",
     minute: "2-digit",
   };
-  // include time as well
   return date.toLocaleString("ja-JP", options);
 };
 
 // 共通: 相対時間表示
-// showSeconds=true の場合は「x秒前」まで表示、false の場合は 1分未満は「たった今」
+// showSeconds=true の場合「x秒前」まで表示。false の場合は 1分未満を「たった今」。
 export const formatRelative = (
   value: DateLike,
   opts: { showSeconds?: boolean } = {},
@@ -78,3 +77,4 @@ export const formatRelative = (
   if (days < 7) return `${days}日前`;
   return date.toLocaleDateString("ja-JP");
 };
+

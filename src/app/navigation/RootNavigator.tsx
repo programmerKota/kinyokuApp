@@ -136,7 +136,7 @@ const RootNavigator: React.FC = () => {
         <RootStack.Screen name="FollowList" component={FollowListScreen} />
         <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
         <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-        {/* デバッグ/テスト用 */}
+        {/* DEV/テスト用 */}
         {DevCrudTestScreen && (
           <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
         )}
@@ -148,3 +148,4 @@ const RootNavigator: React.FC = () => {
 };
 
 export default RootNavigator;
+

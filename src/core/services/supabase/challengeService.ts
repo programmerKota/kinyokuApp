@@ -1,9 +1,39 @@
 type Unsubscribe = () => void;
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { Logger } from "@shared/utils/logger";
 
 import type { FirestoreChallenge } from "../firestore/types";
 
+type SupaChallengeRow = {
+  id: string;
+  userId: string;
+  goalDays: number;
+  penaltyAmount: number;
+  status: "active" | "completed" | "failed" | "paused";
+  startedAt: string | null;
+  completedAt: string | null;
+  failedAt: string | null;
+  totalPenaltyPaid: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
 export class ChallengeService {
+  private static toFirestore(row: SupaChallengeRow): FirestoreChallenge {
+    return {
+      id: row.id,
+      userId: row.userId,
+      goalDays: row.goalDays,
+      penaltyAmount: row.penaltyAmount,
+      status: row.status,
+      startedAt: row.startedAt ? new Date(row.startedAt) : new Date(),
+      completedAt: row.completedAt ? new Date(row.completedAt) : null,
+      failedAt: row.failedAt ? new Date(row.failedAt) : null,
+      totalPenaltyPaid: row.totalPenaltyPaid ?? 0,
+      createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
+      updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
+    };
+  }
   static async createChallenge(
     challengeData: Omit<FirestoreChallenge, "id" | "createdAt" | "updatedAt">,
   ): Promise<string> {
@@ -63,12 +93,8 @@ export class ChallengeService {
       .eq("userId", ((await supabase.auth.getSession()).data?.session?.user?.id as string | undefined) || userId)
       .order("createdAt", { ascending: false });
     if (error) throw error;
-    return (data || []).map((d) => ({
-      ...d,
-      startedAt: d.startedAt ? new Date(d.startedAt) : undefined,
-      completedAt: d.completedAt ? new Date(d.completedAt) : null,
-      failedAt: d.failedAt ? new Date(d.failedAt) : null,
-    })) as FirestoreChallenge[];
+    const rows = (data || []) as unknown as SupaChallengeRow[];
+    return rows.map(ChallengeService.toFirestore);
   }
 
   static async updateChallenge(
@@ -131,12 +157,7 @@ export class ChallengeService {
       .maybeSingle();
     if (error) throw error;
     if (!data) return null;
-    return {
-      ...data,
-      startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
-      completedAt: data.completedAt ? new Date(data.completedAt) : null,
-      failedAt: data.failedAt ? new Date(data.failedAt) : null,
-    } as FirestoreChallenge;
+    return ChallengeService.toFirestore(data as unknown as SupaChallengeRow);
   }
 
   static subscribeToActiveChallenge(
@@ -154,7 +175,8 @@ export class ChallengeService {
       try {
         const ch = await ChallengeService.getActiveChallenge(userId);
         callback(ch);
-      } catch {
+      } catch (e) {
+        Logger.warn("ChallengeService.init", e, { userId });
         callback(null);
       }
 
@@ -177,7 +199,8 @@ export class ChallengeService {
             try {
               const ch = await ChallengeService.getActiveChallenge(userId);
               callback(ch);
-            } catch {
+            } catch (e) {
+              Logger.warn("ChallengeService.subscription", e, { userId });
               callback(null);
             }
           },
