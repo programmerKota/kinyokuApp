@@ -246,7 +246,7 @@ const RankingScreen: React.FC = () => {
             if (activeTab !== "all") setActiveTab("all");
           }}
         >
-          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>All</Text>
+          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>すべて</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[uiStyles.tab, activeTab === "following" && uiStyles.tabActive]}
