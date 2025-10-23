@@ -26,8 +26,8 @@ interface UserProfileWithRankProps {
   showAverageTime?: boolean;
   showTitle?: boolean;
   size?: "small" | "medium" | "large";
-  style?: { [key: string]: unknown };
-  textStyle?: { [key: string]: unknown };
+  style?: import("react-native").StyleProp<import("react-native").ViewStyle>;
+  textStyle?: import("react-native").StyleProp<import("react-native").TextStyle>;
 }
 
 const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
@@ -75,7 +75,9 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   const sizeConfig = getSizeConfig();
 
   const ProfileContent: React.FC<{
-    containerStyle?: { [key: string]: unknown };
+    containerStyle?: import("react-native").StyleProp<
+      import("react-native").ViewStyle
+    >;
   }> = ({ containerStyle }) => (
     <View style={[styles.container, containerStyle]}>
       {userAvatar ? (
@@ -187,7 +189,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
-        style={[style as any, { flex: 1 }]}
+        style={[style, { flex: 1 }]}
       >
         <ProfileContent />
       </TouchableOpacity>
@@ -197,7 +199,7 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   return <ProfileContent containerStyle={style} />;
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

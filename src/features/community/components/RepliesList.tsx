@@ -6,6 +6,7 @@ import { UserStatsService } from "@core/services/userStatsService";
 import ReplyCard from "@features/community/components/ReplyCard";
 import type { CommunityComment } from "@project-types";
 import { spacing, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { ReplyCountStore } from "@shared/state/replyStore";
@@ -40,7 +41,6 @@ const RepliesList: React.FC<RepliesListProps> = ({
   allowBlockedReplies = false,
 }) => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -155,9 +155,9 @@ const RepliesList: React.FC<RepliesListProps> = ({
         const prof = profilesMap.get(item.authorId);
         const merged: CommunityComment = {
           ...item,
-          authorName: prof?.displayName ?? (item as any).authorName,
-          authorAvatar: prof?.photoURL ?? (item as any).authorAvatar,
-        } as any;
+          authorName: prof?.displayName ?? item.authorName,
+          authorAvatar: prof?.photoURL ?? item.authorAvatar,
+        };
         return (
           <ReplyRow
             reply={merged}
@@ -187,7 +187,7 @@ const RepliesList: React.FC<RepliesListProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       // 前の余白と背景に戻す（従来のレイアウトを維持）

@@ -25,11 +25,7 @@ interface ModalProps {
   hideHeader?: boolean;
   maxWidth?: number;
   animationType?: "none" | "slide" | "fade";
-  presentationStyle?:
-    | "fullScreen"
-    | "pageSheet"
-    | "formSheet"
-    | "overFullScreen";
+  presentationStyle?: React.ComponentProps<typeof RNModal>["presentationStyle"];
   // When true (default), wraps content in a ScrollView. Set false when children include
   // VirtualizedList (FlatList/SectionList) to avoid nesting warning.
   scrollable?: boolean;
@@ -63,7 +59,7 @@ const Modal: React.FC<ModalProps> = ({
       animationType={animationType}
       transparent
       onRequestClose={onClose}
-      presentationStyle={presentationStyle as any}
+      presentationStyle={presentationStyle}
       statusBarTranslucent
     >
       <View style={styles.overlay}>

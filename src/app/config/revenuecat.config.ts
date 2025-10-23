@@ -1,9 +1,8 @@
 import Constants from "expo-constants";
 
-type EnvLike = { [k: string]: any };
-const extra: EnvLike =
-  (Constants?.expoConfig as any)?.extra ??
-  (Constants as any)?.manifestExtra ??
+const extra: Record<string, unknown> =
+  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
+  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
   {};
 
 const pick = (key: string): string | undefined => {

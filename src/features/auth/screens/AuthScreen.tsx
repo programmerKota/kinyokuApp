@@ -13,14 +13,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import * as Linking from "expo-linking";
 import Modal from "@shared/components/Modal";
 import LegalContent from "@features/legal/components/LegalContent";
 
 import DSButton from "@shared/designSystem/components/DSButton";
 import { spacing, typography, useAppTheme } from "@shared/theme";
 import { createScreenThemes } from "@shared/theme/screenThemes";
-import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import { supabase } from "@app/config/supabase.config";
 import {
   signInWithEmailPassword,
   signUpWithEmailPassword,
@@ -39,7 +39,6 @@ const PRIVACY_URL = "https://example.com/privacy";
 
 const AuthScreen: React.FC = () => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
   const styles = useMemo(() => createAuthStyles(colors), [colors]);
@@ -190,8 +189,8 @@ const AuthScreen: React.FC = () => {
         try {
           await signInWithEmailPassword(email.trim(), password);
           setInfoMsg("ログインしました");
-        } catch (e: any) {
-          const msg = String(e?.message || "ログインに失敗しました");
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "ログインに失敗しました";
           if (/invalid login credentials/i.test(msg)) {
             setErrorMsg("メールアドレスまたはパスワードが正しくありません");
           } else if (/email not confirmed|confirm your email/i.test(msg)) {
@@ -221,8 +220,8 @@ const AuthScreen: React.FC = () => {
               await AsyncStorage.setItem("__post_signup_profile", "1");
             } catch {}
           }
-        } catch (e: any) {
-          const msg = String(e?.message || "登録に失敗しました");
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "登録に失敗しました";
           if (/user already registered/i.test(msg)) {
             setErrorMsg(
               "このメールはすでに登録済みです。ログインをお試しください",
@@ -263,7 +262,7 @@ const AuthScreen: React.FC = () => {
     async (provider: "google" | "twitter" | "amazon" | "line") => {
       try {
         setSubmitting("oauth");
-        await startOAuthFlow(provider as any);
+        await startOAuthFlow(provider);
       } finally {
         setSubmitting(null);
       }
@@ -286,8 +285,8 @@ const AuthScreen: React.FC = () => {
       setInfoMsg(
         "パスワード再設定メールを送信しました。メールをご確認ください。",
       );
-    } catch (e: any) {
-      const msg = String(e?.message || "パスワード再設定に失敗しました");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "パスワード再設定に失敗しました";
       if (/email rate limit|too many requests/i.test(msg)) {
         setErrorMsg("しばらくしてから再度お試しください。");
       } else if (/user not found|no user/i.test(msg)) {
@@ -899,7 +898,7 @@ const AuthScreen: React.FC = () => {
   );
 };
 
-const createAuthStyles = (colors: any) =>
+const createAuthStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,

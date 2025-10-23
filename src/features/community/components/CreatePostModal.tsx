@@ -113,7 +113,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

@@ -3,9 +3,9 @@ import Constants from "expo-constants";
 // Robust boolean reader for EAS builds:
 // - Prefer app.json "extra" (manifestExtra in prod)
 // - Fall back to statically-replaced EXPO_PUBLIC_* envs (must use direct keys)
-const extra =
-  (Constants?.expoConfig as any)?.extra ??
-  (Constants as any)?.manifestExtra ??
+const extra: Record<string, unknown> =
+  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
+  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
   {};
 
 const toBool = (v: unknown, def = false) => {
@@ -15,36 +15,36 @@ const toBool = (v: unknown, def = false) => {
 };
 
 const google = toBool(
-  (extra as any)?.EXPO_PUBLIC_OAUTH_GOOGLE ??
+  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_GOOGLE ??
     (typeof process !== "undefined"
-      ? (process as any)?.env?.EXPO_PUBLIC_OAUTH_GOOGLE
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_GOOGLE
       : undefined),
   false,
 );
 const twitter = toBool(
-  (extra as any)?.EXPO_PUBLIC_OAUTH_TWITTER ??
+  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_TWITTER ??
     (typeof process !== "undefined"
-      ? (process as any)?.env?.EXPO_PUBLIC_OAUTH_TWITTER
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_TWITTER
       : undefined),
   false,
 );
 const amazon = toBool(
-  (extra as any)?.EXPO_PUBLIC_OAUTH_AMAZON ??
+  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_AMAZON ??
     (typeof process !== "undefined"
-      ? (process as any)?.env?.EXPO_PUBLIC_OAUTH_AMAZON
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_AMAZON
       : undefined),
   false,
 );
 const line = toBool(
-  (extra as any)?.EXPO_PUBLIC_OAUTH_LINE ??
+  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_LINE ??
     (typeof process !== "undefined"
-      ? (process as any)?.env?.EXPO_PUBLIC_OAUTH_LINE
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_LINE
       : undefined),
   false,
 );
 
 // Disable OAuth in Expo Go (only works reliably in EAS Dev Client or production)
-const isExpoGo = (Constants as any)?.appOwnership === "expo";
+const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
 
 export const oauthConfig = {
   google: !isExpoGo && google,

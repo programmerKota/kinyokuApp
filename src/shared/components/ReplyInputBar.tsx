@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  type LayoutChangeEvent,
 } from "react-native";
 
 import { spacing, typography, useAppTheme } from "@shared/theme";
@@ -33,7 +34,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(mode), [mode]);
 
-  const onLayout = useCallback((e: any) => {
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
     try {
       const h = e?.nativeEvent?.layout?.height as number | undefined;
       if (h && h > 0) ReplyUiStore.setInputBarHeight(h);

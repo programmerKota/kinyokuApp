@@ -1,6 +1,7 @@
-export function isTransientFetchError(err: any): boolean {
-  const msg = String((err?.message as string) || err || "").toLowerCase();
-  const code = String((err?.code as string) || "").toLowerCase();
+export function isTransientFetchError(err: unknown): boolean {
+  const e = err as { message?: string; code?: string } | undefined;
+  const msg = String(e?.message || err || "").toLowerCase();
+  const code = String(e?.code || "").toLowerCase();
   return (
     msg.includes("failed to fetch") ||
     msg.includes("networkerror") ||

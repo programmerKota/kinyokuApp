@@ -20,7 +20,10 @@ const getRankIcon = (rank: number) => {
   }
 };
 
-const getRankColor = (rank: number, colors: any) => {
+const getRankColor = (
+  rank: number,
+  colors: import("@shared/theme/colors").ColorPalette,
+) => {
   switch (rank) {
     case 1:
       return colors.warning; // 金
@@ -67,7 +70,7 @@ const RankingListItem: React.FC<RankingListItemProps> = ({
       )}
       <View style={styles.rankContainer}>
         <Ionicons
-          name={getRankIcon(item.rank) as any}
+          name={getRankIcon(item.rank) as keyof typeof Ionicons.glyphMap}
           size={24}
           color={getRankColor(item.rank, colors)}
         />

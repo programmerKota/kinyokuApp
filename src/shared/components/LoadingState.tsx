@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, type StyleProp, type ViewStyle } from "react-native";
 
 import { colors, spacing, typography } from "@shared/theme";
 
@@ -10,7 +10,7 @@ interface LoadingStateProps {
   variant?: LoadingVariant;
   size?: "small" | "large";
   color?: string;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 

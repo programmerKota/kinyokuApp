@@ -1,5 +1,6 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
@@ -27,8 +28,9 @@ import DiaryCard from "@features/diary/components/DiaryCard";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import { formatDateTimeJP, toDate, type DateLike } from "@shared/utils/date";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import AppStatusBar from "@shared/theme/AppStatusBar";
-import { formatDateTimeJP } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { Logger } from "@shared/utils/logger";
 
@@ -76,7 +78,7 @@ const DiaryItemRow: React.FC<{
 
 const DiaryByDayScreen: React.FC = () => {
   const { user } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { mode } = useAppTheme();
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
@@ -104,8 +106,7 @@ const DiaryByDayScreen: React.FC = () => {
       if (user?.uid) {
         const active = await ChallengeService.getActiveChallenge(user.uid);
         if (active) {
-          const startedAt =
-            (active.startedAt as any)?.toDate?.() || (active.startedAt as any);
+          const startedAt = toDate(active.startedAt as unknown as DateLike);
           const now = new Date();
           const d =
             Math.floor(
@@ -132,9 +133,9 @@ const DiaryByDayScreen: React.FC = () => {
         const mapped = list
           .map((d) => ({
             id: d.id,
-            userId: (d as any).userId,
+            userId: d.userId,
             content: d.content,
-            createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
+            createdAt: toDate(d.createdAt as unknown as DateLike),
           }))
           .filter((it) => !blockedSet.has(it.userId));
         setItems(mapped);
@@ -159,10 +160,10 @@ const DiaryByDayScreen: React.FC = () => {
     };
     const task = InteractionManager.runAfterInteractions(() => {
       void fetch();
-    });
+    }) as { cancel?: () => void };
     return () => {
       try {
-        (task as any)?.cancel?.();
+        task?.cancel?.();
       } catch (e) {
         Logger.warn("DiaryByDay.cancelTask", e);
       }
@@ -203,18 +204,19 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as any;
+          const row = (payload.new || payload.old) as {
+            id: string;
+            userId: string;
+            content: string;
+            createdAt: unknown;
+          } | undefined;
           if (!row) return;
           // 受信データを画面の型に合わせる
           const mapped = {
             id: row.id as string,
             userId: row.userId as string,
             content: row.content as string,
-            createdAt:
-              (row.createdAt as any)?.toDate?.() ||
-              (typeof row.createdAt === "string"
-                ? new Date(row.createdAt)
-                : row.createdAt),
+            createdAt: toDate(row.createdAt as unknown as DateLike),
           } as DayDiaryItem;
 
           setItems((prev) => {
@@ -246,8 +248,8 @@ const DiaryByDayScreen: React.FC = () => {
                 .slice()
                 .sort(
                   (a, b) =>
-                    new Date(b.createdAt as any).getTime() -
-                    new Date(a.createdAt as any).getTime(),
+                    toDate(b.createdAt as unknown as DateLike).getTime() -
+                    toDate(a.createdAt as unknown as DateLike).getTime(),
                 );
               return next;
             }
@@ -271,17 +273,18 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as any;
+          const row = (payload.new || payload.old) as {
+            id: string;
+            userId: string;
+            content: string;
+            createdAt: unknown;
+          } | undefined;
           if (!row) return;
           const mapped = {
             id: row.id as string,
             userId: row.userId as string,
             content: row.content as string,
-            createdAt:
-              (row.createdAt as any)?.toDate?.() ||
-              (typeof row.createdAt === "string"
-                ? new Date(row.createdAt)
-                : row.createdAt),
+            createdAt: toDate(row.createdAt as unknown as DateLike),
           } as DayDiaryItem;
           setItems((prev) => {
             let next = prev;
@@ -301,8 +304,8 @@ const DiaryByDayScreen: React.FC = () => {
               .slice()
               .sort(
                 (a, b) =>
-                  new Date(b.createdAt as any).getTime() -
-                  new Date(a.createdAt as any).getTime(),
+                  toDate(b.createdAt as unknown as DateLike).getTime() -
+                  toDate(a.createdAt as unknown as DateLike).getTime(),
               );
             return next;
           });
@@ -317,13 +320,10 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as any;
+          const row = (payload.new || payload.old) as { id: string } | undefined;
           if (!row) return;
-          const mapped = {
-            id: row.id as string,
-            userId: row.userId as string,
-          } as DayDiaryItem;
-          setItems((prev) => prev.filter((it) => it.id !== mapped.id));
+          const id = row.id as string;
+          setItems((prev) => prev.filter((it) => it.id !== id));
         },
       );
 
@@ -367,9 +367,9 @@ const DiaryByDayScreen: React.FC = () => {
       const mapped = list
         .map((d) => ({
           id: d.id,
-          userId: (d as any).userId,
+          userId: d.userId,
           content: d.content,
-          createdAt: (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
+          createdAt: toDate(d.createdAt as unknown as DateLike),
         }))
         .filter((it) => !blockedSet.has(it.userId));
       setItems(mapped);
@@ -410,12 +410,7 @@ const DiaryByDayScreen: React.FC = () => {
           authorAvatar={authorAvatar}
           averageDays={avgDays}
           onAuthorPress={(uid, uname) =>
-            navigateToUserDetail(
-              navigation as any,
-              uid,
-              uname ?? undefined,
-              undefined,
-            )
+            navigateToUserDetail(navigation, uid, uname ?? undefined, undefined)
           }
         />
       );
@@ -609,11 +604,9 @@ const DiaryByDayScreen: React.FC = () => {
                     const list = await DiaryService.getDiariesByDay(day, 200);
                     const mapped = list.map((d) => ({
                       id: d.id,
-                      userId: (d as any).userId,
+                      userId: d.userId,
                       content: d.content,
-                      createdAt:
-                        (d.createdAt as any)?.toDate?.() ||
-                        (d.createdAt as any),
+                      createdAt: toDate(d.createdAt as unknown as DateLike),
                     }));
                     setItems(mapped);
                     if (activeDay !== null && day === activeDay)
@@ -624,10 +617,10 @@ const DiaryByDayScreen: React.FC = () => {
                       refreshError,
                     );
                   }
-                } catch (e: any) {
+                } catch (e: unknown) {
                   Alert.alert(
                     "投稿できません",
-                    e?.message || "条件を満たしていません。",
+                    e instanceof Error ? e.message : "条件を満たしていません。",
                   );
                   return;
                 }

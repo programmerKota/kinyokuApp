@@ -338,7 +338,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     try {
       const { items, nextCursor } = await CommunityService.getRecentPostsPage(
         100,
-        cursor as any,
+        cursor as unknown as { id?: string; createdAt?: string },
       );
       if (items.length === 0) {
         setHasMore(false);
@@ -556,9 +556,10 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         // Reconcile optimistic UI with server result
         const prevState = (() => {
           try {
-            return (require("@shared/state/likeStore") as any).LikeStore.get(
-              postId,
-            );
+            const mod = require("@shared/state/likeStore") as {
+              LikeStore: { get: (id: string) => { isLiked: boolean; likes: number } | undefined };
+            };
+            return mod.LikeStore.get(postId);
           } catch {
             return undefined;
           }

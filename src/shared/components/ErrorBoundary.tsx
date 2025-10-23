@@ -29,7 +29,7 @@ export default class ErrorBoundary extends React.Component<
 
   render() {
     const { error, info } = this.state;
-    if (!error) return this.props.children as any;
+    if (!error) return this.props.children;
     return (
       <View style={styles.root}>
         <Text style={styles.title}>アプリでエラーが発生しました</Text>

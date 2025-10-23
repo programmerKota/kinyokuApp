@@ -5,6 +5,8 @@ import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes } from "@shared/theme/colors";
+import type { DateLike } from "@shared/utils/date";
 import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
@@ -14,7 +16,7 @@ type Props = {
   authorAvatar?: string;
   averageDays?: number;
   content: string;
-  createdAt: any;
+  createdAt: DateLike;
   onAuthorPress?: (uid: string, userName?: string) => void;
 };
 
@@ -29,7 +31,6 @@ const DiaryCard: React.FC<Props> = ({
 }) => {
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(mode), [mode]);
 

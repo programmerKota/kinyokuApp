@@ -11,27 +11,28 @@ import type {
   FirestoreTournamentParticipant,
 } from "../firestore/types";
 
-const toIso = (value: any | undefined | null): string | null => {
-  if (!value) return null;
+type DateLikeLoose = Date | string | number | { toDate?: () => Date } | null | undefined;
+
+const toIso = (value: DateLikeLoose): string | null => {
+  if (value == null) return null;
   try {
-    if (typeof value?.toDate === "function") {
-      // Firestore Timestamp-like
-      const d = value.toDate();
+    const maybe = value as { toDate?: () => Date };
+    if (maybe && typeof maybe.toDate === "function") {
+      const d = maybe.toDate();
       return d instanceof Date ? d.toISOString() : new Date(d).toISOString();
     }
     if (value instanceof Date) return value.toISOString();
-    if (typeof value === "string") return value;
-    // Fallback
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+    if (typeof value === "string" || typeof value === "number")
+      return new Date(value).toISOString();
+    const d = new Date();
+    return d.toISOString();
   } catch {
     return new Date().toISOString();
   }
 };
 
-const toTs = (value: string | null | undefined): any => {
-  // Consumer treats this as Firestore Timestamp; a Date is acceptable where only toDate() is used via helper
-  return value ? (new Date(value) as any) : (new Date() as any);
+const toTs = (value: string | null | undefined): Date => {
+  return value ? new Date(value) : new Date();
 };
 
 export class TournamentService {
@@ -77,8 +78,8 @@ export class TournamentService {
       ownerId: tournamentData.ownerId,
       status: tournamentData.status,
       recruitmentOpen: !!tournamentData.recruitmentOpen,
-      startDate: toIso(tournamentData.startDate as any),
-      endDate: toIso(tournamentData.endDate as any),
+      startDate: toIso(tournamentData.startDate),
+      endDate: toIso(tournamentData.endDate),
       createdAt: now,
       updatedAt: now,
     } as const;
@@ -88,7 +89,7 @@ export class TournamentService {
       .select("id")
       .single();
     if (error) throw error;
-    return (data as any).id as string;
+    return String((data as { id: string }).id);
   }
 
   static async getTournaments(): Promise<FirestoreTournament[]> {
@@ -118,13 +119,13 @@ export class TournamentService {
       .maybeSingle();
     if (error) throw error;
     if (!data) return null;
-    const row: any = data;
+    const row = data as Record<string, unknown>;
     return {
-      ...row,
-      startDate: toTs(row.startDate),
-      endDate: toTs(row.endDate),
-      createdAt: toTs(row.createdAt),
-      updatedAt: toTs(row.updatedAt),
+      ...(row as object),
+      startDate: toTs(row["startDate"] as string | null | undefined),
+      endDate: toTs(row["endDate"] as string | null | undefined),
+      createdAt: toTs(row["createdAt"] as string | null | undefined),
+      updatedAt: toTs(row["updatedAt"] as string | null | undefined),
     } as FirestoreTournament;
   }
 
@@ -195,7 +196,7 @@ export class TournamentService {
       .select("id")
       .single();
     if (error) throw error;
-    return (data as any).id as string;
+    return String((data as { id: string }).id);
   }
 
   static async requestJoin(
@@ -228,7 +229,7 @@ export class TournamentService {
       .select("id")
       .single();
     if (error) throw error;
-    return (data as any).id as string;
+    return String((data as { id: string }).id);
   }
 
   static async approveJoinRequest(requestId: string): Promise<void> {
@@ -290,30 +291,18 @@ export class TournamentService {
     }
 
     let current: FirestoreTournamentJoinRequest[] = [];
-    // 単回代入のため const に変更
-    const channel: ReturnType<typeof supabase.channel> =
-      supabase
-        .channel(`realtime:tournament_messages:new:${tournamentId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "tournament_messages",
-            filter: `tournamentId=eq.${tournamentId}`,
-          },
-          (payload: any) => {
-            const row = payload.new;
-            onInsert(row);
-          },
-        )
-        .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const emit = () => callback([...current]);
-    const sortDesc = (a: any, b: any) =>
-      String(b.createdAt as any).localeCompare(String(a.createdAt as any));
+    const sortDesc = (
+      a: import("../firestore/types").FirestoreTournamentJoinRequest,
+      b: import("../firestore/types").FirestoreTournamentJoinRequest,
+    ) => String(b.createdAt).localeCompare(String(a.createdAt));
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, unknown>,
+    ) => {
       if (!row || row.tournamentId !== tournamentId) return;
       // Keep only pending requests in the local list to match UI expectations
       if (type === "DELETE") {
@@ -329,7 +318,15 @@ export class TournamentService {
         emit();
         return;
       }
-      const item = { ...row, createdAt: toTs(row.createdAt) } as any;
+      const item = { ...row, createdAt: toTs(row.createdAt as string) } as {
+        id: string;
+        tournamentId: string;
+        userId: string;
+        userName: string;
+        userAvatar?: string;
+        status: "pending" | "approved" | "rejected";
+        createdAt: Date;
+      };
       if (idx >= 0) {
         const copy = [...current];
         copy[idx] = { ...copy[idx], ...item };
@@ -350,8 +347,10 @@ export class TournamentService {
       if (error) throw error;
       current = (data || []).map((row) => ({
         ...row,
-        createdAt: toTs((row as any).createdAt),
-      })) as any;
+        userAvatar: (row as { userAvatar?: string | null }).userAvatar ?? undefined,
+        status: (row as { status: "pending" | "approved" | "rejected" }).status,
+        createdAt: toTs((row as { createdAt?: string | null }).createdAt ?? null),
+      })) as unknown as FirestoreTournamentJoinRequest[];
       emit();
 
       channel = supabase
@@ -364,10 +363,10 @@ export class TournamentService {
             table: "tournament_join_requests",
             filter: `tournamentId=eq.${tournamentId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("INSERT", row);
+            applyChange("INSERT", row as Record<string, unknown>);
           },
         )
         .on(
@@ -378,10 +377,10 @@ export class TournamentService {
             table: "tournament_join_requests",
             filter: `tournamentId=eq.${tournamentId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("UPDATE", row);
+            applyChange("UPDATE", row as Record<string, unknown>);
           },
         )
         .on(
@@ -392,10 +391,10 @@ export class TournamentService {
             table: "tournament_join_requests",
             filter: `tournamentId=eq.${tournamentId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.old || undefined;
             if (!row) return;
-            applyChange("DELETE", row);
+            applyChange("DELETE", row as Record<string, unknown>);
           },
         )
         .subscribe();
@@ -455,9 +454,9 @@ export class TournamentService {
         createdAt: now,
       })
       .select("id")
-      .single();
+      .single<{ id: string }>();
     if (error) throw error;
-    return (data as any).id as string;
+    return String((data as { id: string }).id);
   }
 
   static async sendMessage(
@@ -470,8 +469,11 @@ export class TournamentService {
   static async getRecentMessages(
     tournamentId: string,
     pageSize: number,
-    afterCreatedAt?: any,
-  ): Promise<{ items: FirestoreTournamentMessage[]; nextCursor?: any }> {
+    afterCreatedAt?: string | Date,
+  ): Promise<{
+    items: FirestoreTournamentMessage[];
+    nextCursor?: Date | undefined;
+  }> {
     if (!supabaseConfig?.isConfigured)
       return { items: [], nextCursor: undefined };
     let q = supabase
@@ -498,7 +500,7 @@ export class TournamentService {
 
   static subscribeToNewMessages(
     tournamentId: string,
-    afterCreatedAt: any,
+    afterCreatedAt: string | Date,
     callback: (messages: FirestoreTournamentMessage[]) => void,
   ): Unsubscribe {
     if (!supabaseConfig?.isConfigured) {
@@ -508,13 +510,24 @@ export class TournamentService {
 
     let sinceIso = toIso(afterCreatedAt) || new Date(0).toISOString();
 
-    const onInsert = (row: any) => {
+    const onInsert = (row: Record<string, unknown>) => {
       if (!row || row.tournamentId !== tournamentId) return;
       const created = String(row.createdAt || new Date(0).toISOString());
       if (created <= sinceIso) return;
       sinceIso = created;
-      const msg = [{ ...row, createdAt: toTs(row.createdAt) }] as any;
-      callback(msg);
+    const msg: import("../firestore/types").FirestoreTournamentMessage[] = [
+      {
+        id: String((row as { id: string }).id),
+        tournamentId: String((row as { tournamentId: string }).tournamentId),
+        authorId: String((row as { authorId: string }).authorId),
+        authorName: String((row as { authorName: string }).authorName),
+        authorAvatar: (row as { authorAvatar?: string | null }).authorAvatar ?? undefined,
+        text: String((row as { text: string }).text),
+        type: String((row as { type: string }).type) as "text" | "system",
+        createdAt: toTs((row as { createdAt?: string | null }).createdAt ?? null),
+      },
+    ];
+    callback(msg);
     };
     const channel: ReturnType<typeof supabase.channel> = supabase
       .channel(`realtime:tournament_messages:new:${tournamentId}`)
@@ -526,10 +539,10 @@ export class TournamentService {
           table: "tournament_messages",
           filter: `tournamentId=eq.${tournamentId}`,
         },
-        (payload: any) => {
-          const row = payload.new;
-          onInsert(row);
-        },
+          (payload: { new?: unknown }) => {
+            const row = payload.new;
+            onInsert(row as Record<string, unknown>);
+          },
       )
       .subscribe();
     
@@ -551,18 +564,31 @@ export class TournamentService {
     let channel: ReturnType<typeof supabase.channel> | undefined;
 
     const emit = () => callback([...current]);
-    const sortDesc = (a: any, b: any) =>
-      String(b.createdAt as any).localeCompare(String(a.createdAt as any));
+    const sortDesc = (
+      a: import("../firestore/types").FirestoreTournament,
+      b: import("../firestore/types").FirestoreTournament,
+    ) => String(b.createdAt).localeCompare(String(a.createdAt));
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, unknown>,
+    ) => {
       if (!row) return;
       const item = {
-        ...row,
-        startDate: toTs(row.startDate),
-        endDate: toTs(row.endDate),
-        createdAt: toTs(row.createdAt),
-        updatedAt: toTs(row.updatedAt),
-      } as any;
+        id: String((row as { id: string }).id),
+        name: String((row as { name: string }).name),
+        description: String((row as { description: string }).description),
+        ownerId: String((row as { ownerId: string }).ownerId),
+        maxParticipants: Number((row as { maxParticipants: number }).maxParticipants),
+        entryFee: Number((row as { entryFee: number }).entryFee),
+        prizePool: Number((row as { prizePool: number }).prizePool),
+        status: String((row as { status: string }).status) as "upcoming" | "active" | "completed" | "cancelled",
+        recruitmentOpen: Boolean((row as { recruitmentOpen: boolean }).recruitmentOpen),
+        startDate: toTs((row as { startDate?: string | null }).startDate ?? null),
+        endDate: toTs((row as { endDate?: string | null }).endDate ?? null),
+        createdAt: toTs((row as { createdAt?: string | null }).createdAt ?? null),
+        updatedAt: toTs((row as { updatedAt?: string | null }).updatedAt ?? null),
+      } as import("../firestore/types").FirestoreTournament;
       if (type === "INSERT") {
         current = [item, ...current].sort(sortDesc);
       } else if (type === "UPDATE") {
@@ -589,28 +615,28 @@ export class TournamentService {
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "tournaments" },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("INSERT", row);
+            applyChange("INSERT", row as Record<string, unknown>);
           },
         )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "tournaments" },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("UPDATE", row);
+            applyChange("UPDATE", row as Record<string, unknown>);
           },
         )
         .on(
           "postgres_changes",
           { event: "DELETE", schema: "public", table: "tournaments" },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.old || undefined;
             if (!row) return;
-            applyChange("DELETE", row);
+            applyChange("DELETE", row as Record<string, unknown>);
           },
         )
         .subscribe();
@@ -678,10 +704,13 @@ export class TournamentService {
     let channel: ReturnType<typeof supabase.channel> | undefined;
 
     const emit = () => callback([...current]);
-    const sortAsc = (a: any, b: any) =>
-      String(a.joinedAt as any).localeCompare(String(b.joinedAt as any));
+    const sortAsc = (a: FirestoreTournamentParticipant, b: FirestoreTournamentParticipant) =>
+      String(a.joinedAt as Date).localeCompare(String(b.joinedAt as Date));
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, any>,
+    ) => {
       if (!row || row.tournamentId !== tournamentId) return;
       const item = {
         id: row.id,
@@ -694,7 +723,7 @@ export class TournamentService {
         leftAt: row.leftAt ? toTs(row.leftAt) : undefined,
         progressPercent: row.progressPercent,
         currentDay: row.currentDay,
-      } as any;
+      } as FirestoreTournamentParticipant;
       if (type === "INSERT") {
         current = [...current, item].sort(sortAsc);
       } else if (type === "UPDATE") {
@@ -720,17 +749,19 @@ export class TournamentService {
         .order("joinedAt", { ascending: true });
       if (error) throw error;
       current = (data || []).map((row) => ({
-        id: (row as any).id,
-        tournamentId: (row as any).tournamentId,
-        userId: (row as any).userId,
-        userName: (row as any).userName,
-        userAvatar: (row as any).userAvatar ?? undefined,
-        status: (row as any).status,
-        joinedAt: toTs((row as any).joinedAt),
-        leftAt: (row as any).leftAt ? toTs((row as any).leftAt) : undefined,
-        progressPercent: (row as any).progressPercent,
-        currentDay: (row as any).currentDay,
-      })) as any;
+        id: (row as { id: string }).id,
+        tournamentId: (row as { tournamentId: string }).tournamentId,
+        userId: (row as { userId: string }).userId,
+        userName: (row as { userName: string }).userName,
+        userAvatar: (row as { userAvatar?: string | null }).userAvatar ?? undefined,
+        status: (row as { status: FirestoreTournamentParticipant["status"] }).status,
+        joinedAt: toTs((row as { joinedAt?: string | null }).joinedAt ?? null),
+        leftAt: (row as { leftAt?: string | null }).leftAt
+          ? toTs((row as { leftAt?: string | null }).leftAt ?? null)
+          : undefined,
+        progressPercent: (row as { progressPercent?: number }).progressPercent,
+        currentDay: (row as { currentDay?: number }).currentDay,
+      })) as FirestoreTournamentParticipant[];
       emit();
 
       channel = supabase
@@ -743,12 +774,15 @@ export class TournamentService {
             table: "tournament_participants",
             filter: `tournamentId=eq.${tournamentId}`,
           },
-          (payload: any) => {
+          (payload: { eventType: string; new?: unknown; old?: unknown }) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
             const row =
-              (type === "DELETE" ? payload.old : payload.new) || undefined;
+              (type === "DELETE"
+                ? (payload.old as Record<string, unknown> | undefined)
+                : (payload.new as Record<string, unknown> | undefined)) ||
+              undefined;
             if (!row) return;
-            applyChange(type, row);
+            applyChange(type, row as Record<string, unknown>);
           },
         )
         .subscribe();
@@ -777,7 +811,7 @@ export class TournamentService {
     const { error: updErr } = await supabase
       .from("tournament_participants")
       .update({ status: "kicked", leftAt: new Date().toISOString() })
-      .eq("id", (data as any).id);
+      .eq("id", (data as { id: string }).id);
     if (updErr) throw updErr;
   }
 }

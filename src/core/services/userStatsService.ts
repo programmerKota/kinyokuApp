@@ -2,10 +2,15 @@ import { ChallengeService } from "./firestore";
 import { supabase } from "@app/config/supabase.config";
 // 仕様更新: ランキング/肩書きは履歴の平均ではなく「現在のチャレンジの記録」から算出する
 
-function toDateSafe(v: any): Date | undefined {
+function toDateSafe(v: unknown): Date | undefined {
   if (!v) return undefined;
   if (v instanceof Date) return v;
-  if (typeof v?.toDate === "function") return v.toDate();
+  const maybe = v as { toDate?: () => Date; getTime?: () => number };
+  if (maybe && typeof maybe.toDate === "function") {
+    try {
+      return maybe.toDate();
+    } catch {}
+  }
   return undefined;
 }
 
@@ -37,7 +42,7 @@ export class UserStatsService {
         });
         return 0;
       }
-      const start = toDateSafe((active as any).startedAt) ?? new Date();
+      const start = toDateSafe(active.startedAt) ?? new Date();
       const now = new Date();
       const days = Math.max(
         0,
@@ -88,7 +93,7 @@ export class UserStatsService {
         });
         return 0;
       }
-      const start = toDateSafe((active as any).startedAt) ?? new Date();
+      const start = toDateSafe(active.startedAt) ?? new Date();
       const now = new Date();
       const days = Math.max(
         0,
@@ -125,7 +130,7 @@ export class UserStatsService {
     try {
       const active = await ChallengeService.getActiveChallenge(userId);
       if (!active) return 0;
-      const started = toDateSafe((active as any).startedAt) ?? new Date();
+      const started = toDateSafe(active.startedAt) ?? new Date();
       const now = new Date();
       const days = Math.floor(
         (now.getTime() - started.getTime()) / (24 * 60 * 60 * 1000),
@@ -150,7 +155,7 @@ export class UserStatsService {
         { p_user_ids: ids },
       );
       if (!error && Array.isArray(data)) {
-        for (const row of data as any[]) {
+        for (const row of data as Array<{ user_id?: string; userId?: string; days?: number }>) {
           const id = String(row.user_id ?? row.userId ?? "");
           const days = Math.max(0, Number(row.days ?? 0));
           if (id) out.set(id, days);

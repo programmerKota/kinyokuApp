@@ -6,6 +6,7 @@ import AvatarImage from "@shared/components/AvatarImage";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import RelativeTime from "@shared/components/RelativeTime";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface ReplyCardProps {
@@ -16,7 +17,6 @@ interface ReplyCardProps {
 
 const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -49,7 +49,7 @@ const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       // 前の余白・背景に戻す（従来のレイアウトを維持）
@@ -105,8 +105,6 @@ export default React.memo(
   (a, b) =>
     a.reply.id === b.reply.id &&
     a.reply.content === b.reply.content &&
-    ((a.reply as any).authorName ?? "") ===
-      ((b.reply as any).authorName ?? "") &&
-    ((a.reply as any).authorAvatar ?? "") ===
-      ((b.reply as any).authorAvatar ?? ""),
+    (a.reply.authorName || "") === (b.reply.authorName || "") &&
+    (a.reply.authorAvatar || "") === (b.reply.authorAvatar || ""),
 );

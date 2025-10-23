@@ -47,7 +47,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [authing, setAuthing] = useState<
-    null | "login" | "signup" | "magic" | "reset"
+    null | "login" | "signup" | "magic" | "reset" | "oauth"
   >(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,7 +86,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const doLogin = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint("���[���A�h���X�ƃp�X���[�h����͂��Ă�������");
+      setEmailHint("メールアドレスとパスワードを入力してください");
       return;
     }
     try {
@@ -95,7 +95,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint("���[���A�h���X�܂��̓p�X���[�h������������܂���");
+      setEmailHint("メールアドレスまたはパスワードが正しくありません");
     } finally {
       setAuthing(null);
     }
@@ -103,7 +103,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const doSignup = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint("���[���A�h���X�ƃp�X���[�h����͂��Ă�������");
+      setEmailHint("メールアドレスとパスワードを入力してください");
       return;
     }
     try {
@@ -112,7 +112,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint("�T�C���A�b�v�Ɏ��s���܂���");
+      setEmailHint("ログインに失敗しました");
     } finally {
       setAuthing(null);
     }
@@ -120,19 +120,19 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleMagic = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint("���������[���A�h���X����͂��Ă�������");
+      setEmailHint("正しいメールアドレスを入力してください");
       return;
     }
     try {
       setAuthing("magic");
-      setEmailHint("���[���𑗐M���܂����B��M�g���C�����m�F��������");
+      setEmailHint("メールを送信しました。メールボックスをご確認ください");
       await sendMagicLink(email.trim(), {
         shouldCreateUser: mode === "signup",
       });
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint("���[���̑��M�Ɏ��s���܂����B���Ԃ������Ă�������������");
+      setEmailHint("メールの送信に失敗しました。時間をおいて再度お試しください");
     } finally {
       setAuthing(null);
     }
@@ -140,15 +140,15 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const doResetPassword = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint("���������[���A�h���X����͂��Ă�������");
+      setEmailHint("正しいメールアドレスを入力してください");
       return;
     }
     try {
       setAuthing("reset");
       await resetPassword(email.trim());
-      setEmailHint("�p�X���[�h�Đݒ胁�[���𑗐M���܂���");
+      setEmailHint("パスワード再設定メールを送信しました");
     } catch {
-      setEmailHint("�p�X���[�h�Đݒ胁�[���̑��M�Ɏ��s���܂���");
+      setEmailHint("パスワード再設定メールの送信に失敗しました");
     } finally {
       setAuthing(null);
     }
@@ -158,8 +158,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
   const startOAuth = useCallback(
     async (provider: "google" | "twitter" | "amazon" | "line") => {
       try {
-        setAuthing(provider as any);
-        await startOAuthFlow(provider as any);
+        setAuthing("oauth");
+        await startOAuthFlow(provider).finally(() => setAuthing(null));
       } finally {
         setAuthing(null);
       }
@@ -219,14 +219,14 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
               fontSize: typography.fontSize["2xl"],
             }}
           >
-            �悤����
+            ようこそ
           </Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 6 }}>
-            �A�J�E���g�Ƀ��O�C�����ċ@�\�𗘗p�ł��܂�
+            アカウントにログインして機能を利用できます
           </Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: spacing.lg }}>
             <DSButton
-              title="���O�C��"
+              title="ログイン"
               variant={mode === "login" ? "secondary" : "ghost"}
               onPress={() => setMode("login")}
               textColor={mode === "login" ? undefined : "white"}
@@ -237,7 +237,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
               }
             />
             <DSButton
-              title="�V�K�o�^"
+              title="新規登録"
               variant={mode === "signup" ? "secondary" : "ghost"}
               onPress={() => setMode("signup")}
               textColor={mode === "signup" ? undefined : "white"}
@@ -273,7 +273,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
             onBlur={() => setEmailFocus(false)}
           />
           <TextInput
-            placeholder="�p�X���[�h"
+            placeholder="パスワード"
             placeholderTextColor={colors.textSecondary}
             value={password}
             onChangeText={(t) => setPassword(t)}
@@ -294,16 +294,16 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
             <Text style={{ color: colors.error }}>{emailHint}</Text>
           ) : null}
 
-          {/* ���M��1��ɐ��� */}
+          {/* 送信ボタン1つに統一 */}
           <DSButton
             title={
               mode === "login"
                 ? authing === "login"
-                  ? "���O�C�����c"
-                  : "���O�C��"
+                  ? "ログイン中…"
+                  : "ログイン"
                 : authing === "signup"
-                  ? "�o�^���c"
-                  : "�V�K�o�^"
+                  ? "登録中…"
+                  : "新規登録"
             }
             onPress={() => {
               void (mode === "login" ? doLogin() : doSignup());
@@ -312,26 +312,26 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
             style={{ width: "100%" }}
           />
 
-          {/* �p�X���[�h��Y�ꂽ���͉��̃��[���������p�������� */}
+          {/* パスワードを忘れた場合は下のリンクをご利用ください */}
           <View style={{ alignItems: "center", marginTop: spacing.sm }}>
             {mode === "login" ? (
               <Text style={{ color: colors.textSecondary }}>
-                �A�J�E���g���K�v�ł����H
+                アカウントが必要ですか？
                 <Text
                   onPress={() => setMode("signup")}
                   style={{ color: colors.primary, fontWeight: "700" }}
                 >
-                  �V�K�o�^
+                  新規登録
                 </Text>
               </Text>
             ) : (
               <Text style={{ color: colors.textSecondary }}>
-                ���łɃA�J�E���g���������ł����H
+                すでにアカウントをお持ちですか？
                 <Text
                   onPress={() => setMode("login")}
                   style={{ color: colors.primary, fontWeight: "700" }}
                 >
-                  ���O�C��
+                  ログイン
                 </Text>
               </Text>
             )}
@@ -341,7 +341,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
             <View
               style={{ alignItems: "center", marginTop: spacing.sm, gap: 10 }}
             >
-              <Text style={{ color: colors.textSecondary }}>�܂���</Text>
+              <Text style={{ color: colors.textSecondary }}>または</Text>
               <Text
                 style={{
                   color: colors.textSecondary,
@@ -349,13 +349,14 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                   marginTop: 2,
                 }}
               >
-                ���̃A�J�E���g�Ń��O�C��
+                このアカウントでログイン
               </Text>
               <View style={{ flexDirection: "row", gap: 12, marginTop: 6 }}>
                 {oauthConfig.twitter && (
                   <Pressable
                     onPress={() => {
-                      void startOAuth("twitter");
+                      setAuthing("oauth");
+                      void startOAuth("twitter").finally(() => setAuthing(null));
                     }}
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.7 : 1,
@@ -379,7 +380,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                 {oauthConfig.google && (
                   <Pressable
                     onPress={() => {
-                      void startOAuth("google");
+                      setAuthing("oauth");
+                      void startOAuth("google").finally(() => setAuthing(null));
                     }}
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.7 : 1,
@@ -403,7 +405,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                 {oauthConfig.amazon && (
                   <Pressable
                     onPress={() => {
-                      void startOAuth("amazon");
+                      setAuthing("oauth");
+                      void startOAuth("amazon").finally(() => setAuthing(null));
                     }}
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.7 : 1,
@@ -428,7 +431,8 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                   <Pressable
                     accessibilityLabel="Sign in with LINE"
                     onPress={() => {
-                      void startOAuth("line");
+                      setAuthing("oauth");
+                      void startOAuth("line").finally(() => setAuthing(null));
                     }}
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.9 : 1,

@@ -54,7 +54,8 @@ export class FollowService {
       .select("followeeId")
       .eq("followerId", followerId);
     if (error) throw error;
-    return (data || []).map((r: any) => r.followeeId as string);
+    const rows = (data ?? []) as Array<{ followeeId: string }>;
+    return rows.map((r) => r.followeeId);
   }
 
   static async getFollowerUserIds(followeeId: string): Promise<string[]> {
@@ -64,7 +65,8 @@ export class FollowService {
       .select("followerId")
       .eq("followeeId", followeeId);
     if (error) throw error;
-    return (data || []).map((r: any) => r.followerId as string);
+    const rows = (data ?? []) as Array<{ followerId: string }>;
+    return rows.map((r) => r.followerId);
   }
 
   // 指定ユーザーのフォロー数/フォロワー数を取得
@@ -132,13 +134,7 @@ export class FollowService {
             table: "follows",
             filter: `followerId=eq.${effectiveFollowerId}`,
           },
-          async (payload: any) => {
-            const row = (payload.new || payload.old) as
-              | { followerId?: string }
-              | undefined;
-            if (!row) return;
-            // Extra guard: confirm event corresponds to the same effective follower
-            if ((row.followerId as any) !== effectiveFollowerId) return;
+          async (_payload: unknown) => {
             try {
               const userIds =
                 await FollowService.getFollowingUserIds(effectiveFollowerId);
@@ -156,7 +152,7 @@ export class FollowService {
             table: "follows",
             filter: `followerId=eq.${effectiveFollowerId}`,
           },
-          async (payload: any) => {
+          async (_payload: unknown) => {
             try {
               const userIds =
                 await FollowService.getFollowingUserIds(effectiveFollowerId);

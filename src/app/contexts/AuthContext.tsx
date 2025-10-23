@@ -50,6 +50,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const userService = UserService.getInstance();
 
+  type ProfileRow = {
+    displayName?: string | null;
+    photoURL?: string | null;
+  };
+
   const tryMigrateLegacyProfile = async (
     supaUid: string,
     legacyId: string,
@@ -61,19 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         .from("profiles")
         .select("displayName, photoURL")
         .eq("id", supaUid)
-        .maybeSingle();
-      if (newRow && ((newRow as any).displayName || (newRow as any).photoURL)) {
+        .maybeSingle<ProfileRow>();
+      if (newRow && (newRow.displayName || newRow.photoURL)) {
         return; // already has data; do not migrate
       }
       const { data: oldRow } = await supabase
         .from("profiles")
         .select("displayName, photoURL")
         .eq("id", legacyId)
-        .maybeSingle();
+        .maybeSingle<ProfileRow>();
       if (!oldRow) return;
       await FirestoreUserService.setUserProfile(supaUid, {
-        displayName: (oldRow as any).displayName || "User",
-        photoURL: (oldRow as any).photoURL || undefined,
+        displayName: oldRow.displayName || "User",
+        photoURL: oldRow.photoURL || undefined,
       });
       try {
         await supabase.from("profiles").delete().eq("id", legacyId);
@@ -113,19 +118,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             avatarUrl = undefined;
           }
           // Pull latest profile from Supabase if present
-          const profResult = (await withRetry(
+          const profResult = await withRetry(
             async () =>
               await supabase
                 .from("profiles")
                 .select("displayName, photoURL")
                 .eq("id", uid)
-                .maybeSingle(),
+                .maybeSingle<ProfileRow>(),
             { retries: 2, delayMs: 400 },
-          )) as { data: any; error: any };
-          const prof = profResult.data;
+          );
+          const prof = profResult.data ?? undefined;
           if (prof) {
-            displayName = (prof as any).displayName || displayName || "User";
-            avatarUrl = (prof as any).photoURL || avatarUrl;
+            displayName = prof.displayName || displayName || "User";
+            avatarUrl = prof.photoURL || avatarUrl;
           } else {
             // No profile row yet -> use safe defaults (avoid showing previous user's avatar)
             displayName = displayName || "User";
@@ -134,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // If profile row is missing or effectively empty, mark for profile setup modal
           try {
             const emptyProfile =
-              !prof || (!(prof as any).displayName && !(prof as any).photoURL);
+              !prof || (!prof.displayName && !prof.photoURL);
             if (emptyProfile) {
               await AsyncStorage.setItem("__post_signup_profile", "1");
             }
@@ -153,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         avatarVersion: 0,
         createdAt: now,
         updatedAt: now,
-      } as unknown as User;
+      };
       setUser(userData);
 
       // RevenueCat 登録（ベストエフォート）
@@ -165,10 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             // Supabaseのユーザー情報に email がある場合は反映（ないケースもある）
             email:
               (await supabase.auth.getUser()).data?.user?.email || undefined,
-            platform:
-              (typeof navigator !== "undefined"
-                ? "web"
-                : (Platform as any)?.OS) || "unknown",
+            platform: Platform.OS || "unknown",
           });
         }
       } catch {
@@ -203,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         avatarVersion: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as unknown as User;
+      };
       if (__DEV__) {
         try {
           console.log("AuthContext: fallbackUser", fallbackUser);
@@ -297,17 +299,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Update local AuthContext state immediately
-      setUser(
-        (prev) =>
-          ({
-            uid: suid || prev?.uid,
-            displayName,
-            avatarUrl: finalAvatar,
-            avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
-            createdAt: prev?.createdAt || new Date(),
-            updatedAt: new Date(),
-          }) as User,
-      );
+      setUser((prev) => {
+        const base: User = prev ?? {
+          uid: suid || "",
+          displayName,
+          avatarUrl: finalAvatar,
+          avatarVersion: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        return {
+          ...base,
+          uid: suid || base.uid,
+          displayName,
+          avatarUrl: finalAvatar,
+          avatarVersion: base.avatarVersion + (finalAvatar ? 1 : 0),
+          updatedAt: new Date(),
+        };
+      });
 
       // Prime ProfileCache so all screens reflect immediately (do not wait for Realtime)
       try {
@@ -327,10 +336,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             displayName,
             email:
               (await supabase.auth.getUser()).data?.user?.email || undefined,
-            platform:
-              (typeof navigator !== "undefined"
-                ? "web"
-                : (Platform as any)?.OS) || "unknown",
+            platform: Platform.OS || "unknown",
           });
         }
       } catch {

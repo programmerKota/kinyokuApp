@@ -77,21 +77,21 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({
 
     // Text（文字色）
     try {
-      const prev = (Text as any).defaultProps?.style;
-      (Text as any).defaultProps = (Text as any).defaultProps || {};
-      (Text as any).defaultProps.style = [{ color: defaultTextColor }, prev];
+      const T = Text as unknown as { defaultProps?: { style?: unknown } };
+      const prev = T.defaultProps?.style;
+      T.defaultProps = T.defaultProps || {};
+      T.defaultProps.style = [{ color: defaultTextColor }, prev];
     } catch {}
 
     // TextInput（文字色）
     try {
-      const prev = (TextInput as any).defaultProps?.style;
-      (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
-      (TextInput as any).defaultProps.style = [
-        { color: defaultTextColor },
-        prev,
-      ];
-      // placeholderTextColor は別プロップ
-      (TextInput as any).defaultProps.placeholderTextColor =
+      const TI = TextInput as unknown as {
+        defaultProps?: { style?: unknown; placeholderTextColor?: string };
+      };
+      const prev = TI.defaultProps?.style;
+      TI.defaultProps = TI.defaultProps || {};
+      TI.defaultProps.style = [{ color: defaultTextColor }, prev];
+      TI.defaultProps.placeholderTextColor =
         mode === "dark" ? "#9CA3AF" : "#94A3B8";
     } catch {}
 
@@ -100,15 +100,15 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({
     // 画面によっては上書き漏れで意図せぬ黒/白のベタ塗りが発生するため撤廃。
     // 各画面で container 背景色を明示指定する方針に変更。
     try {
-      const clearBg = (Comp: any) => {
-        const prev = Comp.defaultProps?.style;
-        Comp.defaultProps = Comp.defaultProps || {};
-        // 既存の default 背景指定は保持せず、透明にして個別スタイルの指定に委ねる
-        Comp.defaultProps.style = [{ backgroundColor: "transparent" }, prev];
+      const clearBg = (Comp: unknown) => {
+        const C = Comp as { defaultProps?: { style?: unknown } };
+        const prev = C.defaultProps?.style;
+        C.defaultProps = C.defaultProps || {};
+        C.defaultProps.style = [{ backgroundColor: "transparent" }, prev];
       };
-      clearBg(View as any);
-      clearBg(ScrollView as any);
-      clearBg(SafeAreaView as any);
+      clearBg(View);
+      clearBg(ScrollView);
+      clearBg(SafeAreaView as unknown as { defaultProps?: { style?: unknown } });
     } catch {}
   }, [mode, hydrated]);
 

@@ -25,9 +25,9 @@ export class DiaryService {
       .from("diaries")
       .insert({ userId: uid, content, createdAt: now, updatedAt: now })
       .select("id")
-      .single();
+      .single<{ id: string }>();
     if (error) throw error;
-    return (data as any).id as string;
+    return String(data.id);
   }
 
   static async addDiaryForActiveChallenge(
@@ -50,10 +50,7 @@ export class DiaryService {
       );
     }
 
-    const startedAt: Date =
-      (active.startedAt as any)?.toDate?.() ||
-      (active.startedAt as any) ||
-      new Date();
+    const startedAt: Date = active.startedAt;
     const now = new Date();
     const computedDay =
       Math.floor((now.getTime() - startedAt.getTime()) / (24 * 3600 * 1000)) +
@@ -92,9 +89,9 @@ export class DiaryService {
         updatedAt: iso,
       })
       .select("id")
-      .single();
+      .single<{ id: string }>();
     if (error) throw error;
-    return (data as any).id as string;
+    return String(data.id);
   }
 
   static async getDiariesByDay(

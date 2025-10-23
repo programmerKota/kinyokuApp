@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import type { RouteProp } from "@react-navigation/native";
 import {
   useRoute,
@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,12 +34,8 @@ import { getRankDisplayByDays } from "@core/services/rankService";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
-import {
-  spacing,
-  typography,
-  useAppTheme,
-  useThemedStyles,
-} from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 import { createUiStyles } from "@shared/ui/styles";
 import {
@@ -57,11 +54,10 @@ type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 
 const UserDetailScreen: React.FC = () => {
   const route = useRoute<UserDetailRouteProp>();
-  const navigation = useNavigation();
-  const { userId, userName, userAvatar } = route.params || ({} as any);
+  const navigation = useNavigation<import("@react-navigation/stack").StackNavigationProp<import("@app/navigation/RootNavigator").RootStackParamList>>();
+  const { userId, userName, userAvatar } = route.params;
   const { user } = useAuth();
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = React.useMemo(() => colorSchemes[mode], [mode]);
   const uiStyles = useThemedStyles(createUiStyles);
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -91,6 +87,7 @@ const UserDetailScreen: React.FC = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const { requireAuth } = useAuthPrompt();
+  const [refreshing, setRefreshing] = useState(false);
   // 相対時間表示は各セル内の RelativeTime コンポーネントで個別に更新
   // 相対時間更新は各セル側で行うため、画面全体の毎秒再レンダは不要
 
@@ -139,7 +136,7 @@ const UserDetailScreen: React.FC = () => {
 
   // Initialize LikeStore from server state once; do not override user taps
   useEffect(() => {
-    let timer: any | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     (async () => {
       try {
         const { LikeStore } = await import("@shared/state/likeStore");
@@ -244,7 +241,7 @@ const UserDetailScreen: React.FC = () => {
           ({
             isLiked: likedPosts.has(postId),
             likes: postsData.find((p) => p.id === postId)?.likes || 0,
-          } as any);
+          });
         const nextIsLiked = !cur.isLiked;
         const nextLikes = Math.max(
           0,
@@ -413,6 +410,33 @@ const UserDetailScreen: React.FC = () => {
           replyCounts={replyCounts}
           authorAverageDays={averageDays}
           allowBlockedReplies={true}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                void (async () => {
+                  try {
+                    setRefreshing(true);
+                    const list = await CommunityService.getUserPosts(userId);
+                    const normalized = normalizeCommunityPostsFirestore(list);
+                    setPostsData(normalized);
+                    setReplyCounts(buildReplyCountMapFromPosts(normalized));
+                    if (user) {
+                      try {
+                        const ids = normalized.map((p) => p.id);
+                        const set = await CommunityService.getLikedPostIds(user.uid, ids);
+                        setLikedPosts(set);
+                      } catch {}
+                    }
+                  } catch (e) {
+                    console.warn("refresh user posts failed", e);
+                  } finally {
+                    setRefreshing(false);
+                  }
+                })();
+              }}
+            />
+          }
           headerComponent={
             <View>
               <View style={styles.profileHeaderCenter}>
@@ -484,7 +508,7 @@ const UserDetailScreen: React.FC = () => {
                   style={styles.statItem}
                   activeOpacity={0.8}
                   onPress={() =>
-                    (navigation as any).navigate("FollowList", {
+                    navigation.navigate("FollowList", {
                       userId,
                       userName: name,
                       mode: "following",
@@ -499,7 +523,7 @@ const UserDetailScreen: React.FC = () => {
                   style={styles.statItem}
                   activeOpacity={0.8}
                   onPress={() =>
-                    (navigation as any).navigate("FollowList", {
+                    navigation.navigate("FollowList", {
                       userId,
                       userName: name,
                       mode: "followers",
@@ -517,9 +541,7 @@ const UserDetailScreen: React.FC = () => {
           }}
           onComment={handleComment}
           onReply={handleReply}
-          onUserPress={(uid, uname) =>
-            handlePostPress({ authorId: uid, authorName: uname } as any)
-          }
+          onUserPress={(uid, uname) => navigateToUserDetail(navigation, uid, uname)}
           listStyle={{ flex: 1 }}
           contentContainerStyle={uiStyles.listContainer}
           onEndReached={() => {
@@ -549,7 +571,7 @@ const UserDetailScreen: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -800,7 +822,7 @@ const createStyles = (colors: any) =>
     replyCancelText: {
       fontSize: typography.fontSize.sm,
       color: colors.textSecondary,
-      fontWeight: typography.fontWeight.medium as any,
+      fontWeight: typography.fontWeight.medium,
     },
     replySubmitButton: {
       backgroundColor: colors.primary,
@@ -814,7 +836,7 @@ const createStyles = (colors: any) =>
     replySubmitText: {
       fontSize: typography.fontSize.sm,
       color: colors.white,
-      fontWeight: typography.fontWeight.semibold as any,
+      fontWeight: typography.fontWeight.semibold,
     },
     replySubmitTextDisabled: { color: colors.gray500 },
     // stats

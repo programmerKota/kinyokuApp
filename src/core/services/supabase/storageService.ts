@@ -71,7 +71,7 @@ export async function uploadUserAvatar(
   const uid = await getUid();
 
   // If a data URL is provided (iOS対応: ph://を回避)、直接バイト列へ
-  let payload: any;
+  let payload: Blob | ArrayBuffer | File;
   let contentType: string | undefined;
   if (isDataUrl(localUri)) {
     const parsed = parseDataUrl(localUri);
@@ -87,7 +87,7 @@ export async function uploadUserAvatar(
     } catch {
       // ignore
     }
-    if (!blob || (blob as any).size === 0) {
+    if (!blob || blob.size === 0) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const FileSystem = require("expo-file-system");
@@ -98,18 +98,20 @@ export async function uploadUserAvatar(
         contentType = "image/jpeg"; // best-effort
       } catch (e) {
         throw new Error(
-          `EMPTY_FILE: unable to read local file. detail=${(e as any)?.message || e}`,
+          `EMPTY_FILE: unable to read local file. detail=${
+            e instanceof Error ? e.message : String(e)
+          }`,
         );
       }
     } else {
-      contentType = (blob as any).type || "image/jpeg";
+      contentType = blob.type || "image/jpeg";
       // Prefer File when available to preserve metadata; otherwise use Blob directly
       payload =
         typeof File !== "undefined"
-          ? new File([blob as any], `avatar.${extFromType(contentType)}`, {
+          ? new File([blob], `avatar.${extFromType(contentType)}`, {
               type: contentType,
             })
-          : (blob as any);
+          : blob;
     }
   }
   const ext = extFromType(contentType);
@@ -118,7 +120,7 @@ export async function uploadUserAvatar(
   const key = `${uid}/avatar.${ext}`;
 
   // Try upload with upsert; fall back to update if storage returns a 4xx (e.g., exists)
-  let upErr: any | null = null;
+  let upErr: unknown | null = null;
   try {
     const { error } = await supabase.storage
       .from(AVATARS_BUCKET)
@@ -128,8 +130,8 @@ export async function uploadUserAvatar(
         cacheControl: "31536000",
       });
     upErr = error ?? null;
-  } catch (e: any) {
-    upErr = e;
+  } catch (e) {
+    upErr = e as unknown;
   }
 
   if (upErr) {
@@ -144,13 +146,8 @@ export async function uploadUserAvatar(
     if (updErr) {
       // surface better diagnostics (型安全に文字列化)
       const upErrMsg =
-        typeof (upErr as any)?.message === "string"
-          ? (upErr as any).message
-          : String(upErr);
-      const updErrMsg =
-        typeof (updErr as any)?.message === "string"
-          ? (updErr as any).message
-          : String(updErr);
+        upErr instanceof Error ? upErr.message : String(upErr);
+      const updErrMsg = updErr instanceof Error ? updErr.message : String(updErr);
       const msg = `UPLOAD_FAILED: ${upErrMsg} / UPDATE_FAILED: ${updErrMsg}`;
       throw new Error(msg);
     }

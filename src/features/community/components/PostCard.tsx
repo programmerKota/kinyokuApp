@@ -7,12 +7,8 @@ import type { CommunityPost } from "@project-types";
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import {
-  spacing,
-  typography,
-  useAppTheme,
-  useThemedStyles,
-} from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
@@ -41,7 +37,6 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = React.useMemo(() => colorSchemes[mode], [mode]);
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
@@ -110,7 +105,7 @@ const PostCard: React.FC<PostCardProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       backgroundColor: colors.backgroundSecondary,

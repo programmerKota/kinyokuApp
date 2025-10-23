@@ -21,7 +21,7 @@ export const PenaltyPaywall: React.FC<{
     transactionId?: string;
     productIdentifier?: string;
   }) => void;
-  onError?: (e: any) => void;
+  onError?: (e: unknown) => void;
 }> = ({ amountJPY, visible, onPaid, onError }) => {
   const [loading, setLoading] = useState(true);
   const [pkg, setPkg] = useState<PenaltyPackage | null>(null);
@@ -51,7 +51,7 @@ export const PenaltyPaywall: React.FC<{
             status: "error",
             amount: amountJPY,
             platform: Platform.OS,
-            errorMessage: String((e as any)?.message || e),
+            errorMessage: String(e instanceof Error ? e.message : e),
           });
         } catch {}
       } finally {
@@ -117,7 +117,7 @@ export const PenaltyPaywall: React.FC<{
                       amount: pkg?.price,
                       productId: pkg?.identifier,
                       platform: Platform.OS,
-                      errorMessage: String((e as any)?.message || e),
+                      errorMessage: String(e instanceof Error ? e.message : e),
                       raw: e,
                     });
                   } catch {}

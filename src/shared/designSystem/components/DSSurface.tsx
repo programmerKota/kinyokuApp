@@ -13,7 +13,7 @@ const DSSurface: React.FC<Props> = ({
   children,
   elevation = "base",
 }) => {
-  const shadow = (shadows as any)[elevation] ?? shadows.base;
+  const shadow = shadows[elevation] ?? shadows.base;
   return (
     <View
       style={[

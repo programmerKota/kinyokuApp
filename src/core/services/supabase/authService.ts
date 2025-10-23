@@ -18,9 +18,9 @@ export const getRedirectTo = () => {
     if (
       Platform.OS === "web" &&
       typeof window !== "undefined" &&
-      (window as any)?.location?.origin
+      (window as unknown as { location?: { origin?: string } })?.location?.origin
     ) {
-      const url = `${(window as any).location.origin}/auth/callback`;
+      const url = `${(window as unknown as { location: { origin: string } }).location.origin}/auth/callback`;
       if (__DEV__) {
         try {
           console.log("[getRedirectTo] Mode: Web, URL:", url);
@@ -30,14 +30,14 @@ export const getRedirectTo = () => {
     }
 
     // Check if running in Expo Go
-    const isExpoGo = (Constants as any)?.appOwnership === "expo";
+    const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
 
     if (isExpoGo) {
       // In Expo Go, use expo-auth-session proxy.
       // Ensure you’ve added the resulting URL to Supabase Redirect URLs:
       //   https://auth.expo.io/@<owner>/<slug>
       // useProxy option exists at runtime; cast to any to avoid type drift across SDKs
-      const url = (makeRedirectUri as any)({ useProxy: true });
+      const url = makeRedirectUri();
       if (__DEV__) {
         try {
           console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url);
@@ -48,8 +48,9 @@ export const getRedirectTo = () => {
 
     // In EAS Dev Client or standalone build, use custom scheme
     const scheme =
-      (Constants?.expoConfig as any)?.scheme ||
-      (Constants as any)?.manifest?.scheme ||
+      ((Constants?.expoConfig as unknown) as { scheme?: string })?.scheme ||
+      ((Constants as unknown) as { manifest?: { scheme?: string } })?.manifest
+        ?.scheme ||
       "abstinence";
 
     const url = `${scheme}://auth/callback`;
@@ -136,7 +137,13 @@ export async function initSupabaseAuthDeepLinks() {
       // Magic link / Email verification: token_hash + type
       const token_hash =
         (qp?.token_hash as string) || (hp?.token_hash as string) || "";
-      const type = ((qp?.type as string) || (hp?.type as string) || "") as any;
+      const type = ((qp?.type as string) || (hp?.type as string) || "") as
+        | "recovery"
+        | "signup"
+        | "invite"
+        | "magiclink"
+        | "email_change"
+        | "email";
       // Flag pending password recovery so UI can prompt even if event name differs
       if (type === "recovery") {
         try {
@@ -146,7 +153,11 @@ export async function initSupabaseAuthDeepLinks() {
       if (token_hash && type) {
         const email =
           (qp?.email as string) || (hp?.email as string) || "" || undefined;
-        await supabase.auth.verifyOtp({ type, token_hash, email } as any);
+        await supabase.auth.verifyOtp(
+          { type, token_hash, email } as unknown as Parameters<
+            typeof supabase.auth.verifyOtp
+          >[0],
+        );
         if (__DEV__) {
           try {
             console.log("[auth] verifyOtp via token_hash ok");
@@ -199,7 +210,7 @@ export async function sendMagicLink(
       emailRedirectTo: redirectTo,
       // login用は false、signup用は true を明示
       shouldCreateUser: opts?.shouldCreateUser ?? false,
-    } as any,
+    },
   });
   if (error) throw error;
 }
@@ -250,8 +261,14 @@ export async function startOAuthFlow(
   provider: "google" | "apple" | "twitter" | "amazon" | "line",
 ) {
   const redirectTo = getRedirectTo();
+  if (provider === "line") {
+    throw new Error("PROVIDER_NOT_SUPPORTED: line");
+  }
+  type SupaProvider = Parameters<
+    typeof supabase.auth.signInWithOAuth
+  >[0]["provider"];
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: provider as any,
+    provider: provider as unknown as SupaProvider,
     options: {
       redirectTo,
       skipBrowserRedirect: Platform.OS !== "web",
@@ -268,7 +285,8 @@ export async function startOAuthFlow(
 
   if (Platform.OS === "web") {
     try {
-      (window as any).location.href = data.url;
+      (window as unknown as { location: { href: string } }).location.href =
+        data.url;
     } catch {}
     return;
   }

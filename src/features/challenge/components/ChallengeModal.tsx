@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -262,7 +262,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     // モーダルコンテンツ
     modalContent: {
@@ -477,3 +477,4 @@ const createStyles = (colors: any) =>
   });
 
 export default ChallengeModal;
+

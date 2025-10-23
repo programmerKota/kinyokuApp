@@ -7,9 +7,9 @@ let configured = false;
 const DEV_MODE = process.env.EXPO_PUBLIC_PAYMENTS_DEV_MODE === "true";
 let MOCK_MODE = false; // true when no RC key is provided (graceful fallback)
 
-const extra: Record<string, any> =
-  (Constants?.expoConfig as any)?.extra ??
-  (Constants as any)?.manifestExtra ??
+const extra: Record<string, unknown> =
+  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
+  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
   {};
 const parseCsv = (v: unknown): string[] => {
   if (typeof v !== "string") return [];
@@ -25,7 +25,7 @@ const FALLBACK_PRODUCT_IDS = parseCsv(
 async function ensureConfigured() {
   if (configured) return;
   // Avoid RevenueCat in Expo Go (SDK switches to Web Billing mode and requires a different key)
-  const isExpoGo = (Constants as any)?.appOwnership === "expo";
+  const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
   if (Platform.OS === "web" || DEV_MODE || isExpoGo) {
     MOCK_MODE = true;
     configured = true;
@@ -53,7 +53,7 @@ async function ensureConfigured() {
   configured = true;
 }
 
-export type PenaltyPackage = { identifier: string; price: number; raw: any };
+export type PenaltyPackage = { identifier: string; price: number; raw: unknown };
 
 export const PurchasesService = {
   async registerUser(params: {
@@ -77,7 +77,7 @@ export const PurchasesService = {
         Object.keys(attrs).length > 0 &&
         typeof Purchases.setAttributes === "function"
       ) {
-        await Purchases.setAttributes(attrs as any);
+        await Purchases.setAttributes(attrs);
       }
       try {
         const { PaymentFirestoreService } = await import(
@@ -103,15 +103,16 @@ export const PurchasesService = {
     const Purchases = (await import("react-native-purchases")).default;
 
     // Try: Offerings → fallback to direct product lookup → final mock
-    let list: any[] = [];
+    let list: Array<{ identifier: string; product?: { price: number } }> = [];
     try {
       const offerings = await Purchases.getOfferings();
-      const all: any = (offerings?.all as any) ?? {};
+      const all = (offerings?.all ?? {}) as Record<string, { availablePackages?: unknown[] }>;
       const off =
-        all?.[revenuecatConfig.penaltyOfferingKey] ??
-        (offerings?.current as any) ??
-        null;
-      list = off?.availablePackages ?? [];
+        all?.[revenuecatConfig.penaltyOfferingKey] ?? offerings?.current ?? null;
+      list = (off?.availablePackages ?? []) as Array<{
+        identifier: string;
+        product: { price: number };
+      }>;
     } catch {
       // ignore and fallback to direct product fetch below
     }
@@ -121,7 +122,8 @@ export const PurchasesService = {
         const productIds = FALLBACK_PRODUCT_IDS.length
           ? FALLBACK_PRODUCT_IDS
           : ["penalty_10", "penalty_100", "penalty_1000", "penalty_10000"];
-        const products: any[] = await Purchases.getProducts(productIds as any);
+        const products: Array<{ identifier: string; price: number }> =
+          await Purchases.getProducts(productIds);
         if (!products?.length) {
           return {
             identifier: `mock_${targetJPY}`,
@@ -130,14 +132,10 @@ export const PurchasesService = {
           } as PenaltyPackage;
         }
         const candidates = products
-          .map((prod: any) => ({
-            id: prod.identifier as string,
-            price: Number(prod.price) || 0,
-            raw: prod,
-          }))
-          .sort((a: any, b: any) => a.price - b.price);
+          .map((prod) => ({ id: prod.identifier, price: Number(prod.price) || 0, raw: prod }))
+          .sort((a, b) => a.price - b.price);
         const pick =
-          candidates.find((c: any) => c.price >= targetJPY) ??
+          candidates.find((c) => c.price >= targetJPY) ??
           candidates[candidates.length - 1];
         return {
           identifier: pick.id,
@@ -152,12 +150,10 @@ export const PurchasesService = {
         } as PenaltyPackage;
       }
     }
-    type Candidate = { id: string; price: number; raw: any };
-    const candidates: Candidate[] = list.map((pkg: any) => ({
-      id: pkg.identifier,
-      price: pkg.product.price,
-      raw: pkg,
-    }));
+    type Candidate = { id: string; price: number; raw: unknown };
+    const candidates: Candidate[] = (list as Array<{ identifier: string; product?: { price: number } }>).map(
+      (pkg) => ({ id: pkg.identifier, price: Number(pkg.product?.price) || 0, raw: pkg }),
+    );
     const sorted = candidates.sort(
       (a: Candidate, b: Candidate) => a.price - b.price,
     );
@@ -184,7 +180,7 @@ export const PurchasesService = {
       };
     }
     const Purchases = (await import("react-native-purchases")).default;
-    let result: any;
+    let result: unknown;
     try {
       if (p?.identifier?.startsWith?.("mock_") || !p?.raw) {
         // Simulated flow (no charge)
@@ -195,32 +191,33 @@ export const PurchasesService = {
           productIdentifier: p.identifier,
         };
       }
-      if (p?.raw && typeof p.raw === "object" && "product" in p.raw) {
+      if (p?.raw && typeof p.raw === "object" && "product" in (p.raw as Record<string, unknown>)) {
         // RevenueCat Package
-        result = await Purchases.purchasePackage(p.raw);
+        const pkg = p.raw as import("react-native-purchases").PurchasesPackage;
+        result = await Purchases.purchasePackage(pkg);
       } else {
         // Fallback: purchase by product identifier
         result = await Purchases.purchaseProduct(p.identifier);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Distinguish user-cancel vs other errors when possible
       const cancelled = !!(
-        e?.userCancelled ||
-        e?.code === "PURCHASE_CANCELLED_ERROR" ||
-        e?.code === 1
+        (e as { userCancelled?: boolean })?.userCancelled ||
+        (e as { code?: string | number })?.code === "PURCHASE_CANCELLED_ERROR" ||
+        (e as { code?: string | number })?.code === 1
       );
       return {
         success: false,
         transactionId: undefined,
         productIdentifier: p?.identifier,
         cancelled,
-        errorCode: e?.code,
+        errorCode: (e as { code?: string | number })?.code,
       };
     }
     const productIdentifier: string | undefined =
-      result?.productIdentifier ?? p.identifier;
+      (result as { productIdentifier?: string })?.productIdentifier ?? p.identifier;
     // RevenueCat SDK does not expose a platform transaction id in all cases; store product id as reference
-    const success = !!result?.customerInfo;
+    const success = !!(result as { customerInfo?: unknown })?.customerInfo;
     return { success, transactionId: productIdentifier, productIdentifier };
   },
 

@@ -174,8 +174,8 @@ const RankingScreen: React.FC = () => {
       const hasProfile = profilesMap.has(r.id);
       return {
         ...r,
-        name: (p?.displayName ?? (hasProfile ? r.name : "ユーザー")) as any,
-        avatar: (p?.photoURL ?? r.avatar) as any,
+        name: p?.displayName ?? (hasProfile ? r.name : "ユーザー"),
+        avatar: p?.photoURL ?? r.avatar,
       } as UserRanking;
     });
   }, [rankings, profilesMap]);

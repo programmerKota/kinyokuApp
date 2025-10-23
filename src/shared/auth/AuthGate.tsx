@@ -15,7 +15,8 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
         if (window.localStorage?.getItem("__e2e_auth_bypass") === "1")
           return true;
         try {
-          if ((window.navigator as any)?.webdriver) return true;
+        if ((window.navigator as unknown as { webdriver?: boolean })?.webdriver)
+          return true;
         } catch {}
       }
     } catch {}

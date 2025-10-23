@@ -65,7 +65,7 @@ export class BlockService {
       return () => {};
     }
     let cancelled = false;
-    let timer: any;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     const tick = async () => {
       try {
@@ -76,7 +76,7 @@ export class BlockService {
           .select("blockedId")
           .eq("blockerId", uid);
         if (error) throw error;
-        if (!cancelled) callback((data || []).map((r: any) => r.blockedId));
+        if (!cancelled) callback((data || []).map((r: { blockedId: string }) => r.blockedId));
       } catch (e) {
         Logger.warn("BlockService.tick", e);
       } finally {

@@ -3,7 +3,14 @@ import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 // Firebase Timestamp は使用せず Date を利用
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { StyleSheet, TouchableOpacity, Alert, Text, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Text,
+  View,
+  RefreshControl,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
@@ -63,9 +70,12 @@ const TournamentsScreen: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [myIds, setMyIds] = useState<Set<string>>(new Set());
-  const [profilesMap, setProfilesMap] = useState<Map<string, any>>(new Map());
+  const [profilesMap, setProfilesMap] = useState<
+    Map<string, import("@core/services/profileCache").UserProfileLite | undefined>
+  >(new Map());
   const [profilesUnsub, setProfilesUnsub] = useState<(() => void) | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [confirm, setConfirm] = useState<{
     visible: boolean;
     title?: string;
@@ -170,7 +180,7 @@ const TournamentsScreen: React.FC = () => {
                       owner = {
                         displayName: ownerPart.userName,
                         photoURL: ownerPart.userAvatar ?? undefined,
-                      } as any;
+                      };
                     }
                   } catch {
                     /* noop */
@@ -305,8 +315,8 @@ const TournamentsScreen: React.FC = () => {
           // maxParticipants / entryFee / prizePool は未使用のため送らない
           status: "upcoming",
           recruitmentOpen: true,
-          startDate: now as any,
-          endDate: endDate as any,
+          startDate: now,
+          endDate: endDate,
         });
 
         // 作成者を参加者へ追加して UI を更新
@@ -453,6 +463,86 @@ const TournamentsScreen: React.FC = () => {
         maxToRenderPerBatch={5}
         windowSize={10}
         initialNumToRender={10}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              void (async () => {
+                try {
+                  setRefreshing(true);
+                  // 最新一覧取得
+                  const firestoreTournaments = await TournamentService.getTournaments();
+                  // 参加者キャッシュ更新
+                  const tournamentIds = firestoreTournaments.map((t) => t.id);
+                  try {
+                    await participantsActions.refreshParticipants(tournamentIds);
+                  } catch {}
+                  // 自分のID
+                  let currentUserId: string | undefined;
+                  try {
+                    currentUserId = await FirestoreUserService.getCurrentUserId();
+                  } catch {}
+                  // 画面表示用に整形
+                  const converted: Tournament[] = await Promise.all(
+                    firestoreTournaments.map(async (t) => {
+                      const participants = participantsActions.getParticipants(t.id);
+                      const isJoined = !!(
+                        (currentUserId && t.ownerId === currentUserId) ||
+                        participants.some((p) => p.userId === currentUserId)
+                      );
+                      const participantCount = participants.some((p) => p.userId === t.ownerId)
+                        ? participants.length
+                        : participants.length + 1;
+                      let ownerName: string | undefined;
+                      let ownerAvatar: string | undefined;
+                      try {
+                        const owner = await FirestoreUserService.getUserById(t.ownerId);
+                        if (owner) {
+                          ownerName = owner.displayName || ownerName;
+                          ownerAvatar = owner.photoURL || ownerAvatar;
+                        } else {
+                          const ownerPart = participants.find((p) => p.userId === t.ownerId);
+                          if (ownerPart) {
+                            ownerName = ownerPart.userName || ownerName;
+                            ownerAvatar = ownerPart.userAvatar || ownerAvatar;
+                          }
+                        }
+                      } catch {
+                        const ownerPart = participants.find((p) => p.userId === t.ownerId);
+                        if (ownerPart) {
+                          ownerName = ownerPart.userName || ownerName;
+                          ownerAvatar = ownerPart.userAvatar || ownerAvatar;
+                        }
+                      }
+                      return {
+                        id: t.id,
+                        name: t.name,
+                        description: t.description,
+                        participantCount,
+                        status: t.status,
+                        isJoined,
+                        ownerId: t.ownerId,
+                        ownerName: (ownerName ?? "ユーザー"),
+                        ownerAvatar,
+                        recruitmentOpen: t.recruitmentOpen ?? true,
+                        requestPending: false,
+                      } as Tournament;
+                    }),
+                  );
+                  setTournaments(converted);
+                } catch (error) {
+                  handleError(
+                    error,
+                    { component: "TournamentsScreen", action: "pullToRefresh" },
+                    { fallbackMessage: "更新に失敗しました" },
+                  );
+                } finally {
+                  setRefreshing(false);
+                }
+              })();
+            }}
+          />
+        }
       />
 
       {/* 作成ボタン（アクションボタン） */}

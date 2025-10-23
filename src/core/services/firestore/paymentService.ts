@@ -37,10 +37,14 @@ export class PaymentFirestoreService {
       .eq("userId", uid)
       .order("createdAt", { ascending: false });
     if (error) throw error;
-    const list = (data || []).map((d: any) => ({
-      ...d,
-      createdAt: d.createdAt ? new Date(d.createdAt) : undefined,
-      updatedAt: d.updatedAt ? new Date(d.updatedAt) : undefined,
+    const list = (data || []).map((d) => ({
+      ...(d as Record<string, unknown>),
+      createdAt: (d as { createdAt?: string | Date }).createdAt
+        ? new Date((d as { createdAt?: string | Date }).createdAt as string | Date)
+        : undefined,
+      updatedAt: (d as { updatedAt?: string | Date }).updatedAt
+        ? new Date((d as { updatedAt?: string | Date }).updatedAt as string | Date)
+        : undefined,
     })) as FirestorePayment[];
     return list;
   }

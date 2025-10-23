@@ -36,6 +36,7 @@ import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView"
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { toDate } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
@@ -66,14 +67,16 @@ interface Participant {
 
 // FlatList の renderItem 内でフックを呼ぶと "Invalid hook call" になるため、
 // 個別行をコンポーネント化してここでフックを使う。
+type Styles = ReturnType<typeof createStyles>;
+
 const ParticipantRow: React.FC<{
   item: Participant;
   avgDays: number;
   onPress: (p: Participant) => void;
   canKick: boolean;
   onKick: (p: Participant) => void;
-  styles: any;
-  colors: any;
+  styles: Styles;
+  colors: ColorPalette;
 }> = memo(({ item, avgDays, onPress, canKick, onKick, styles, colors }) => {
   const { name, avatar } = useDisplayProfile(item.id, item.name, item.avatar);
   return (
@@ -177,7 +180,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
           })),
         );
         // 新着を購読（最新のcreatedAt以降）
-        const latestTs = latestDesc[0]?.createdAt as any;
+        const latestTs = latestDesc[0]?.createdAt;
         if (latestTs) {
           unsubNew = TournamentService.subscribeToNewMessages(
             tournamentId,
@@ -217,7 +220,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
     };
   }, [tournamentId]);
 
-  const [olderCursor, setOlderCursor] = useState<any | undefined>(undefined);
+  const [olderCursor, setOlderCursor] = useState<Date | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadOlder = async () => {
     if (loadingMore || !olderCursor) return;

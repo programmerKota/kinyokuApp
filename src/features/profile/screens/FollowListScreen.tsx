@@ -1,6 +1,8 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import type { RouteProp } from "@react-navigation/native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -16,6 +18,7 @@ import { FollowService } from "@core/services/firestore";
 import ProfileCache from "@core/services/profileCache";
 import AvatarImage from "@shared/components/AvatarImage";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { getRankDisplayByDays } from "@core/services/rankService";
 import { UserStatsService } from "@core/services/userStatsService";
@@ -34,20 +37,21 @@ type ParamList = {
 type FollowListRouteProp = RouteProp<ParamList, "FollowList">;
 
 const FollowListScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<FollowListRouteProp>();
-  const { userId, userName, mode } = route.params || ({} as any);
+  const { userId, userName, mode } = route.params;
   const { user } = useAuth();
   const followingSet = useFollowingIds();
   const { requireAuth } = useAuthPrompt();
   const { mode: themeMode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const title = mode === "following" ? "フォロー" : "フォロワー";
   const [ids, setIds] = useState<string[]>([]);
-  const [profiles, setProfiles] = useState<Map<string, any>>(new Map());
+  const [profiles, setProfiles] = useState<
+    Map<string, import("@core/services/profileCache").UserProfileLite | undefined>
+  >(new Map());
 
   useEffect(() => {
     let unsubProfiles: (() => void) | undefined;
@@ -58,7 +62,7 @@ const FollowListScreen: React.FC = () => {
       setIds(list);
       if (unsubProfiles) unsubProfiles();
       unsubProfiles = ProfileCache.getInstance().subscribeMany(list, (map) => {
-        setProfiles(map as any);
+        setProfiles(map);
       });
     };
 
@@ -80,16 +84,20 @@ const FollowListScreen: React.FC = () => {
     };
 
     if (mode === "following") {
-      const fn: any = (FollowService as any).subscribeToFollowingUserIds;
-      if (typeof fn === "function") {
-        unsubFollow = fn(userId, attachProfiles);
+      if (typeof FollowService.subscribeToFollowingUserIds === "function") {
+        unsubFollow = FollowService.subscribeToFollowingUserIds(
+          userId,
+          attachProfiles,
+        );
       } else {
         startPolling();
       }
     } else {
-      const fn: any = (FollowService as any).subscribeToFollowerUserIds;
-      if (typeof fn === "function") {
-        unsubFollow = fn(userId, attachProfiles);
+      if (typeof FollowService.subscribeToFollowerUserIds === "function") {
+        unsubFollow = FollowService.subscribeToFollowerUserIds(
+          userId,
+          attachProfiles,
+        );
       } else {
         startPolling();
       }
@@ -134,9 +142,7 @@ const FollowListScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.itemMain}
-                onPress={() =>
-                  navigateToUserDetail(navigation as any, id, name, avatar)
-                }
+                onPress={() => navigateToUserDetail(navigation, id, name, avatar)}
               >
                 <AvatarImage uri={avatar} size={44} style={styles.itemAvatar} />
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -171,7 +177,7 @@ const FollowListScreen: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -271,7 +277,6 @@ export default FollowListScreen;
 // 下: 補助コンポーネント（1ユーザーの階級表示）
 const RankText: React.FC<{ userId: string }> = ({ userId }) => {
   const { mode: themeMode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [days, setDays] = useState<number>(0);
@@ -302,7 +307,6 @@ const FollowPill: React.FC<{
   requireAuth: () => Promise<boolean>;
 }> = ({ targetUserId, isFollowing, requireAuth }) => {
   const { mode: themeMode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[themeMode], [themeMode]);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [busy, setBusy] = useState(false);

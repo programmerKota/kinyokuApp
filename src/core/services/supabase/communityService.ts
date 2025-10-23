@@ -35,8 +35,8 @@ const toFirestoreCommunityPost = (row: SupaPostRow): FirestoreCommunityPost => {
     imageUrl: row.imageUrl ?? undefined,
     likes: row.likes,
     comments: row.comments,
-    createdAt: new Date(row.createdAt) as any,
-    updatedAt: new Date(row.updatedAt) as any,
+    createdAt: new Date(row.createdAt),
+    updatedAt: new Date(row.updatedAt),
   } as FirestoreCommunityPost;
 };
 
@@ -54,7 +54,7 @@ export class CommunityService {
       .in("postId", unique);
     if (error) throw error;
     const set = new Set<string>();
-    (data || []).forEach((row: any) => set.add(String(row.postId)));
+    (data || []).forEach((row: { postId: string }) => set.add(String(row.postId)));
     return set;
   }
   static async reflectUserProfile(
@@ -81,7 +81,10 @@ export class CommunityService {
   static async getRecentPostsPage(
     pageSize: number,
     after?: { id?: string; createdAt?: string },
-  ): Promise<{ items: FirestoreCommunityPost[]; nextCursor?: any }> {
+  ): Promise<{
+    items: FirestoreCommunityPost[];
+    nextCursor?: { id: string; createdAt: string } | undefined;
+  }> {
     if (!supabaseConfig?.isConfigured)
       return { items: [], nextCursor: undefined };
     let query = supabase
@@ -97,9 +100,9 @@ export class CommunityService {
     const result = (await withRetry(async () => await query, {
       retries: 2,
       delayMs: 400,
-    })) as { data: any; error: any };
-    if (result.error) throw result.error;
-    const rows = (result.data || []) as unknown as SupaPostRow[];
+    })) as { data: unknown[]; error: unknown };
+    if (result.error) throw (result.error as Error);
+    const rows = (result.data || []) as SupaPostRow[];
     const items = rows.map(toFirestoreCommunityPost);
     const nextCursor =
       items.length > 0
@@ -121,9 +124,9 @@ export class CommunityService {
           .eq("authorId", userId)
           .order("createdAt", { ascending: false }),
       { retries: 2, delayMs: 400 },
-    )) as { data: any; error: any };
-    if (result.error) throw result.error;
-    return ((result.data || []) as unknown as SupaPostRow[]).map(
+    )) as { data: unknown[]; error: unknown };
+    if (result.error) throw (result.error as Error);
+    return ((result.data || []) as SupaPostRow[]).map(
       toFirestoreCommunityPost,
     );
   }
@@ -174,11 +177,11 @@ export class CommunityService {
         .eq("id", authorId)
         .maybeSingle();
       if (prof) {
-        const raw = (prof as any).displayName as string | undefined;
+        const raw = prof?.displayName as string | undefined;
         // Never persist an email-like value as authorName; let view fall back to profiles or 'ユーザー'
         authorName =
           raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
-        authorAvatar = (prof as any).photoURL ?? null;
+        authorAvatar = prof?.photoURL ?? null;
       }
     } catch (e) {
       Logger.warn("CommunityService.addReply.profile", e, { authorId });
@@ -277,25 +280,28 @@ export class CommunityService {
           authorAvatar:
             map?.get(r.authorId)?.photoURL ?? r.authorAvatar ?? undefined,
         }));
-        callback(merged as any);
+        callback(merged);
       });
     };
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, unknown>,
+    ) => {
       if (!row) return;
       if (type === "INSERT") {
-        if (row.postId !== postId) return;
-        current = [...current, row].sort((a, b) =>
+        if ((row as { postId?: string }).postId !== postId) return;
+        current = [...current, (row as unknown as CommunityComment)].sort((a, b) =>
           String(a.createdAt).localeCompare(String(b.createdAt)),
         );
       } else if (type === "UPDATE") {
         const idx = current.findIndex((r) => r.id === row.id);
         if (idx >= 0) {
           const copy = [...current];
-          copy[idx] = { ...copy[idx], ...row } as any;
+          copy[idx] = { ...copy[idx], ...(row as unknown as CommunityComment) };
           current = copy;
-        } else if (row.postId === postId) {
-          current = [...current, row].sort((a, b) =>
+        } else if ((row as { postId?: string }).postId === postId) {
+          current = [...current, (row as unknown as CommunityComment)].sort((a, b) =>
             String(a.createdAt).localeCompare(String(b.createdAt)),
           );
         }
@@ -320,11 +326,11 @@ export class CommunityService {
             table: "community_comments",
             filter: `postId=eq.${postId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            if ((row as any).postId !== postId) return;
-            applyChange("INSERT", row);
+            if ((row as { postId: string }).postId !== postId) return;
+            applyChange("INSERT", row as Record<string, unknown>);
           },
         )
         .on(
@@ -335,11 +341,11 @@ export class CommunityService {
             table: "community_comments",
             filter: `postId=eq.${postId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            if ((row as any).postId !== postId) return;
-            applyChange("UPDATE", row);
+            if ((row as { postId: string }).postId !== postId) return;
+            applyChange("UPDATE", row as Record<string, unknown>);
           },
         )
         .on(
@@ -350,11 +356,11 @@ export class CommunityService {
             table: "community_comments",
             filter: `postId=eq.${postId}`,
           },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.old || undefined;
             if (!row) return;
-            if ((row as any).postId !== postId) return;
-            applyChange("DELETE", row);
+            if ((row as { postId: string }).postId !== postId) return;
+            applyChange("DELETE", row as Record<string, unknown>);
           },
         )
         .subscribe();
@@ -404,15 +410,16 @@ export class CommunityService {
       });
     };
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, unknown>,
+    ) => {
       if (!row) return;
       if (type === "INSERT") {
         const post = toFirestoreCommunityPost(row as SupaPostRow);
         current = [post, ...current]
           .sort((a, b) =>
-            String(b.createdAt as any).localeCompare(
-              String(a.createdAt as any),
-            ),
+            String(b.createdAt).localeCompare(String(a.createdAt)),
           )
           .slice(0, max);
       } else if (type === "UPDATE") {
@@ -420,20 +427,16 @@ export class CommunityService {
         const nextPost = toFirestoreCommunityPost(row as SupaPostRow);
         if (idx >= 0) {
           const copy = [...current];
-          copy[idx] = { ...copy[idx], ...nextPost } as any;
+          copy[idx] = { ...copy[idx], ...nextPost } as FirestoreCommunityPost;
           current = copy
             .sort((a, b) =>
-              String(b.createdAt as any).localeCompare(
-                String(a.createdAt as any),
-              ),
+              String(b.createdAt).localeCompare(String(a.createdAt)),
             )
             .slice(0, max);
         } else {
           current = [nextPost, ...current]
             .sort((a, b) =>
-              String(b.createdAt as any).localeCompare(
-                String(a.createdAt as any),
-              ),
+              String(b.createdAt).localeCompare(String(a.createdAt)),
             )
             .slice(0, max);
         }
@@ -460,19 +463,19 @@ export class CommunityService {
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "community_posts" },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("INSERT", row);
+            applyChange("INSERT", row as Record<string, unknown>);
           },
         )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "community_posts" },
-          (payload: any) => {
+          (payload: { new?: unknown; old?: unknown }) => {
             const row = payload.new || undefined;
             if (!row) return;
-            applyChange("UPDATE", row);
+            applyChange("UPDATE", row as Record<string, unknown>);
           },
         )
         .subscribe();
@@ -522,7 +525,10 @@ export class CommunityService {
       });
     };
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, unknown>,
+    ) => {
       if (!row) return;
       if (row.authorId !== userId) {
         // If updated row moves to/from this author, adjust accordingly
@@ -537,23 +543,19 @@ export class CommunityService {
       const post = toFirestoreCommunityPost(row as SupaPostRow);
       if (type === "INSERT") {
         current = [post, ...current].sort((a, b) =>
-          String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+          String(b.createdAt).localeCompare(String(a.createdAt)),
         );
       } else if (type === "UPDATE") {
         const idx = current.findIndex((p) => p.id === row.id);
         if (idx >= 0) {
           const copy = [...current];
-          copy[idx] = { ...copy[idx], ...post } as any;
+          copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
           current = copy.sort((a, b) =>
-            String(b.createdAt as any).localeCompare(
-              String(a.createdAt as any),
-            ),
+            String(b.createdAt).localeCompare(String(a.createdAt)),
           );
         } else {
           current = [post, ...current].sort((a, b) =>
-            String(b.createdAt as any).localeCompare(
-              String(a.createdAt as any),
-            ),
+            String(b.createdAt).localeCompare(String(a.createdAt)),
           );
         }
       } else if (type === "DELETE") {
@@ -584,11 +586,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-          (payload: any) => {
-            const row = payload.new || undefined;
-            if (!row) return;
-            applyChange("INSERT", row);
-          },
+           (payload: { new?: unknown }) => {
+             const row = payload.new || undefined;
+             if (!row) return;
+             applyChange("INSERT", row as Record<string, unknown>);
+           },
         )
         .on(
           "postgres_changes",
@@ -598,11 +600,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-          (payload: any) => {
-            const row = payload.new || undefined;
-            if (!row) return;
-            applyChange("UPDATE", row);
-          },
+           (payload: { new?: unknown }) => {
+             const row = payload.new || undefined;
+             if (!row) return;
+             applyChange("UPDATE", row as Record<string, unknown>);
+           },
         )
         .on(
           "postgres_changes",
@@ -612,11 +614,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-          (payload: any) => {
-            const row = payload.old || undefined;
-            if (!row) return;
-            applyChange("DELETE", row);
-          },
+           (payload: { old?: unknown }) => {
+             const row = payload.old || undefined;
+             if (!row) return;
+             applyChange("DELETE", row as Record<string, unknown>);
+           },
         )
         .subscribe();
     };
@@ -661,16 +663,19 @@ export class CommunityService {
       });
     };
 
-    const inFollowings = (row: any) =>
-      userIds && userIds.length > 0 && userIds.includes(row.authorId);
+    const inFollowings = (row: Record<string, any>) =>
+      userIds && userIds.length > 0 && typeof row.authorId === "string" && userIds.includes(row.authorId as string);
 
-    const applyChange = (type: "INSERT" | "UPDATE" | "DELETE", row: any) => {
+    const applyChange = (
+      type: "INSERT" | "UPDATE" | "DELETE",
+      row: Record<string, any>,
+    ) => {
       if (!row) return;
       if (type === "INSERT") {
         if (!inFollowings(row)) return;
         const post = toFirestoreCommunityPost(row as SupaPostRow);
         current = [post, ...current].sort((a, b) =>
-          String(b.createdAt as any).localeCompare(String(a.createdAt as any)),
+          String(b.createdAt).localeCompare(String(a.createdAt)),
         );
       } else if (type === "UPDATE") {
         const exists = current.some((p) => p.id === row.id);
@@ -678,9 +683,7 @@ export class CommunityService {
         if (!exists && shouldHave) {
           const post = toFirestoreCommunityPost(row as SupaPostRow);
           current = [post, ...current].sort((a, b) =>
-            String(b.createdAt as any).localeCompare(
-              String(a.createdAt as any),
-            ),
+            String(b.createdAt).localeCompare(String(a.createdAt)),
           );
         } else if (exists && !shouldHave) {
           current = current.filter((p) => p.id !== row.id);
@@ -688,11 +691,9 @@ export class CommunityService {
           const post = toFirestoreCommunityPost(row as SupaPostRow);
           const idx = current.findIndex((p) => p.id === row.id);
           const copy = [...current];
-          copy[idx] = { ...copy[idx], ...post } as any;
+          copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
           current = copy.sort((a, b) =>
-            String(b.createdAt as any).localeCompare(
-              String(a.createdAt as any),
-            ),
+            String(b.createdAt).localeCompare(String(a.createdAt)),
           );
         }
       } else if (type === "DELETE") {
@@ -732,7 +733,7 @@ export class CommunityService {
             table: "community_posts",
             ...(filterStr ? { filter: filterStr } : {}),
           },
-          (payload: any) => {
+          (payload: { eventType: string; new?: unknown; old?: unknown }) => {
             const type = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
             const row =
               (type === "DELETE" ? payload.old : payload.new) || undefined;

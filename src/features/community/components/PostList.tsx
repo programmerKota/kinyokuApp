@@ -1,9 +1,10 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, memo, useRef, useMemo } from "react";
 import {
   Dimensions,
   InteractionManager,
   Keyboard,
+  type KeyboardEvent,
   Platform,
 } from "react-native";
 import ReplyUiStore from "@shared/state/replyUiStore";
@@ -23,6 +24,7 @@ import type { CommunityPost } from "@project-types";
 import ListFooterSpinner from "@shared/components/ListFooterSpinner";
 import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 import { Logger } from "@shared/utils/logger";
 
@@ -73,14 +75,14 @@ const PostList: React.FC<PostListProps> = ({
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
 
-  const listRef = useRef<FlatList<any>>(null);
+  const listRef = useRef<FlatList<CommunityPost>>(null);
   const scrollYRef = useRef(0);
   const viewportHRef = useRef(Dimensions.get("window").height);
 
   const scrollToReplyButton = useCallback(
-    (postId: string, btnRef: React.RefObject<any>) => {
-      const node = (btnRef?.current as any) || null;
-      const list = listRef.current as any;
+    (postId: string, btnRef: React.RefObject<View>) => {
+      const node = btnRef?.current;
+      const list = listRef.current;
       if (!list || !node) return;
 
       let done = false;
@@ -159,7 +161,7 @@ const PostList: React.FC<PostListProps> = ({
       if (unsubHeight) extra.push(unsubHeight);
 
       // Keyboard events to capture top coordinate
-      const did = Keyboard.addListener("keyboardDidShow", (e: any) => {
+      const did = Keyboard.addListener("keyboardDidShow", (e: KeyboardEvent) => {
         const sy = e?.endCoordinates?.screenY as number | undefined;
         if (typeof sy === "number") kbTop = sy;
         tryScroll();
@@ -167,7 +169,7 @@ const PostList: React.FC<PostListProps> = ({
       subs.push(did);
 
       if (Platform.OS === "ios") {
-        const will = Keyboard.addListener("keyboardWillShow", (e: any) => {
+        const will = Keyboard.addListener("keyboardWillShow", (e: KeyboardEvent) => {
           const sy = e?.endCoordinates?.screenY as number | undefined;
           if (typeof sy === "number") kbTop = sy;
           // Don't scroll yet if height not ready; tryScroll will guard
@@ -251,7 +253,9 @@ const PostList: React.FC<PostListProps> = ({
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       contentContainerStyle={contentContainerStyle}
-      ListHeaderComponent={headerComponent as any}
+      ListHeaderComponent={
+        headerComponent ? (() => <>{headerComponent}</>) : undefined
+      }
       onEndReachedThreshold={onEndReached ? onEndReachedThreshold : undefined}
       onEndReached={() => {
         if (onEndReached && hasMore && !loadingMore) onEndReached();
@@ -274,7 +278,7 @@ const PostList: React.FC<PostListProps> = ({
         }, 80);
       }}
       ListEmptyComponent={() => {
-        const isRefreshing = (refreshControl as any)?.props?.refreshing;
+        const isRefreshing = refreshControl?.props?.refreshing;
         if (isRefreshing && (posts?.length ?? 0) === 0) {
           return (
             <View style={stylesEmpty.loadingContainer}>
@@ -282,7 +286,7 @@ const PostList: React.FC<PostListProps> = ({
             </View>
           );
         }
-        return emptyComponent as any;
+        return emptyComponent ? <>{emptyComponent}</> : null;
       }}
       initialNumToRender={8}
       windowSize={7}
@@ -403,7 +407,7 @@ const PostListRow: React.FC<{
   },
 );
 
-const createRowStyles = (colors: any) =>
+const createRowStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     replyButtonContainer: {
       flexDirection: "row",

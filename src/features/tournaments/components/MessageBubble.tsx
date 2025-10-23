@@ -218,7 +218,7 @@ const createStyles = (mode: "light" | "dark") => {
       wordBreak: "break-all",
       overflowWrap: "anywhere",
       whiteSpace: "pre-wrap",
-    } as any,
+    } as unknown as import("react-native").TextStyle,
     ownMessageText: {
       color: colors.white,
     },

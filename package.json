@@ -14,10 +14,10 @@
     "ios": "expo start --ios",
     "ios:dev-client": "expo start --dev-client",
     "ios:dev-client:lan": "expo start --dev-client --lan",
-    "ios:register-device": "eas device:create",
-    "build:ios:dev": "eas build -p ios --profile development",
-    "build:ios:preview": "eas build -p ios --profile preview",
-    "update:preview": "eas update --branch preview",
+    "ios:register-device": "npx eas-cli device:create",
+    "build:ios:dev": "npx eas-cli build -p ios --profile development",
+    "build:ios:preview": "npx eas-cli build -p ios --profile preview",
+    "update:preview": "npx eas-cli update --branch preview",
     "eas:secrets:setup": "node scripts/setupEasSecrets.cjs",
     "web": "expo start --web",
     "browser:replies": "node scripts/e2e/repliesRealtimeCheck.mjs",
@@ -25,9 +25,9 @@
     "design:pull-figma": "node scripts/design/pullFigmaTokens.mjs",
     "typecheck": "tsc --project tsconfig.typecheck.json --noEmit",
     "e2e:web": "playwright test -c playwright.config.ts",
-    "eas:update": "CI=1 eas update --branch production --message \"Automated update\"",
-    "eas:build:ios": "eas build -p ios --profile production --non-interactive",
-    "eas:submit:ios": "eas submit -p ios --latest --profile production --non-interactive",
+    "eas:update": "CI=1 npx eas-cli update --branch production --message \"Automated update\"",
+    "eas:build:ios": "npx eas-cli build -p ios --profile production --non-interactive",
+    "eas:submit:ios": "npx eas-cli submit -p ios --latest --profile production --non-interactive",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier . --write",
@@ -42,7 +42,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/stack": "^7.4.8",
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.76.1",
     "expo": "54.0.19",
     "expo-application": "~7.0.7",
     "expo-auth-session": "~7.0.8",
@@ -59,8 +59,8 @@
     "expo-status-bar": "~3.0.8",
     "expo-updates": "~29.0.12",
     "expo-web-browser": "~15.0.8",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-paper": "^5.14.5",
@@ -69,7 +69,8 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.5.1"
+    "react-native-worklets": "0.5.1",
+    "undici": "7.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -81,7 +82,6 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "babel-plugin-module-resolver": "^5.0.2",
-    "eas-cli": ">=12.6.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.2",
     "eslint-import-resolver-typescript": "^3.10.1",
@@ -113,5 +113,12 @@
       "prettier --write"
     ]
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=18 <21"
+  },
+  "overrides": {
+    "axios": "^1.12.2",
+    "undici": "7.16.0"
+  }
 }

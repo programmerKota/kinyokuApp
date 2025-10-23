@@ -1,13 +1,21 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { colorSchemes } from "@shared/theme/colors";
 
 interface RankingButtonProps {
   onPress: () => void;
   title?: string;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   // オプション: ボタン背景色と文字色を切り替え可能にする
   backgroundColor?: string;
   textColor?: string;
@@ -21,7 +29,6 @@ const RankingButton: React.FC<RankingButtonProps> = ({
   textColor,
 }) => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
 
   const bgColor =

@@ -57,21 +57,27 @@ export class ChallengeService {
     }
 
     const now = new Date().toISOString();
-    const payload: any = {
+    const payload = {
       ...challengeData,
       userId: uid,
       startedAt:
         challengeData.startedAt instanceof Date
           ? challengeData.startedAt.toISOString()
-          : (challengeData.startedAt as any),
+          : (typeof challengeData.startedAt === "string"
+              ? challengeData.startedAt
+              : null),
       completedAt:
         challengeData.completedAt instanceof Date
           ? challengeData.completedAt.toISOString()
-          : (challengeData.completedAt as any),
+          : (typeof challengeData.completedAt === "string"
+              ? challengeData.completedAt
+              : null),
       failedAt:
         challengeData.failedAt instanceof Date
           ? challengeData.failedAt.toISOString()
-          : (challengeData.failedAt as any),
+          : (typeof challengeData.failedAt === "string"
+              ? challengeData.failedAt
+              : null),
       createdAt: now,
       updatedAt: now,
     };
@@ -79,9 +85,9 @@ export class ChallengeService {
       .from("challenges")
       .insert(payload)
       .select("id")
-      .single();
+      .single<{ id: string }>();
     if (error) throw error;
-    return (data as any).id as string;
+    return String(data.id);
   }
 
   static async getUserChallenges(
@@ -109,19 +115,19 @@ export class ChallengeService {
     challengeData: Partial<Omit<FirestoreChallenge, "id" | "createdAt">>,
   ): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
-    const payload: any = {
+    const update: Record<string, unknown> = {
       ...challengeData,
       updatedAt: new Date().toISOString(),
     };
     if (challengeData.completedAt instanceof Date) {
-      payload.completedAt = challengeData.completedAt.toISOString();
+      update.completedAt = challengeData.completedAt.toISOString();
     }
     if (challengeData.failedAt instanceof Date) {
-      payload.failedAt = challengeData.failedAt.toISOString();
+      update.failedAt = challengeData.failedAt.toISOString();
     }
     const { error } = await supabase
       .from("challenges")
-      .update(payload)
+      .update(update)
       .eq("id", challengeId);
     if (error) throw error;
   }

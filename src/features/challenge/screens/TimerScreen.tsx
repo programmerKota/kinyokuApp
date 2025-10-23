@@ -158,7 +158,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
                   status: "completed",
                   transactionId:
                     info?.transactionId || info?.productIdentifier || undefined,
-                } as any);
+                });
               }
             } catch {}
             await stopChallenge(false);

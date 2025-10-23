@@ -131,7 +131,7 @@ export type ColorSchemeName = keyof typeof colorSchemes;
 export const applyColorScheme = (scheme: ColorSchemeName) => {
   const palette = colorSchemes[scheme];
   (Object.keys(palette) as Array<keyof ColorPalette>).forEach((k) => {
-    (colors as any)[k] = palette[k];
+    (colors as unknown as Record<keyof ColorPalette, string>)[k] = palette[k];
   });
 };
 

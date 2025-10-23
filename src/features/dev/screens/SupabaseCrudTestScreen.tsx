@@ -83,8 +83,8 @@ const SupabaseCrudTestScreen: React.FC = () => {
       append("Deleted successfully");
 
       append("DONE ✅");
-    } catch (e: any) {
-      append(`ERROR: ${e?.message ?? String(e)}`);
+    } catch (e: unknown) {
+      append(`ERROR: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setRunning(false);
     }

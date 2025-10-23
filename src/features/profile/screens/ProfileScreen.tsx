@@ -23,8 +23,11 @@ import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 // 購入の復元機能は削除
+
+type Styles = ReturnType<typeof createStyles>;
 
 const ActionCard = ({
   icon,
@@ -38,8 +41,8 @@ const ActionCard = ({
   title: string;
   description?: string;
   onPress: () => void | Promise<void>;
-  styles: any;
-  colors: any;
+  styles: Styles;
+  colors: ColorPalette;
 }) => (
   <TouchableOpacity
     activeOpacity={0.85}
@@ -68,7 +71,7 @@ const Section = ({
 }: {
   title: string;
   children: React.ReactNode;
-  styles: any;
+  styles: Styles;
 }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
@@ -83,7 +86,6 @@ const ProfileScreen: React.FC = () => {
   const { isEditing, editName, editAvatar, loading, showAvatarModal } = state;
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const { isDark, toggle, mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(mode), [mode]);
   const {

@@ -22,6 +22,7 @@ import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import { toDate, type DateLike } from "@shared/utils/date";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 
 const HistoryScreen: React.FC = () => {
@@ -54,31 +55,16 @@ const HistoryScreen: React.FC = () => {
           goalDays: challenge.goalDays,
           penaltyAmount: challenge.penaltyAmount,
           status: challenge.status,
-          startedAt:
-            challenge.startedAt instanceof Date
-              ? challenge.startedAt
-              : new Date(challenge.startedAt as any),
-          completedAt:
-            challenge.completedAt instanceof Date
-              ? challenge.completedAt
-              : challenge.completedAt
-                ? new Date(challenge.completedAt as any)
-                : undefined,
-          failedAt:
-            challenge.failedAt instanceof Date
-              ? challenge.failedAt
-              : challenge.failedAt
-                ? new Date(challenge.failedAt as any)
-                : undefined,
+          startedAt: toDate(challenge.startedAt as unknown as DateLike),
+          completedAt: challenge.completedAt
+            ? toDate(challenge.completedAt as unknown as DateLike)
+            : undefined,
+          failedAt: challenge.failedAt
+            ? toDate(challenge.failedAt as unknown as DateLike)
+            : undefined,
           totalPenaltyPaid: challenge.totalPenaltyPaid,
-          createdAt:
-            challenge.createdAt instanceof Date
-              ? challenge.createdAt
-              : new Date(challenge.createdAt as any),
-          updatedAt:
-            challenge.updatedAt instanceof Date
-              ? challenge.updatedAt
-              : new Date(challenge.updatedAt as any),
+          createdAt: toDate(challenge.createdAt as unknown as DateLike),
+          updatedAt: toDate(challenge.updatedAt as unknown as DateLike),
         }));
         setChallenges(challengesData);
 
@@ -91,14 +77,8 @@ const HistoryScreen: React.FC = () => {
             type: p.type as Payment["type"],
             status: p.status as Payment["status"],
             transactionId: p.transactionId ?? undefined,
-            createdAt:
-              p.createdAt instanceof Date
-                ? p.createdAt
-                : new Date(p.createdAt as any),
-            updatedAt:
-              p.updatedAt instanceof Date
-                ? p.updatedAt
-                : new Date(p.updatedAt as any),
+            createdAt: toDate(p.createdAt as unknown as DateLike),
+            updatedAt: toDate(p.updatedAt as unknown as DateLike),
           }));
           setPayments(mapped);
         } catch {
@@ -129,52 +109,31 @@ const HistoryScreen: React.FC = () => {
         goalDays: challenge.goalDays,
         penaltyAmount: challenge.penaltyAmount,
         status: challenge.status,
-        startedAt:
-          challenge.startedAt instanceof Date
-            ? challenge.startedAt
-            : new Date(challenge.startedAt as any),
-        completedAt:
-          challenge.completedAt instanceof Date
-            ? challenge.completedAt
-            : challenge.completedAt
-              ? new Date(challenge.completedAt as any)
-              : undefined,
-        failedAt:
-          challenge.failedAt instanceof Date
-            ? challenge.failedAt
-            : challenge.failedAt
-              ? new Date(challenge.failedAt as any)
-              : undefined,
+        startedAt: toDate(challenge.startedAt as unknown as DateLike),
+        completedAt: challenge.completedAt
+          ? toDate(challenge.completedAt as unknown as DateLike)
+          : undefined,
+        failedAt: challenge.failedAt
+          ? toDate(challenge.failedAt as unknown as DateLike)
+          : undefined,
         totalPenaltyPaid: challenge.totalPenaltyPaid,
-        createdAt:
-          challenge.createdAt instanceof Date
-            ? challenge.createdAt
-            : new Date(challenge.createdAt as any),
-        updatedAt:
-          challenge.updatedAt instanceof Date
-            ? challenge.updatedAt
-            : new Date(challenge.updatedAt as any),
+        createdAt: toDate(challenge.createdAt as unknown as DateLike),
+        updatedAt: toDate(challenge.updatedAt as unknown as DateLike),
       }));
       setChallenges(challengesData);
 
       try {
         const list = await PaymentFirestoreService.getUserPayments(user.uid);
-        const mapped: Payment[] = list.map((p) => ({
-          id: p.id,
-          userId: p.userId,
-          amount: p.amount,
-          type: p.type as Payment["type"],
-          status: p.status as Payment["status"],
-          transactionId: p.transactionId ?? undefined,
-          createdAt:
-            p.createdAt instanceof Date
-              ? p.createdAt
-              : new Date(p.createdAt as any),
-          updatedAt:
-            p.updatedAt instanceof Date
-              ? p.updatedAt
-              : new Date(p.updatedAt as any),
-        }));
+          const mapped: Payment[] = list.map((p) => ({
+            id: p.id,
+            userId: p.userId,
+            amount: p.amount,
+            type: p.type as Payment["type"],
+            status: p.status as Payment["status"],
+            transactionId: p.transactionId ?? undefined,
+            createdAt: toDate(p.createdAt as unknown as DateLike),
+            updatedAt: toDate(p.updatedAt as unknown as DateLike),
+          }));
         setPayments(mapped);
       } catch {
         setPayments([]);

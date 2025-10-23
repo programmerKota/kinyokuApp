@@ -59,9 +59,9 @@ export class ProfileCache {
           ): Promise<string | undefined> => this.resolveSignedCached(url);
           const next = data
             ? {
-                displayName: (data as any).displayName ?? undefined,
+                displayName: (data as { displayName?: string }).displayName ?? undefined,
                 photoURL: await resolveSigned(
-                  (data as any).photoURL ?? undefined,
+                  (data as { photoURL?: string | null }).photoURL ?? undefined,
                 ),
               }
             : undefined;
@@ -172,15 +172,14 @@ export class ProfileCache {
           // 100人のプロフィール: 10秒 → 0.5秒に短縮
           const foundIds = new Set<string>();
           const resolvedProfiles = await Promise.all(
-            (data as any[]).map(async (row) => {
+            (data as Array<{ id: string; displayName?: string; photoURL?: string | null }>).map(async (row) => {
               const id = String(row.id);
               foundIds.add(id);
               const photoURL = await resolveSigned(row.photoURL ?? undefined);
               return {
                 id,
                 profileData: {
-                  displayName:
-                    (row.displayName as string | undefined) ?? undefined,
+                  displayName: row.displayName ?? undefined,
                   photoURL,
                 } as UserProfileLite,
               };

@@ -89,9 +89,10 @@ const FeedbackScreen: React.FC = () => {
       }
 
       Alert.alert("エラー", "端末のメール機能にアクセスできませんでした。");
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Feedback mail compose failed:", e);
-      Alert.alert("エラー", "メールの作成に失敗しました: " + e.message);
+      const msg = e instanceof Error ? e.message : String(e);
+      Alert.alert("エラー", "メールの作成に失敗しました: " + msg);
     } finally {
       setSending(false);
     }

@@ -102,7 +102,7 @@ const StopModal: React.FC<StopModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     modalButtons: {
       flexDirection: "row",

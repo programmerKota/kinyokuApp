@@ -13,6 +13,7 @@ import type {
   StyleProp,
   ViewStyle,
 } from "react-native";
+import type { RefreshControlProps } from "react-native";
 
 import { colors, spacing, typography } from "@shared/theme";
 
@@ -33,6 +34,7 @@ interface VirtualizedListProps<T> {
   getItemLayout?: FlatListProps<T>["getItemLayout"];
   contentContainerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
 }
 
 const VirtualizedList = <T,>({
@@ -52,6 +54,7 @@ const VirtualizedList = <T,>({
   getItemLayout,
   contentContainerStyle,
   style,
+  refreshControl,
 }: VirtualizedListProps<T>) => {
   const renderFooter = useCallback(() => {
     const hasItems = (data?.length || 0) > 0;
@@ -115,6 +118,7 @@ const VirtualizedList = <T,>({
       contentContainerStyle={contentContainerStyle}
       style={style}
       showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl}
       maintainVisibleContentPosition={{
         minIndexForVisible: 0,
         autoscrollToTopThreshold: 10,

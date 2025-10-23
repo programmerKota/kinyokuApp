@@ -74,7 +74,8 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
       if (typeof window !== "undefined") {
         const q = new URLSearchParams(window.location.search);
         if (q.get("e2e") === "1") return true;
-        if ((window.navigator as any)?.webdriver) return true;
+        if ((window.navigator as unknown as { webdriver?: boolean })?.webdriver)
+          return true;
       }
     } catch {}
     return false;
@@ -151,14 +152,13 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
           const now = new Date();
           setCurrentSession({
             id: "e2e-local",
-            userId: user.uid,
             goalDays: days,
             penaltyAmount: amount,
             status: "active",
             startedAt: now,
             completedAt: null,
             failedAt: null,
-          } as any);
+          });
           return;
         }
         const existing = await ChallengeService.getActiveChallenge(user.uid);

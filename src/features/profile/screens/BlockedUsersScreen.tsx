@@ -100,7 +100,7 @@ const BlockedUsersScreen: React.FC = () => {
             style={styles.item}
             onPress={() =>
               navigateToUserDetail(
-                navigation as any,
+                navigation,
                 item.id,
                 item.displayName,
                 item.photoURL ?? undefined,
@@ -123,7 +123,7 @@ const BlockedUsersScreen: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

@@ -84,7 +84,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

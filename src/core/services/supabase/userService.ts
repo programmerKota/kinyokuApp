@@ -65,9 +65,11 @@ export class FirestoreUserService {
         }
       };
       return {
-        displayName: data.displayName ?? "ユーザー",
-        photoURL: await resolveSigned((data as any).photoURL ?? undefined),
-      } as any;
+        displayName: (data as { displayName?: string }).displayName ?? "ユーザー",
+        photoURL: await resolveSigned(
+          (data as { photoURL?: string | null }).photoURL ?? undefined,
+        ),
+      };
     } catch (e) {
       console.warn("getUserById failed", e);
       return null;

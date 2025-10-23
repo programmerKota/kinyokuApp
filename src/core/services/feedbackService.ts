@@ -15,9 +15,9 @@ export class FeedbackService {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session?.user?.id) {
-      const err: any = new Error("AUTH_REQUIRED");
-      err.code = "AUTH_REQUIRED";
-      throw err;
+      throw Object.assign(new Error("AUTH_REQUIRED"), {
+        code: "AUTH_REQUIRED" as const,
+      });
     }
 
     const now = new Date().toISOString();
