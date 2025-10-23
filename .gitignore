@@ -84,3 +84,6 @@ nul
 # Env secrets (keep examples)
 .env*
 !*.example
+
+# Local tools
+.tools/
