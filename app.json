@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "abstinence-challenge",
+    "slug": "abstinence-challenge",
+    "owner": "kota007",
+    "scheme": "abstinence",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.abstinence",
+      "buildNumber": "8",
+      "infoPlist": {
+        "NSCameraUsageDescription": "プロフィール画像の撮影にカメラを使用します。",
+        "NSPhotoLibraryUsageDescription": "プロフィール画像・日記画像の選択にフォトライブラリを使用します。",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.example.abstinence",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "abstinence"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "expo-router"
+    ],
+    "extra": {
+      "EXPO_PUBLIC_SUPABASE_URL": "https://tssfhgfkelsuslpwschl.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzc2ZoZ2ZrZWxzdXNscHdzY2hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MDE2MTgsImV4cCI6MjA3NDk3NzYxOH0.pqDLzEgQJMPkQwQAqgihP4mt_4GiVMUkxmcjw1O_qEU",
+      "EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL": "true",
+      "EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY": "appl_SByWcqIzkLsDEETgniNtsinAFip",
+      "EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY": "",
+      "EXPO_PUBLIC_PAYMENTS_DEV_MODE": "false",
+      "EXPO_PUBLIC_OAUTH_GOOGLE": "true",
+      "EXPO_PUBLIC_RC_PENALTY_OFFERING": "penalty",
+      "eas": {
+        "projectId": "3f92a554-fe34-4984-921b-a6d807c9730b"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3f92a554-fe34-4984-921b-a6d807c9730b"
+    }
+  }
+}
