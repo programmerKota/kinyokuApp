@@ -12,7 +12,12 @@ import {
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useModerationGuard } from "@shared/hooks/useModerationGuard";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 import Modal from "@shared/components/Modal";
 
@@ -56,7 +61,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} onClose={handleClose} title="投稿を作成" maxWidth={480}>
+    <Modal
+      visible={visible}
+      onClose={handleClose}
+      title="投稿を作成"
+      maxWidth={480}
+    >
       <View style={styles.content}>
         <TextInput
           style={styles.textInput}
@@ -103,81 +113,82 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundSecondary,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  closeButton: {
-    padding: spacing.sm,
-    borderRadius: 20,
-    backgroundColor: colors.gray100,
-  },
-  content: {
-    flex: 1,
-    padding: spacing.xl,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: spacing.lg,
-  },
-  postButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: 25,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  postButtonDisabled: {
-    backgroundColor: colors.gray300,
-  },
-  postButtonText: {
-    color: colors.white,
-    fontSize: typography.fontSize.base,
-    fontWeight: "600",
-  },
-  postButtonTextDisabled: {
-    color: colors.gray500,
-  },
-  textInput: {
-    fontSize: typography.fontSize.lg,
-    color: colors.textPrimary,
-    minHeight: 200,
-    textAlignVertical: "top",
-    lineHeight: 26,
-    backgroundColor: colors.gray50,
-    borderRadius: 12,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderPrimary,
-    flex: 1,
-  },
-  counterContainer: {
-    alignItems: "flex-end",
-  },
-  counter: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: typography.fontWeight.medium,
-  },
-  counterWarning: {
-    color: colors.warning,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    keyboardAvoidingView: {
+      flex: 1,
+    },
+    closeButton: {
+      padding: spacing.sm,
+      borderRadius: 20,
+      backgroundColor: colors.gray100,
+    },
+    content: {
+      flex: 1,
+      padding: spacing.xl,
+    },
+    footer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: spacing.lg,
+    },
+    postButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.md,
+      borderRadius: 25,
+      minWidth: 80,
+      alignItems: "center",
+    },
+    postButtonDisabled: {
+      backgroundColor: colors.gray300,
+    },
+    postButtonText: {
+      color: colors.white,
+      fontSize: typography.fontSize.base,
+      fontWeight: "600",
+    },
+    postButtonTextDisabled: {
+      color: colors.gray500,
+    },
+    textInput: {
+      fontSize: typography.fontSize.lg,
+      color: colors.textPrimary,
+      minHeight: 200,
+      textAlignVertical: "top",
+      lineHeight: 26,
+      backgroundColor: colors.gray50,
+      borderRadius: 12,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.borderPrimary,
+      flex: 1,
+    },
+    counterContainer: {
+      alignItems: "flex-end",
+    },
+    counter: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      fontWeight: typography.fontWeight.medium,
+    },
+    counterWarning: {
+      color: colors.warning,
+    },
+  });
 
 export default CreatePostModal;

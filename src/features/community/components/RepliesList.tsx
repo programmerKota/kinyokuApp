@@ -10,7 +10,9 @@ import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { ReplyCountStore } from "@shared/state/replyStore";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
-import ProfileCache, { type UserProfileLite } from "@core/services/profileCache";
+import ProfileCache, {
+  type UserProfileLite,
+} from "@core/services/profileCache";
 
 interface RepliesListProps {
   postId: string;
@@ -61,14 +63,19 @@ const RepliesList: React.FC<RepliesListProps> = ({
         setReplies((prev) => {
           if (
             prev.length === visible.length &&
-            prev.every((r, i) => r.id === visible[i]?.id && r.content === visible[i]?.content)
+            prev.every(
+              (r, i) =>
+                r.id === visible[i]?.id && r.content === visible[i]?.content,
+            )
           ) {
             return prev;
           }
           return visible;
         });
         // keep bubble count in sync with visible items
-        try { ReplyCountStore.set(postId, visible.length); } catch { }
+        try {
+          ReplyCountStore.set(postId, visible.length);
+        } catch {}
         void initializeUserAverageDays(visible);
       },
     );
@@ -85,7 +92,11 @@ const RepliesList: React.FC<RepliesListProps> = ({
     const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
       setProfilesMap(map);
     });
-    return () => { try { unsub?.(); } catch {} };
+    return () => {
+      try {
+        unsub?.();
+      } catch {}
+    };
   }, [replies]);
 
   // Local fallback: if a reply was added from this client but Realtime is delayed,
@@ -101,15 +112,20 @@ const RepliesList: React.FC<RepliesListProps> = ({
           setReplies((prev) => {
             if (
               prev.length === visible.length &&
-              prev.every((r, i) => r.id === visible[i]?.id && r.content === visible[i]?.content)
+              prev.every(
+                (r, i) =>
+                  r.id === visible[i]?.id && r.content === visible[i]?.content,
+              )
             ) {
               return prev;
             }
             return visible;
           });
-          try { ReplyCountStore.set(postId, visible.length); } catch { }
+          try {
+            ReplyCountStore.set(postId, visible.length);
+          } catch {}
           void initializeUserAverageDays(visible);
-        } catch { }
+        } catch {}
       })();
     });
     return unsub;
@@ -133,23 +149,25 @@ const RepliesList: React.FC<RepliesListProps> = ({
     setUserAverageDays(averageDaysMap);
   };
 
-  const renderItem = useCallback(({ item }: { item: CommunityComment }) => (
-    (() => {
-      const prof = profilesMap.get(item.authorId);
-      const merged: CommunityComment = {
-        ...item,
-        authorName: prof?.displayName ?? (item as any).authorName,
-        authorAvatar: prof?.photoURL ?? (item as any).authorAvatar,
-      } as any;
-      return (
-        <ReplyRow
-          reply={merged}
-          avgDays={userAverageDays.get(item.authorId) || 0}
-          onUserPress={onUserPress}
-        />
-      );
-    })()
-  ), [userAverageDays, onUserPress, profilesMap]);
+  const renderItem = useCallback(
+    ({ item }: { item: CommunityComment }) =>
+      (() => {
+        const prof = profilesMap.get(item.authorId);
+        const merged: CommunityComment = {
+          ...item,
+          authorName: prof?.displayName ?? (item as any).authorName,
+          authorAvatar: prof?.photoURL ?? (item as any).authorAvatar,
+        } as any;
+        return (
+          <ReplyRow
+            reply={merged}
+            avgDays={userAverageDays.get(item.authorId) || 0}
+            onUserPress={onUserPress}
+          />
+        );
+      })(),
+    [userAverageDays, onUserPress, profilesMap],
+  );
 
   if (replies.length === 0) return null;
 
@@ -169,15 +187,16 @@ const RepliesList: React.FC<RepliesListProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    // 前の余白と背景に戻す（従来のレイアウトを維持）
-    backgroundColor: colors.white,
-    // ReplyInputBar「返信を書く」テキスト開始位置に合わせた従来の padding
-    // container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg) + 微調整(spacing.md)
-    paddingLeft: spacing.lg + spacing.lg + spacing.md,
-    paddingBottom: spacing.sm,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      // 前の余白と背景に戻す（従来のレイアウトを維持）
+      backgroundColor: colors.white,
+      // ReplyInputBar「返信を書く」テキスト開始位置に合わせた従来の padding
+      // container.padding (spacing.lg) + submitBtn.paddingHorizontal (spacing.lg) + 微調整(spacing.md)
+      paddingLeft: spacing.lg + spacing.lg + spacing.md,
+      paddingBottom: spacing.sm,
+    },
+  });
 
 export default RepliesList;

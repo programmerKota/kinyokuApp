@@ -103,13 +103,14 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
         const asset = result.assets[0] as any;
         // Always convert to JPEG to avoid HEIC/WEBP decode issues on some platforms
         try {
-          const manip = await import('expo-image-manipulator');
+          // eslint-disable-next-line import/no-unresolved
+          const manip = await import("expo-image-manipulator");
           const { manipulateAsync, SaveFormat } = manip as any;
-          const out = await manipulateAsync(
-            asset.uri,
-            [],
-            { compress: 0.9, format: SaveFormat.JPEG, base64: true },
-          );
+          const out = await manipulateAsync(asset.uri, [], {
+            compress: 0.9,
+            format: SaveFormat.JPEG,
+            base64: true,
+          });
           if (out?.base64) {
             setEditAvatar(`data:image/jpeg;base64,${out.base64}`);
             return;

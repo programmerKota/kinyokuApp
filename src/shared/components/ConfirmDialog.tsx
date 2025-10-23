@@ -64,7 +64,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const styles = useMemo(() => createStyles(mode), [mode]);
 
-  const close = onClose || (() => { });
+  const close = onClose || (() => {});
   const c = toneColor(tone, colors);
   const desc = description || message;
   const primaryText = primaryLabel || confirmText || "OK";
@@ -93,20 +93,22 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <Ionicons name={icon} size={28} color={c.fg} />
         </View>
         <Text style={styles.title}>{title}</Text>
-        {desc ? (
-          <Text style={styles.desc}>{desc}</Text>
-        ) : null}
+        {desc ? <Text style={styles.desc}>{desc}</Text> : null}
         <View style={styles.actions}>
           <Button
             title={secondaryText}
             variant="secondary"
-            onPress={() => { void handleSecondary(); }}
+            onPress={() => {
+              void handleSecondary();
+            }}
             style={styles.secondaryBtn}
           />
           <Button
             title={primaryText}
             variant={tone === "danger" ? "danger" : "primary"}
-            onPress={() => { void handlePrimary(); }}
+            onPress={() => {
+              void handlePrimary();
+            }}
             loading={!!loading}
           />
         </View>

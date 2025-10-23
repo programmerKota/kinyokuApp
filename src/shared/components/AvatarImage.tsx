@@ -12,7 +12,8 @@ interface AvatarImageProps {
 
 // AvatarImage keeps the previous image visible until the next URI is fetched,
 // reducing flicker when props update.
-const isHttpUrl = (v?: string) => typeof v === "string" && /^https?:\/\//i.test(v);
+const isHttpUrl = (v?: string) =>
+  typeof v === "string" && /^https?:\/\//i.test(v);
 const canDisplayUri = (v?: string) => {
   if (!v) return false;
   if (isHttpUrl(v)) return true;
@@ -146,11 +147,7 @@ const AvatarImage: React.FC<AvatarImageProps> = ({
         />
       ) : (
         <View style={[styles.placeholder, { borderRadius: radius }]}>
-          <Ionicons
-            name="person"
-            size={size * 0.6}
-            color="#999"
-          />
+          <Ionicons name="person" size={size * 0.6} color="#999" />
         </View>
       )}
     </View>

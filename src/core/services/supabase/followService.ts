@@ -114,7 +114,8 @@ export class FollowService {
 
       // Initial emit
       try {
-        const userIds = await FollowService.getFollowingUserIds(effectiveFollowerId);
+        const userIds =
+          await FollowService.getFollowingUserIds(effectiveFollowerId);
         callback(userIds);
       } catch (_e) {
         callback([]);
@@ -125,7 +126,12 @@ export class FollowService {
         .channel(`realtime:follows:${effectiveFollowerId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "follows", filter: `followerId=eq.${effectiveFollowerId}` },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "follows",
+            filter: `followerId=eq.${effectiveFollowerId}`,
+          },
           async (payload: any) => {
             const row = (payload.new || payload.old) as
               | { followerId?: string }
@@ -134,9 +140,8 @@ export class FollowService {
             // Extra guard: confirm event corresponds to the same effective follower
             if ((row.followerId as any) !== effectiveFollowerId) return;
             try {
-              const userIds = await FollowService.getFollowingUserIds(
-                effectiveFollowerId,
-              );
+              const userIds =
+                await FollowService.getFollowingUserIds(effectiveFollowerId);
               callback(userIds);
             } catch (_e) {
               // ignore
@@ -145,12 +150,20 @@ export class FollowService {
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "follows", filter: `followerId=eq.${effectiveFollowerId}` },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "follows",
+            filter: `followerId=eq.${effectiveFollowerId}`,
+          },
           async (payload: any) => {
             try {
-              const userIds = await FollowService.getFollowingUserIds(effectiveFollowerId);
+              const userIds =
+                await FollowService.getFollowingUserIds(effectiveFollowerId);
               callback(userIds);
-            } catch { /* ignore */ }
+            } catch {
+              /* ignore */
+            }
           },
         )
         .subscribe();
@@ -186,10 +199,16 @@ export class FollowService {
         .channel(`realtime:follows:followers:${followeeId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "follows", filter: `followeeId=eq.${followeeId}` },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "follows",
+            filter: `followeeId=eq.${followeeId}`,
+          },
           async () => {
             try {
-              const userIds = await FollowService.getFollowerUserIds(followeeId);
+              const userIds =
+                await FollowService.getFollowerUserIds(followeeId);
               callback(userIds);
             } catch {
               // ignore
@@ -198,12 +217,20 @@ export class FollowService {
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "follows", filter: `followeeId=eq.${followeeId}` },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "follows",
+            filter: `followeeId=eq.${followeeId}`,
+          },
           async () => {
             try {
-              const userIds = await FollowService.getFollowerUserIds(followeeId);
+              const userIds =
+                await FollowService.getFollowerUserIds(followeeId);
               callback(userIds);
-            } catch { /* ignore */ }
+            } catch {
+              /* ignore */
+            }
           },
         )
         .subscribe();

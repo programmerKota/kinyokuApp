@@ -44,7 +44,8 @@ const getEnv = (key: string): string | undefined => {
 // Supabase configuration
 let supabaseUrl = getEnv("EXPO_PUBLIC_SUPABASE_URL");
 let supabaseAnonKey = getEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY");
-const allowDevPlaceholder = (getEnv("EXPO_PUBLIC_ALLOW_DEV_PLACEHOLDER") || "").toLowerCase() === "true";
+const allowDevPlaceholder =
+  (getEnv("EXPO_PUBLIC_ALLOW_DEV_PLACEHOLDER") || "").toLowerCase() === "true";
 
 // Note: .env/.app.jsonのみを参照するため、ローカル上書きは廃止
 

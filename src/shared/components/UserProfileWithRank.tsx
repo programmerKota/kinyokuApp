@@ -74,7 +74,9 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
 
   const sizeConfig = getSizeConfig();
 
-  const ProfileContent: React.FC<{ containerStyle?: { [key: string]: unknown } }> = ({ containerStyle }) => (
+  const ProfileContent: React.FC<{
+    containerStyle?: { [key: string]: unknown };
+  }> = ({ containerStyle }) => (
     <View style={[styles.container, containerStyle]}>
       {userAvatar ? (
         <AvatarImage
@@ -106,7 +108,9 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
           <Text
             style={[
               styles.userName,
-              getUserNameStyle(colors.textPrimary, { fontSize: sizeConfig.fontSize }),
+              getUserNameStyle(colors.textPrimary, {
+                fontSize: sizeConfig.fontSize,
+              }),
               textStyle,
             ]}
           >
@@ -129,7 +133,10 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
         </View>
         {showTitle && (
           <Text
-            style={[styles.userTitle, getTitleStyle(size, colors.textSecondary)]}
+            style={[
+              styles.userTitle,
+              getTitleStyle(size, colors.textSecondary),
+            ]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -190,69 +197,70 @@ const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({
   return <ProfileContent containerStyle={style} />;
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    backgroundColor: colors.borderPrimary,
-  },
-  avatarPlaceholder: {
-    backgroundColor: colors.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  userInfo: {
-    marginLeft: spacing.sm,
-    flex: 1,
-    minWidth: 0,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    flex: 1,
-  },
-  userName: {
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginRight: spacing.xs,
-    flexShrink: 1,
-    lineHeight: 16,
-  },
-  rankBadge: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-    marginLeft: 0,
-  },
-  rankText: {
-    fontWeight: "500",
-    fontSize: 10,
-    lineHeight: 12,
-  },
-  averageTimeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: spacing.xs,
-  },
-  averageTime: {
-    fontWeight: "500",
-    color: colors.textSecondary,
-    marginRight: spacing.xs,
-  },
-  averageTimeSub: {
-    fontWeight: "500",
-    color: colors.textSecondary,
-  },
-  userTitle: {
-    fontWeight: "500",
-    color: colors.textSecondary,
-    marginTop: 4,
-    lineHeight: 16,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    avatar: {
+      backgroundColor: colors.borderPrimary,
+    },
+    avatarPlaceholder: {
+      backgroundColor: colors.backgroundSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    userInfo: {
+      marginLeft: spacing.sm,
+      flex: 1,
+      minWidth: 0,
+    },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      flex: 1,
+    },
+    userName: {
+      fontWeight: "600",
+      color: colors.textPrimary,
+      marginRight: spacing.xs,
+      flexShrink: 1,
+      lineHeight: 16,
+    },
+    rankBadge: {
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 2,
+      borderRadius: 8,
+      alignSelf: "flex-start",
+      marginLeft: 0,
+    },
+    rankText: {
+      fontWeight: "500",
+      fontSize: 10,
+      lineHeight: 12,
+    },
+    averageTimeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: spacing.xs,
+    },
+    averageTime: {
+      fontWeight: "500",
+      color: colors.textSecondary,
+      marginRight: spacing.xs,
+    },
+    averageTimeSub: {
+      fontWeight: "500",
+      color: colors.textSecondary,
+    },
+    userTitle: {
+      fontWeight: "500",
+      color: colors.textSecondary,
+      marginTop: 4,
+      lineHeight: 16,
+    },
+  });
 
 export default React.memo(UserProfileWithRank);

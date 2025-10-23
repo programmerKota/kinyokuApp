@@ -78,6 +78,8 @@ module.exports = {
     "android/",
     "ios/",
     "scripts/",
+    // Supabase edge functions は tsconfig から除外しているため ESLint も除外
+    "supabase/functions/**",
     "**/__tests__/**",
   ],
 };

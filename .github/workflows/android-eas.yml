@@ -3,7 +3,7 @@ name: Android EAS Build
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-android:

@@ -9,15 +9,16 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
   const bypass = (() => {
     try {
       if (featureFlags.authDisabled) return true;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const q = new URLSearchParams(window.location.search);
-        if (q.get('e2e') === '1') return true;
-        if (window.localStorage?.getItem('__e2e_auth_bypass') === '1') return true;
+        if (q.get("e2e") === "1") return true;
+        if (window.localStorage?.getItem("__e2e_auth_bypass") === "1")
+          return true;
         try {
           if ((window.navigator as any)?.webdriver) return true;
-        } catch { }
+        } catch {}
       }
-    } catch { }
+    } catch {}
     return false;
   })();
   const [checking, setChecking] = useState(!bypass);
@@ -39,7 +40,10 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
       setSignedIn(!!sess?.user?.id);
     });
     return () => {
-      try { sub?.subscription?.unsubscribe(); } catch { }
+      mounted = false;
+      try {
+        sub?.subscription?.unsubscribe();
+      } catch {}
     };
   }, []);
 

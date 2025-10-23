@@ -88,11 +88,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() =>
-                onUserPress(
-                  message.authorId,
-                  displayName,
-                  displayAvatar,
-                )
+                onUserPress(message.authorId, displayName, displayAvatar)
               }
             >
               <Text style={styles.authorName}>{displayName || "ユーザー"}</Text>

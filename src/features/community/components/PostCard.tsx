@@ -7,7 +7,12 @@ import type { CommunityPost } from "@project-types";
 import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
@@ -74,7 +79,9 @@ const PostCard: React.FC<PostCardProps> = ({
         <View
           style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}
         >
-          <Text style={[styles.text, getContentStyle("small", colors.textPrimary)]}>
+          <Text
+            style={[styles.text, getContentStyle("small", colors.textPrimary)]}
+          >
             {post.content}
           </Text>
           {post.imageUrl && (
@@ -103,59 +110,60 @@ const PostCard: React.FC<PostCardProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    backgroundColor: colors.backgroundSecondary,
-    marginBottom: 0,
-  },
-  postContent: {
-    padding: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: spacing.sm,
-    width: "100%",
-    justifyContent: "space-between",
-  },
-  timestampRight: {
-    marginLeft: spacing.md,
-    color: colors.textSecondary,
-    fontSize: typography.fontSize.sm,
-    flexShrink: 0,
-  },
-  userProfileContainer: {
-    flex: 1,
-  },
-  content: {
-    marginBottom: spacing.xs,
-  },
-  text: {},
-  postImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-    marginTop: spacing.md,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.xs,
-    marginLeft: getBlockLeftMargin("small"),
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: spacing.lg,
-  },
-  actionText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginLeft: spacing.xs,
-    fontWeight: "500",
-  },
-  // like styles moved to LikeBar
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.backgroundSecondary,
+      marginBottom: 0,
+    },
+    postContent: {
+      padding: spacing.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: spacing.sm,
+      width: "100%",
+      justifyContent: "space-between",
+    },
+    timestampRight: {
+      marginLeft: spacing.md,
+      color: colors.textSecondary,
+      fontSize: typography.fontSize.sm,
+      flexShrink: 0,
+    },
+    userProfileContainer: {
+      flex: 1,
+    },
+    content: {
+      marginBottom: spacing.xs,
+    },
+    text: {},
+    postImage: {
+      width: "100%",
+      height: 200,
+      borderRadius: 8,
+      marginTop: spacing.md,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: spacing.xs,
+      marginLeft: getBlockLeftMargin("small"),
+    },
+    actionButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: spacing.lg,
+    },
+    actionText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      marginLeft: spacing.xs,
+      fontWeight: "500",
+    },
+    // like styles moved to LikeBar
+  });
 
 // Allow only targeted updates (likes, comments, reply toggle)
 export default React.memo(PostCard, (prev, next) => {

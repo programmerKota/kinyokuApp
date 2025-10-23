@@ -2,7 +2,14 @@
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 import { Switch } from "react-native";
@@ -131,7 +138,11 @@ const ProfileScreen: React.FC = () => {
                   </>
                 ) : (
                   <View style={styles.avatarPlaceholder}>
-                    <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
+                    <Ionicons
+                      name="camera-outline"
+                      size={32}
+                      color={colors.textSecondary}
+                    />
                     <Text style={styles.placeholderText}>
                       タップして{"\n"}写真を選択
                     </Text>
@@ -191,7 +202,9 @@ const ProfileScreen: React.FC = () => {
                   icon="log-out-outline"
                   title="ログアウト"
                   description="サインアウトしてログイン画面に戻ります"
-                  onPress={() => { setShowLogoutConfirm(true); }}
+                  onPress={() => {
+                    setShowLogoutConfirm(true);
+                  }}
                   styles={styles}
                   colors={colors}
                 />
@@ -200,7 +213,9 @@ const ProfileScreen: React.FC = () => {
                 <View style={styles.themeRow}>
                   <View style={styles.themeTextWrap}>
                     <Text style={styles.themeTitle}>ダークモード</Text>
-                    <Text style={styles.themeDesc}>アプリ全体のテーマを切り替えます</Text>
+                    <Text style={styles.themeDesc}>
+                      アプリ全体のテーマを切り替えます
+                    </Text>
                   </View>
                   <Switch value={isDark} onValueChange={toggle} />
                 </View>
@@ -287,7 +302,9 @@ const ProfileScreen: React.FC = () => {
         primaryLabel="ログアウト"
         onSecondary={() => setShowLogoutConfirm(false)}
         onPrimary={async () => {
-          try { await supabase.auth.signOut(); } catch { }
+          try {
+            await supabase.auth.signOut();
+          } catch {}
         }}
       />
     </SafeAreaView>
@@ -583,4 +600,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default ProfileScreen;
-

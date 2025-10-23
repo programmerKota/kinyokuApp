@@ -71,7 +71,12 @@ const RankingListItem: React.FC<RankingListItemProps> = ({
           size={24}
           color={getRankColor(item.rank, colors)}
         />
-        <Text style={[styles.rankNumber, { color: getRankColor(item.rank, colors) }]}>
+        <Text
+          style={[
+            styles.rankNumber,
+            { color: getRankColor(item.rank, colors) },
+          ]}
+        >
           {item.rank}
         </Text>
       </View>

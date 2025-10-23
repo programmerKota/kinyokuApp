@@ -23,11 +23,15 @@ export class PaymentFirestoreService {
   }
 
   static async getUserPayments(userId: string): Promise<FirestorePayment[]> {
-    const uid = (
-      (await (await import("@app/config/supabase.config")).supabase.auth.getSession())
-        .data?.session?.user?.id as string | undefined
-    ) || userId;
-    const { data, error } = await (await import("@app/config/supabase.config")).supabase
+    const uid =
+      ((
+        await (
+          await import("@app/config/supabase.config")
+        ).supabase.auth.getSession()
+      ).data?.session?.user?.id as string | undefined) || userId;
+    const { data, error } = await (
+      await import("@app/config/supabase.config")
+    ).supabase
       .from(COLLECTIONS.PAYMENTS)
       .select("*")
       .eq("userId", uid)
@@ -54,7 +58,13 @@ export class PaymentFirestoreService {
     raw?: unknown;
   }): Promise<void> {
     try {
-      const uid = data.userId || (await (await import("@app/config/supabase.config")).supabase.auth.getSession()).data?.session?.user?.id;
+      const uid =
+        data.userId ||
+        (
+          await (
+            await import("@app/config/supabase.config")
+          ).supabase.auth.getSession()
+        ).data?.session?.user?.id;
       if (!uid) return;
       await (await import("@app/config/supabase.config")).supabase
         .from("payment_logs")

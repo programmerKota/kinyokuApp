@@ -2,8 +2,16 @@
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, RefreshControl, KeyboardAvoidingView, Platform } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
@@ -14,7 +22,13 @@ import type { CommunityPost } from "@project-types";
 import Button from "@shared/components/Button";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
-import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
@@ -74,7 +88,7 @@ const CommunityScreen: React.FC = () => {
   // PostList が各種描画を担当
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <AppStatusBar />
 
       <View style={uiStyles.tabBar}>

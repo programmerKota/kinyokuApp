@@ -1,9 +1,23 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
-import { Alert, View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  memo,
+  useCallback,
+} from "react";
+import {
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -280,19 +294,19 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
               ownerExists || !tournamentData?.ownerId
                 ? list
                 : [
-                  {
-                    id: "owner-participant",
-                    tournamentId,
-                    userId: tournamentData.ownerId,
-                    userName: ownerDisplayName || "ユーザー",
-                    userAvatar: ownerAvatarUrl,
-                    status: "joined",
-                    joinedAt: tournamentData.createdAt,
-                    progressPercent: 0,
-                    currentDay: 0,
-                  },
-                  ...list,
-                ];
+                    {
+                      id: "owner-participant",
+                      tournamentId,
+                      userId: tournamentData.ownerId,
+                      userName: ownerDisplayName || "ユーザー",
+                      userAvatar: ownerAvatarUrl,
+                      status: "joined",
+                      joinedAt: tournamentData.createdAt,
+                      progressPercent: 0,
+                      currentDay: 0,
+                    },
+                    ...list,
+                  ];
 
             const converted: Participant[] = all.map((p) => ({
               id: p.userId,
@@ -308,7 +322,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
             // 参加者ごとの平均日数を一括取得（N+1回クエリを回避）
             try {
               const ids = converted.map((p) => p.id);
-              const daysMap = await UserStatsService.getManyUsersCurrentDaysForRank(ids);
+              const daysMap =
+                await UserStatsService.getManyUsersCurrentDaysForRank(ids);
               setUserAverageDays(daysMap);
             } catch (error) {
               console.error("平均日数の一括取得に失敗", error);
@@ -509,7 +524,13 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
         item={item}
         avgDays={userAverageDays.get(item.id) || 0}
         onPress={handleParticipantPress}
-        canKick={!!(tournament && user?.uid === tournament.ownerId && item.role !== "owner")}
+        canKick={
+          !!(
+            tournament &&
+            user?.uid === tournament.ownerId &&
+            item.role !== "owner"
+          )
+        }
         onKick={handleKick}
         styles={styles}
         colors={colors}
@@ -589,10 +610,10 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
           {(() => {
             const canSend = Boolean(
               user &&
-              ((tournament && tournament.ownerId === user.uid) ||
-                participants.some(
-                  (p) => p.id === user.uid && p.status === "joined",
-                )),
+                ((tournament && tournament.ownerId === user.uid) ||
+                  participants.some(
+                    (p) => p.id === user.uid && p.status === "joined",
+                  )),
             );
             return canSend ? (
               <MessageInput onSend={handleSendMessage} />
@@ -615,8 +636,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
       ) : (
         <View style={styles.participantsList}>
           {tournament &&
-            user?.uid === tournament.ownerId &&
-            joinRequests.length > 0 ? (
+          user?.uid === tournament.ownerId &&
+          joinRequests.length > 0 ? (
             <View style={styles.requestsSection}>
               <Text style={styles.requestsTitle}>参加申請</Text>
               {joinRequests.map((r) => (
@@ -819,4 +840,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default TournamentRoomScreen;
-

@@ -196,7 +196,9 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
         } else {
           // Purchase flow handled by UI (PenaltyPaywall). Only finalize challenge here.
           await ChallengeService.updateChallenge(currentSession.id, {
-            status: (isCompleted ? "completed" : "failed") as "completed" | "failed",
+            status: (isCompleted ? "completed" : "failed") as
+              | "completed"
+              | "failed",
             completedAt: isCompleted ? now : null,
             failedAt: !isCompleted ? now : null,
             totalPenaltyPaid: isCompleted ? 0 : currentSession.penaltyAmount,

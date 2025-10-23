@@ -40,7 +40,9 @@ const SupabaseCrudTestScreen: React.FC = () => {
       const url = supabaseConfig.url;
       const anon = supabaseConfig.anonKey;
       append(`Using URL: ${url ?? "<unset>"}`);
-      append(`AnonKey: ${anon ? String(anon).substring(0, 8) + "..." : "<unset>"}`);
+      append(
+        `AnonKey: ${anon ? String(anon).substring(0, 8) + "..." : "<unset>"}`,
+      );
 
       // 1) insert
       append("Inserting row...");
@@ -114,11 +116,3 @@ const SupabaseCrudTestScreen: React.FC = () => {
 };
 
 export default SupabaseCrudTestScreen;
-
-
-
-
-
-
-
-

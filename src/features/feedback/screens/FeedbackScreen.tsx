@@ -1,8 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useMemo, useState, useCallback } from "react";
-import { StyleSheet, View, TextInput, Text, Platform, TouchableOpacity, Alert, Linking } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Text,
+  Platform,
+  TouchableOpacity,
+  Alert,
+  Linking,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -23,7 +32,8 @@ const FeedbackScreen: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   // 送信先メールアドレス（EXPO_PUBLIC_FEEDBACK_EMAIL があれば優先）
-  const FEEDBACK_EMAIL = (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) || "";
+  const FEEDBACK_EMAIL =
+    (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) || "";
   const emailConfigured = FEEDBACK_EMAIL.length > 0;
 
   const canSend = useMemo(
@@ -34,7 +44,10 @@ const FeedbackScreen: React.FC = () => {
   const doSubmit = useCallback(async () => {
     if (!canSend || sending) return;
     if (!emailConfigured) {
-      Alert.alert("設定エラー", "送信先メールが未設定です。管理者に連絡してください。");
+      Alert.alert(
+        "設定エラー",
+        "送信先メールが未設定です。管理者に連絡してください。",
+      );
       return;
     }
     setSending(true);
@@ -54,7 +67,10 @@ const FeedbackScreen: React.FC = () => {
           setSent(true);
           setSubject("");
           setMessage("");
-          Alert.alert("送信完了", "メールアプリから送信しました。ありがとうございます！");
+          Alert.alert(
+            "送信完了",
+            "メールアプリから送信しました。ありがとうございます！",
+          );
           return;
         }
         // cancelled などの場合も特にエラーにはしない
@@ -115,8 +131,16 @@ const FeedbackScreen: React.FC = () => {
         />
         <View style={{ height: spacing.lg }} />
         <Button
-          title={emailConfigured ? (sent ? "送信しました" : "メールで送信") : "送信先未設定"}
-          onPress={() => { void doSubmit(); }}
+          title={
+            emailConfigured
+              ? sent
+                ? "送信しました"
+                : "メールで送信"
+              : "送信先未設定"
+          }
+          onPress={() => {
+            void doSubmit();
+          }}
           disabled={!canSend || sent || !emailConfigured}
           loading={sending}
         />

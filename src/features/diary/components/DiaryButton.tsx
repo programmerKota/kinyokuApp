@@ -20,8 +20,10 @@ const DiaryButton: React.FC<DiaryButtonProps> = ({
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
 
-  const bgColor = backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
-  const labelColor = textColor ?? (mode === "dark" ? colors.white : colors.black);
+  const bgColor =
+    backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
+  const labelColor =
+    textColor ?? (mode === "dark" ? colors.white : colors.black);
   const borderColor = mode === "dark" ? colors.gray300 : colors.gray200;
 
   return (

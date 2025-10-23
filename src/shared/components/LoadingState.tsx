@@ -28,7 +28,11 @@ const LoadingState: React.FC<LoadingStateProps> = ({
 
   return (
     <View style={containerStyle}>
-      <ActivityIndicator testID={testID || "loading-activity-indicator"} size={size} color={color} />
+      <ActivityIndicator
+        testID={testID || "loading-activity-indicator"}
+        size={size}
+        color={color}
+      />
       {message && <Text style={textStyle}>{message}</Text>}
     </View>
   );

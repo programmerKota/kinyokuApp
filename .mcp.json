@@ -2,17 +2,11 @@
   "mcpServers": {
     "playwright-test": {
       "command": "npx",
-      "args": [
-        "playwright",
-        "run-test-mcp-server"
-      ]
+      "args": ["playwright", "run-test-mcp-server"]
     },
     "gitmcp": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://gitmcp.io/docs"
-      ]
+      "args": ["mcp-remote", "https://gitmcp.io/docs"]
     }
   }
 }

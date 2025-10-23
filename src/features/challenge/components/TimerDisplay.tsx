@@ -41,7 +41,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
             <Text style={styles.dayLabel}>日</Text>
             <Text style={styles.timeText}>{timeText}</Text>
           </View>
-          <TouchableOpacity testID="start-btn" style={styles.startButton} onPress={onStartPress}>
+          <TouchableOpacity
+            testID="start-btn"
+            style={styles.startButton}
+            onPress={onStartPress}
+          >
             <Text style={styles.startButtonText}>禁欲開始</Text>
           </TouchableOpacity>
         </View>
@@ -67,7 +71,11 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
               </Text>
             </View>
           </View>
-          <TouchableOpacity testID="stop-btn" style={styles.stopButton} onPress={onStopPress}>
+          <TouchableOpacity
+            testID="stop-btn"
+            style={styles.stopButton}
+            onPress={onStopPress}
+          >
             <Text style={styles.stopButtonText}>停止</Text>
           </TouchableOpacity>
         </View>
@@ -76,122 +84,123 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing["3xl"],
-  },
-  notStartedContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    width: "100%",
-  },
-  activeContainer: {
-    alignItems: "center",
-    width: "100%",
-    flex: 1,
-    justifyContent: "center",
-  },
-  timerCard: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: "transparent",
-    borderRadius: 0,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
-    ...shadows.none,
-  },
-  dayNumber: {
-    fontSize: 72,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    textAlign: "center",
-    letterSpacing: typography.letterSpacing.normal,
-    lineHeight: 80,
-    marginBottom: spacing.sm,
-    minHeight: 80,
-    includeFontPadding: false,
-  },
-  dayLabel: {
-    fontSize: 24,
-    fontWeight: typography.fontWeight.normal,
-    color: colors.textSecondary,
-    textAlign: "center",
-    marginBottom: spacing.md,
-    lineHeight: 30,
-    minHeight: 30,
-    includeFontPadding: false,
-  },
-  timeText: {
-    fontSize: typography.fontSize["3xl"],
-    fontWeight: typography.fontWeight.light,
-    color: colors.textPrimary,
-    textAlign: "center",
-    letterSpacing: typography.letterSpacing.normal,
-    fontVariant: ["tabular-nums"],
-  },
-  startButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing["5xl"],
-    paddingVertical: spacing.lg,
-    borderRadius: 12,
-    marginTop: spacing["3xl"],
-    ...shadows.lg,
-  },
-  startButtonText: {
-    color: colors.white,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    textAlign: "center",
-  },
-  stopButton: {
-    backgroundColor: colors.error,
-    paddingHorizontal: spacing["5xl"],
-    paddingVertical: spacing.lg,
-    borderRadius: 12,
-    marginTop: spacing["2xl"],
-    ...shadows.lg,
-  },
-  stopButtonText: {
-    color: colors.white,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    textAlign: "center",
-  },
-  goalBannerActive: {
-    width: "100%",
-    backgroundColor: colors.successLight,
-    borderRadius: 12,
-    padding: spacing.lg,
-    overflow: "hidden",
-    marginVertical: spacing.lg,
-    position: "relative",
-  },
-  goalBannerContent: {
-    position: "relative",
-    zIndex: 2,
-  },
-  progressOverlay: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: colors.success + "40", // 25% opacity
-    zIndex: 1,
-  },
-  goalBannerText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing["3xl"],
+    },
+    notStartedContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      flex: 1,
+      width: "100%",
+    },
+    activeContainer: {
+      alignItems: "center",
+      width: "100%",
+      flex: 1,
+      justifyContent: "center",
+    },
+    timerCard: {
+      width: "100%",
+      maxWidth: 420,
+      backgroundColor: "transparent",
+      borderRadius: 0,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 200,
+      ...shadows.none,
+    },
+    dayNumber: {
+      fontSize: 72,
+      fontWeight: typography.fontWeight.bold,
+      color: colors.textPrimary,
+      textAlign: "center",
+      letterSpacing: typography.letterSpacing.normal,
+      lineHeight: 80,
+      marginBottom: spacing.sm,
+      minHeight: 80,
+      includeFontPadding: false,
+    },
+    dayLabel: {
+      fontSize: 24,
+      fontWeight: typography.fontWeight.normal,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: spacing.md,
+      lineHeight: 30,
+      minHeight: 30,
+      includeFontPadding: false,
+    },
+    timeText: {
+      fontSize: typography.fontSize["3xl"],
+      fontWeight: typography.fontWeight.light,
+      color: colors.textPrimary,
+      textAlign: "center",
+      letterSpacing: typography.letterSpacing.normal,
+      fontVariant: ["tabular-nums"],
+    },
+    startButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing["5xl"],
+      paddingVertical: spacing.lg,
+      borderRadius: 12,
+      marginTop: spacing["3xl"],
+      ...shadows.lg,
+    },
+    startButtonText: {
+      color: colors.white,
+      fontSize: typography.fontSize.lg,
+      fontWeight: typography.fontWeight.semibold,
+      textAlign: "center",
+    },
+    stopButton: {
+      backgroundColor: colors.error,
+      paddingHorizontal: spacing["5xl"],
+      paddingVertical: spacing.lg,
+      borderRadius: 12,
+      marginTop: spacing["2xl"],
+      ...shadows.lg,
+    },
+    stopButtonText: {
+      color: colors.white,
+      fontSize: typography.fontSize.lg,
+      fontWeight: typography.fontWeight.semibold,
+      textAlign: "center",
+    },
+    goalBannerActive: {
+      width: "100%",
+      backgroundColor: colors.successLight,
+      borderRadius: 12,
+      padding: spacing.lg,
+      overflow: "hidden",
+      marginVertical: spacing.lg,
+      position: "relative",
+    },
+    goalBannerContent: {
+      position: "relative",
+      zIndex: 2,
+    },
+    progressOverlay: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: colors.success + "40", // 25% opacity
+      zIndex: 1,
+    },
+    goalBannerText: {
+      fontSize: typography.fontSize.base,
+      fontWeight: typography.fontWeight.semibold,
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+  });
 
 export default TimerDisplay;

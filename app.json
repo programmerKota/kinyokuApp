@@ -39,7 +39,10 @@
               "scheme": "abstinence"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -55,7 +58,8 @@
           }
         }
       ],
-      "expo-router"
+      "expo-router",
+      "expo-web-browser"
     ],
     "extra": {
       "EXPO_PUBLIC_SUPABASE_URL": "https://tssfhgfkelsuslpwschl.supabase.co",

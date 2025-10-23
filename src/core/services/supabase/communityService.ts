@@ -176,7 +176,8 @@ export class CommunityService {
       if (prof) {
         const raw = (prof as any).displayName as string | undefined;
         // Never persist an email-like value as authorName; let view fall back to profiles or 'ユーザー'
-        authorName = raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
+        authorName =
+          raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
         authorAvatar = (prof as any).photoURL ?? null;
       }
     } catch (e) {
@@ -313,7 +314,12 @@ export class CommunityService {
         .channel(`realtime:community_comments:${postId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "community_comments",
+            filter: `postId=eq.${postId}`,
+          },
           (payload: any) => {
             const row = payload.new || undefined;
             if (!row) return;
@@ -323,7 +329,12 @@ export class CommunityService {
         )
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "community_comments",
+            filter: `postId=eq.${postId}`,
+          },
           (payload: any) => {
             const row = payload.new || undefined;
             if (!row) return;
@@ -333,7 +344,12 @@ export class CommunityService {
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "community_comments", filter: `postId=eq.${postId}` },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "community_comments",
+            filter: `postId=eq.${postId}`,
+          },
           (payload: any) => {
             const row = payload.old || undefined;
             if (!row) return;
@@ -562,7 +578,12 @@ export class CommunityService {
         .channel(`realtime:community_posts:user:${userId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "community_posts",
+            filter: `authorId=eq.${userId}`,
+          },
           (payload: any) => {
             const row = payload.new || undefined;
             if (!row) return;
@@ -571,7 +592,12 @@ export class CommunityService {
         )
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "community_posts",
+            filter: `authorId=eq.${userId}`,
+          },
           (payload: any) => {
             const row = payload.new || undefined;
             if (!row) return;
@@ -580,7 +606,12 @@ export class CommunityService {
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "community_posts", filter: `authorId=eq.${userId}` },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "community_posts",
+            filter: `authorId=eq.${userId}`,
+          },
           (payload: any) => {
             const row = payload.old || undefined;
             if (!row) return;
@@ -675,11 +706,11 @@ export class CommunityService {
         current = [];
         callback([]);
       } else {
-      const { data, error } = await supabase
-        .from("community_posts_v")
-        .select("*")
-        .in("authorId", userIds)
-        .order("createdAt", { ascending: false });
+        const { data, error } = await supabase
+          .from("community_posts_v")
+          .select("*")
+          .in("authorId", userIds)
+          .order("createdAt", { ascending: false });
         if (error) throw error;
         current = ((data || []) as unknown as SupaPostRow[]).map(
           toFirestoreCommunityPost,
@@ -687,9 +718,10 @@ export class CommunityService {
         emitWithProfiles();
       }
 
-      const filterStr = userIds && userIds.length > 0
-        ? `authorId=in.(${userIds.map((id) => `"${id}"`).join(",")})`
-        : undefined;
+      const filterStr =
+        userIds && userIds.length > 0
+          ? `authorId=in.(${userIds.map((id) => `"${id}"`).join(",")})`
+          : undefined;
       channel = supabase
         .channel("realtime:community_posts:following")
         .on(

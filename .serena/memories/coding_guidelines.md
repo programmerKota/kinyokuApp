@@ -15,4 +15,3 @@
   - Implement Supabase adapters in `core/adapters/supabase/*`
 - Lists and rendering
   - Keep `extraData` small; memoize rows; provide `getItemLayout` where possible
-

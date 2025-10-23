@@ -81,7 +81,9 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
       // 目標達成時
       await stopChallenge(true);
       if (completed && __DEV__) {
-        try { console.log("Challenge completed"); } catch {}
+        try {
+          console.log("Challenge completed");
+        } catch {}
       }
     } catch (error) {
       handleError(
@@ -154,17 +156,26 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
                   amount: currentSession.penaltyAmount,
                   type: "penalty",
                   status: "completed",
-                  transactionId: info?.transactionId || info?.productIdentifier || undefined,
+                  transactionId:
+                    info?.transactionId || info?.productIdentifier || undefined,
                 } as any);
               }
             } catch {}
             await stopChallenge(false);
           } catch (e) {
-            handleError(e, { component: 'TimerScreen', action: 'stopAfterPay' }, { fallbackMessage: 'Failed to finalize challenge.' });
+            handleError(
+              e,
+              { component: "TimerScreen", action: "stopAfterPay" },
+              { fallbackMessage: "Failed to finalize challenge." },
+            );
           }
         }}
         onError={(e) => {
-          handleError(e, { component: 'TimerScreen', action: 'purchasePenalty' }, { fallbackMessage: '支払いに失敗しました。' });
+          handleError(
+            e,
+            { component: "TimerScreen", action: "purchasePenalty" },
+            { fallbackMessage: "支払いに失敗しました。" },
+          );
         }}
       />
     </View>

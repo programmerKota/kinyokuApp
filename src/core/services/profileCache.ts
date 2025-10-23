@@ -79,7 +79,12 @@ export class ProfileCache {
           .channel(`realtime:profiles:${userId}`)
           .on(
             "postgres_changes",
-            { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "profiles",
+              filter: `id=eq.${userId}`,
+            },
             (payload) => {
               const row = (payload.new || payload.old) as
                 | { displayName?: string; photoURL?: string }

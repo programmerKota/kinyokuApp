@@ -1,8 +1,19 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView, RefreshControl, TextInput, Alert, InteractionManager } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+  RefreshControl,
+  TextInput,
+  Alert,
+  InteractionManager,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
@@ -45,7 +56,7 @@ const DiaryItemRow: React.FC<{
     <View style={{ marginBottom: spacing.sm }}>
       <DiaryCard
         authorId={item.userId}
-        authorName={authorName ?? 'ユーザー'}
+        authorName={authorName ?? "ユーザー"}
         authorAvatar={authorAvatar}
         averageDays={averageDays}
         content={item.content}
@@ -76,7 +87,9 @@ const DiaryByDayScreen: React.FC = () => {
   const [userAverageDays, setUserAverageDays] = useState<Map<string, number>>(
     new Map(),
   );
-  const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
+  const [profilesMap, setProfilesMap] = useState<
+    Map<string, UserProfileLite | undefined>
+  >(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const blockedSet = useBlockedIds();
@@ -132,11 +145,14 @@ const DiaryByDayScreen: React.FC = () => {
           const next = new Map(userAverageDays);
           const missing = ids.filter((uid) => !next.has(uid));
           if (missing.length > 0) {
-            const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+            const map =
+              await UserStatsService.getManyUsersCurrentDaysForRank(missing);
             map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
           }
           setUserAverageDays(next);
-        } catch (e) { Logger.warn("DiaryByDay.fetchAvgDays", e); }
+        } catch (e) {
+          Logger.warn("DiaryByDay.fetchAvgDays", e);
+        }
       } finally {
         setLoading(false);
       }
@@ -145,7 +161,11 @@ const DiaryByDayScreen: React.FC = () => {
       void fetch();
     });
     return () => {
-      try { (task as any)?.cancel?.(); } catch (e) { Logger.warn("DiaryByDay.cancelTask", e); }
+      try {
+        (task as any)?.cancel?.();
+      } catch (e) {
+        Logger.warn("DiaryByDay.cancelTask", e);
+      }
     };
   }, [day, blockedSet]);
 
@@ -159,7 +179,13 @@ const DiaryByDayScreen: React.FC = () => {
     const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
       setProfilesMap(map);
     });
-    return () => { try { unsub?.(); } catch (e) { Logger.warn("DiaryByDay.unsubscribeProfiles", e); } };
+    return () => {
+      try {
+        unsub?.();
+      } catch (e) {
+        Logger.warn("DiaryByDay.unsubscribeProfiles", e);
+      }
+    };
   }, [items]);
 
   // 選択中の「日」のみRealtime購読して差分適用（負荷抑制）
@@ -170,7 +196,12 @@ const DiaryByDayScreen: React.FC = () => {
       .channel(`realtime:diaries:day:${day}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "diaries",
+          filter: `day=eq.${day}`,
+        },
         (payload) => {
           const row = (payload.new || payload.old) as any;
           if (!row) return;
@@ -181,7 +212,9 @@ const DiaryByDayScreen: React.FC = () => {
             content: row.content as string,
             createdAt:
               (row.createdAt as any)?.toDate?.() ||
-              (typeof row.createdAt === "string" ? new Date(row.createdAt) : row.createdAt),
+              (typeof row.createdAt === "string"
+                ? new Date(row.createdAt)
+                : row.createdAt),
           } as DayDiaryItem;
 
           setItems((prev) => {
@@ -189,7 +222,10 @@ const DiaryByDayScreen: React.FC = () => {
             // ブロックユーザーの項目は表示しない
             const visible = !blockedSet.has(mapped.userId);
 
-            if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            if (
+              payload.eventType === "INSERT" ||
+              payload.eventType === "UPDATE"
+            ) {
               // 既存を置換 or 先頭に追加
               const idx = next.findIndex((it) => it.id === mapped.id);
               if (!visible) {
@@ -206,7 +242,13 @@ const DiaryByDayScreen: React.FC = () => {
                 next[idx] = mapped;
               }
               // createdAt 降順を維持
-              next = next.slice().sort((a, b) => (new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime()));
+              next = next
+                .slice()
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt as any).getTime() -
+                    new Date(a.createdAt as any).getTime(),
+                );
               return next;
             }
             if (payload.eventType === "DELETE") {
@@ -222,7 +264,12 @@ const DiaryByDayScreen: React.FC = () => {
       )
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "diaries",
+          filter: `day=eq.${day}`,
+        },
         (payload) => {
           const row = (payload.new || payload.old) as any;
           if (!row) return;
@@ -232,30 +279,50 @@ const DiaryByDayScreen: React.FC = () => {
             content: row.content as string,
             createdAt:
               (row.createdAt as any)?.toDate?.() ||
-              (typeof row.createdAt === "string" ? new Date(row.createdAt) : row.createdAt),
+              (typeof row.createdAt === "string"
+                ? new Date(row.createdAt)
+                : row.createdAt),
           } as DayDiaryItem;
           setItems((prev) => {
             let next = prev;
             const visible = !blockedSet.has(mapped.userId);
             const idx = next.findIndex((it) => it.id === mapped.id);
             if (!visible) {
-              if (idx !== -1) next = [...next.slice(0, idx), ...next.slice(idx + 1)];
+              if (idx !== -1)
+                next = [...next.slice(0, idx), ...next.slice(idx + 1)];
               return next;
             }
             if (idx === -1) next = [mapped, ...next];
-            else { next = [...next]; next[idx] = mapped; }
-            next = next.slice().sort((a, b) => (new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime()));
+            else {
+              next = [...next];
+              next[idx] = mapped;
+            }
+            next = next
+              .slice()
+              .sort(
+                (a, b) =>
+                  new Date(b.createdAt as any).getTime() -
+                  new Date(a.createdAt as any).getTime(),
+              );
             return next;
           });
         },
       )
       .on(
         "postgres_changes",
-        { event: "DELETE", schema: "public", table: "diaries", filter: `day=eq.${day}` },
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "diaries",
+          filter: `day=eq.${day}`,
+        },
         (payload) => {
           const row = (payload.new || payload.old) as any;
           if (!row) return;
-          const mapped = { id: row.id as string, userId: row.userId as string } as DayDiaryItem;
+          const mapped = {
+            id: row.id as string,
+            userId: row.userId as string,
+          } as DayDiaryItem;
           setItems((prev) => prev.filter((it) => it.id !== mapped.id));
         },
       );
@@ -264,7 +331,11 @@ const DiaryByDayScreen: React.FC = () => {
 
     return () => {
       active = false;
-      try { supabase.removeChannel(channel); } catch (e) { Logger.warn("DiaryByDay.removeChannel", e); }
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {
+        Logger.warn("DiaryByDay.removeChannel", e);
+      }
     };
   }, [day, blockedSet]);
 
@@ -307,11 +378,14 @@ const DiaryByDayScreen: React.FC = () => {
         const next = new Map(userAverageDays);
         const missing = ids.filter((uid) => !next.has(uid));
         if (missing.length > 0) {
-          const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+          const map =
+            await UserStatsService.getManyUsersCurrentDaysForRank(missing);
           map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
         }
         setUserAverageDays(next);
-      } catch (e) { Logger.warn("DiaryByDay.refreshAvgDays", e); }
+      } catch (e) {
+        Logger.warn("DiaryByDay.refreshAvgDays", e);
+      }
     } finally {
       setRefreshing(false);
     }
@@ -325,7 +399,9 @@ const DiaryByDayScreen: React.FC = () => {
       const prof = profilesMap.get(item.userId);
       // プロフィールが存在しない場合は「削除されたユーザー」と表示
       const hasProfile = profilesMap.has(item.userId);
-      const authorName = prof?.displayName ?? (hasProfile ? item.authorName : '削除されたユーザー');
+      const authorName =
+        prof?.displayName ??
+        (hasProfile ? item.authorName : "削除されたユーザー");
       const authorAvatar = prof?.photoURL ?? item.authorAvatar;
       return (
         <DiaryItemRow
@@ -359,7 +435,10 @@ const DiaryByDayScreen: React.FC = () => {
           : "";
 
   // days data for horizontal day selector (virtualized)
-  const daysData = useMemo(() => Array.from({ length: 365 }, (_, i) => i + 1), []);
+  const daysData = useMemo(
+    () => Array.from({ length: 365 }, (_, i) => i + 1),
+    [],
+  );
   const dayListRef = useRef<FlatList<number>>(null);
 
   return (
@@ -431,7 +510,9 @@ const DiaryByDayScreen: React.FC = () => {
                 <DayCard
                   day={d}
                   selected={d === day}
-                  posted={activeDay !== null && d === activeDay && alreadyPosted}
+                  posted={
+                    activeDay !== null && d === activeDay && alreadyPosted
+                  }
                   onPress={(sel) => setDay(sel)}
                 />
               )}
@@ -531,13 +612,17 @@ const DiaryByDayScreen: React.FC = () => {
                       userId: (d as any).userId,
                       content: d.content,
                       createdAt:
-                        (d.createdAt as any)?.toDate?.() || (d.createdAt as any),
+                        (d.createdAt as any)?.toDate?.() ||
+                        (d.createdAt as any),
                     }));
                     setItems(mapped);
                     if (activeDay !== null && day === activeDay)
                       setAlreadyPosted(true);
                   } catch (refreshError) {
-                    console.warn("日記リストのリフレッシュに失敗しました:", refreshError);
+                    console.warn(
+                      "日記リストのリフレッシュに失敗しました:",
+                      refreshError,
+                    );
                   }
                 } catch (e: any) {
                   Alert.alert(
@@ -550,7 +635,7 @@ const DiaryByDayScreen: React.FC = () => {
               style={[
                 styles.modalSubmit,
                 (!addText.trim() || !canPostForSelectedDay) &&
-                styles.modalSubmitDisabled,
+                  styles.modalSubmitDisabled,
               ]}
               disabled={!addText.trim() || !canPostForSelectedDay}
             >
@@ -653,4 +738,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default DiaryByDayScreen;
-

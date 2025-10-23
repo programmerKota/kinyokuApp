@@ -290,7 +290,24 @@ export class TournamentService {
     }
 
     let current: FirestoreTournamentJoinRequest[] = [];
-    let channel: ReturnType<typeof supabase.channel> | undefined;
+    // 単回代入のため const に変更
+    const channel: ReturnType<typeof supabase.channel> =
+      supabase
+        .channel(`realtime:tournament_messages:new:${tournamentId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "tournament_messages",
+            filter: `tournamentId=eq.${tournamentId}`,
+          },
+          (payload: any) => {
+            const row = payload.new;
+            onInsert(row);
+          },
+        )
+        .subscribe();
 
     const emit = () => callback([...current]);
     const sortDesc = (a: any, b: any) =>
@@ -307,7 +324,8 @@ export class TournamentService {
       const isPending = String(row.status) === "pending";
       const idx = current.findIndex((r) => r.id === row.id);
       if (!isPending) {
-        if (idx >= 0) current = [...current.slice(0, idx), ...current.slice(idx + 1)];
+        if (idx >= 0)
+          current = [...current.slice(0, idx), ...current.slice(idx + 1)];
         emit();
         return;
       }
@@ -340,18 +358,45 @@ export class TournamentService {
         .channel(`realtime:tournament_join_requests:${tournamentId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
-          (payload: any) => { const row = payload.new || undefined; if (!row) return; applyChange("INSERT", row); },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "tournament_join_requests",
+            filter: `tournamentId=eq.${tournamentId}`,
+          },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("INSERT", row);
+          },
         )
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
-          (payload: any) => { const row = payload.new || undefined; if (!row) return; applyChange("UPDATE", row); },
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "tournament_join_requests",
+            filter: `tournamentId=eq.${tournamentId}`,
+          },
+          (payload: any) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("UPDATE", row);
+          },
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "tournament_join_requests", filter: `tournamentId=eq.${tournamentId}` },
-          (payload: any) => { const row = payload.old || undefined; if (!row) return; applyChange("DELETE", row); },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "tournament_join_requests",
+            filter: `tournamentId=eq.${tournamentId}`,
+          },
+          (payload: any) => {
+            const row = payload.old || undefined;
+            if (!row) return;
+            applyChange("DELETE", row);
+          },
         )
         .subscribe();
     };
@@ -461,7 +506,6 @@ export class TournamentService {
       return () => {};
     }
 
-    let channel: ReturnType<typeof supabase.channel> | undefined;
     let sinceIso = toIso(afterCreatedAt) || new Date(0).toISOString();
 
     const onInsert = (row: any) => {
@@ -472,8 +516,7 @@ export class TournamentService {
       const msg = [{ ...row, createdAt: toTs(row.createdAt) }] as any;
       callback(msg);
     };
-
-    channel = supabase
+    const channel: ReturnType<typeof supabase.channel> = supabase
       .channel(`realtime:tournament_messages:new:${tournamentId}`)
       .on(
         "postgres_changes",
@@ -489,9 +532,10 @@ export class TournamentService {
         },
       )
       .subscribe();
+    
 
     return () => {
-      if (channel) channel.unsubscribe();
+      channel.unsubscribe();
     };
   }
 

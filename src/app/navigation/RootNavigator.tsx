@@ -32,7 +32,11 @@ export type RootStackParamList = {
   Diary: undefined;
   Ranking: undefined;
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
-  FollowList: { userId: string; userName?: string; mode: "following" | "followers" };
+  FollowList: {
+    userId: string;
+    userName?: string;
+    mode: "following" | "followers";
+  };
   BlockedUsers: undefined;
   Feedback: undefined;
   DevCrud?: undefined;
@@ -49,7 +53,15 @@ const MainTabs: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => {
+        tabBarIcon: ({
+          focused,
+          color,
+          size,
+        }: {
+          focused: boolean;
+          color: string;
+          size: number;
+        }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
@@ -78,14 +90,26 @@ const MainTabs: React.FC = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: "ホーム" }} />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: "ホーム" }}
+      />
       <Tab.Screen
         name="Tournaments"
         component={TournamentStackNavigator}
         options={{ tabBarLabel: "トーナメント" }}
       />
-      <Tab.Screen name="Community" component={CommunityScreen} options={{ tabBarLabel: "コミュニティ" }} />
-      <Tab.Screen name="Settings" component={ProfileScreen} options={{ tabBarLabel: "設定" }} />
+      <Tab.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{ tabBarLabel: "コミュニティ" }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={ProfileScreen}
+        options={{ tabBarLabel: "設定" }}
+      />
     </Tab.Navigator>
   );
 };
@@ -102,7 +126,10 @@ const RootNavigator: React.FC = () => {
   const { navigationTheme } = useAppTheme();
   return (
     <NavigationContainer theme={navigationTheme}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isE2E ? "E2E" : "MainTabs"}>
+      <RootStack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName={isE2E ? "E2E" : "MainTabs"}
+      >
         <RootStack.Screen name="MainTabs" component={MainTabs} />
         <RootStack.Screen name="History" component={HistoryStackNavigator} />
         <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
@@ -111,7 +138,9 @@ const RootNavigator: React.FC = () => {
         <RootStack.Screen name="FollowList" component={FollowListScreen} />
         <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
         <RootStack.Screen name="Feedback" component={FeedbackScreen} />
-        {DevCrudTestScreen && <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />}
+        {DevCrudTestScreen && (
+          <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
+        )}
         <RootStack.Screen name="E2E" component={E2EScreen} />
       </RootStack.Navigator>
     </NavigationContainer>
@@ -119,4 +148,3 @@ const RootNavigator: React.FC = () => {
 };
 
 export default RootNavigator;
-

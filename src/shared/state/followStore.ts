@@ -46,4 +46,3 @@ export const useFollowingIds = (): Set<string> => {
   const getSnapshot = () => FollowStore.get();
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };
-

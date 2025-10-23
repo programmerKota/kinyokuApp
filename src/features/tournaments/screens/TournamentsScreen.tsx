@@ -21,7 +21,13 @@ import VirtualizedList from "@features/tournaments/components/VirtualizedList";
 import useTournamentParticipants from "@features/tournaments/hooks/useTournamentParticipants";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
-import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import ProfileCache from "@core/services/profileCache";
@@ -86,7 +92,10 @@ const TournamentsScreen: React.FC = () => {
   }, [tournaments, profilesMap]);
 
   const visibleTournaments = useMemo(
-    () => (filter === "joined" ? enrichedTournaments.filter((t) => t.isJoined) : enrichedTournaments),
+    () =>
+      filter === "joined"
+        ? enrichedTournaments.filter((t) => t.isJoined)
+        : enrichedTournaments,
     [filter, enrichedTournaments],
   );
 
@@ -113,7 +122,9 @@ const TournamentsScreen: React.FC = () => {
                 const participants = participantsActions.getParticipants(
                   tournament.id,
                 );
-                const isJoined = myIds.has(tournament.ownerId) || participants.some((p) => myIds.has(p.userId));
+                const isJoined =
+                  myIds.has(tournament.ownerId) ||
+                  participants.some((p) => myIds.has(p.userId));
                 const participantCount = participants.some(
                   (p) => p.userId === tournament.ownerId,
                 )
@@ -152,14 +163,18 @@ const TournamentsScreen: React.FC = () => {
                 // 追加フォールバック: 参加者スナップショットから作成者名/アバターを補完
                 if (!owner) {
                   try {
-                    const ownerPart = participants.find((p) => p.userId === tournament.ownerId);
+                    const ownerPart = participants.find(
+                      (p) => p.userId === tournament.ownerId,
+                    );
                     if (ownerPart) {
                       owner = {
                         displayName: ownerPart.userName,
                         photoURL: ownerPart.userAvatar ?? undefined,
                       } as any;
                     }
-                  } catch { /* noop */ }
+                  } catch {
+                    /* noop */
+                  }
                 }
 
                 return {
@@ -180,17 +195,24 @@ const TournamentsScreen: React.FC = () => {
             setTournaments(convertedTournaments);
             // プロフィールをリアルタイム購読
             try {
-              const ids = Array.from(new Set(convertedTournaments.map((t) => t.ownerId)));
+              const ids = Array.from(
+                new Set(convertedTournaments.map((t) => t.ownerId)),
+              );
               if (ids.length > 0) {
-                const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
-                  setProfilesMap(map);
-                });
+                const unsub = ProfileCache.getInstance().subscribeMany(
+                  ids,
+                  (map) => {
+                    setProfilesMap(map);
+                  },
+                );
                 setProfilesUnsub((prev) => {
-                  try { prev?.(); } catch { }
+                  try {
+                    prev?.();
+                  } catch {}
                   return unsub;
                 });
               }
-            } catch { }
+            } catch {}
           } catch (error) {
             handleError(
               error,
@@ -367,12 +389,15 @@ const TournamentsScreen: React.FC = () => {
     if (user?.uid) ids.add(user.uid);
     (async () => {
       try {
-        const legacy = await (await import('@core/services/supabase/userService')).FirestoreUserService.getCurrentUserId();
+        const legacy = await (
+          await import("@core/services/supabase/userService")
+        ).FirestoreUserService.getCurrentUserId();
         if (legacy) ids.add(legacy);
-      } catch { }
+      } catch {}
       setMyIds(ids);
     })();
-  }, [user?.uid]); const renderTournament = useCallback(
+  }, [user?.uid]);
+  const renderTournament = useCallback(
     ({ item }: { item: Tournament }) => (
       <MemoizedTournamentCard
         tournament={item}
@@ -419,7 +444,11 @@ const TournamentsScreen: React.FC = () => {
         contentContainerStyle={styles.list}
         loading={loading}
         hasMore={false} // 今はページング未対応
-        emptyMessage={filter === "joined" ? "参加中のトーナメントがありません" : "トーナメントがありません"}
+        emptyMessage={
+          filter === "joined"
+            ? "参加中のトーナメントがありません"
+            : "トーナメントがありません"
+        }
         itemHeight={200} // カード高さの目安
         maxToRenderPerBatch={5}
         windowSize={10}
@@ -517,7 +546,10 @@ const FilterTabs: React.FC<{
           onPress={() => onChange("joined")}
         >
           <Text
-            style={[uiStyles.tabText, active === "joined" && uiStyles.tabTextActive]}
+            style={[
+              uiStyles.tabText,
+              active === "joined" && uiStyles.tabTextActive,
+            ]}
           >
             参加中
           </Text>
@@ -527,7 +559,10 @@ const FilterTabs: React.FC<{
           onPress={() => onChange("all")}
         >
           <Text
-            style={[uiStyles.tabText, active === "all" && uiStyles.tabTextActive]}
+            style={[
+              uiStyles.tabText,
+              active === "all" && uiStyles.tabTextActive,
+            ]}
           >
             すべて
           </Text>
@@ -536,4 +571,3 @@ const FilterTabs: React.FC<{
     </View>
   );
 };
-

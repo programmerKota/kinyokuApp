@@ -77,4 +77,3 @@ export const formatRelative = (
   if (days < 7) return `${days}日前`;
   return date.toLocaleDateString("ja-JP");
 };
-

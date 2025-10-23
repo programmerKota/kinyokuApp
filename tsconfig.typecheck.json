@@ -5,14 +5,6 @@
     "jsx": "react-native",
     "skipLibCheck": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "supabase/functions/**",
-    "scripts/**"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "supabase/functions/**", "scripts/**"]
 }
-

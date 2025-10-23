@@ -133,11 +133,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               <Image source={{ uri: avatarUri }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Ionicons
-                  name="person"
-                  size={42}
-                  color="#9CA3AF"
-                />
+                <Ionicons name="person" size={42} color="#9CA3AF" />
               </View>
             )}
           </TouchableOpacity>

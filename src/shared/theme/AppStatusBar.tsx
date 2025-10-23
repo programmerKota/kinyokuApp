@@ -19,4 +19,3 @@ export const AppStatusBar: React.FC<Props> = ({ backgroundColor }) => {
 };
 
 export default AppStatusBar;
-

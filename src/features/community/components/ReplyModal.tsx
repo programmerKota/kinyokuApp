@@ -81,9 +81,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                       color={colors.textPrimary}
                     />
                   </TouchableOpacity>
-                  <Text style={styles.headerTitle}>
-                    {postAuthorName}に返信
-                  </Text>
+                  <Text style={styles.headerTitle}>{postAuthorName}に返信</Text>
                   <TouchableOpacity
                     onPress={handleSubmit}
                     style={[

@@ -2,7 +2,13 @@
 import type { RouteProp } from "@react-navigation/native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
@@ -102,7 +108,10 @@ const FollowListScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <AppStatusBar />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={22} color={colors.gray800} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
@@ -151,7 +160,9 @@ const FollowListScreen: React.FC = () => {
         ListEmptyComponent={() => (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>
-              {mode === "following" ? "フォローしているユーザーがいません" : "フォロワーがいません"}
+              {mode === "following"
+                ? "フォローしているユーザーがいません"
+                : "フォロワーがいません"}
             </Text>
           </View>
         )}
@@ -160,99 +171,100 @@ const FollowListScreen: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-  },
-  backButton: { padding: spacing.sm },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: typography.fontSize.lg,
-    fontWeight: "bold",
-    color: colors.gray800,
-  },
-  listContent: {
-    backgroundColor: colors.backgroundSecondary,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.borderPrimary,
-    marginLeft: spacing.xl + 44 + spacing.md, // 左のアバター分を空ける
-  },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
-  },
-  itemMain: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  itemAvatar: {
-    marginRight: spacing.md,
-  },
-  itemName: {
-    flex: 1,
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    fontWeight: "600",
-  },
-  itemSub: {
-    marginTop: 2,
-    fontSize: typography.fontSize.xs,
-    color: colors.textSecondary,
-  },
-  followPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: "#FACC15",
-    backgroundColor: colors.backgroundSecondary,
-  },
-  followPillFollowing: {
-    borderColor: "#FDE047",
-    backgroundColor: colors.backgroundSecondary,
-  },
-  followPillText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.black,
-    fontWeight: "700",
-  },
-  followIconWrap: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.black,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  empty: {
-    alignItems: "center",
-    paddingVertical: spacing["3xl"],
-  },
-  emptyText: {
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+    },
+    backButton: { padding: spacing.sm },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: typography.fontSize.lg,
+      fontWeight: "bold",
+      color: colors.gray800,
+    },
+    listContent: {
+      backgroundColor: colors.backgroundSecondary,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: colors.borderPrimary,
+      marginLeft: spacing.xl + 44 + spacing.md, // 左のアバター分を空ける
+    },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.backgroundSecondary,
+    },
+    itemMain: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      marginRight: spacing.md,
+    },
+    itemAvatar: {
+      marginRight: spacing.md,
+    },
+    itemName: {
+      flex: 1,
+      fontSize: typography.fontSize.base,
+      color: colors.textPrimary,
+      fontWeight: "600",
+    },
+    itemSub: {
+      marginTop: 2,
+      fontSize: typography.fontSize.xs,
+      color: colors.textSecondary,
+    },
+    followPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 2,
+      borderColor: "#FACC15",
+      backgroundColor: colors.backgroundSecondary,
+    },
+    followPillFollowing: {
+      borderColor: "#FDE047",
+      backgroundColor: colors.backgroundSecondary,
+    },
+    followPillText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.black,
+      fontWeight: "700",
+    },
+    followIconWrap: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: colors.black,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 8,
+    },
+    empty: {
+      alignItems: "center",
+      paddingVertical: spacing["3xl"],
+    },
+    emptyText: {
+      color: colors.textSecondary,
+    },
+  });
 
 export default FollowListScreen;
 
@@ -321,10 +333,15 @@ const FollowPill: React.FC<{
       style={[styles.followPill, isFollowing && styles.followPillFollowing]}
     >
       <View style={styles.followIconWrap}>
-        <Ionicons name={isFollowing ? "checkmark" : "add"} size={12} color={colors.white} />
+        <Ionicons
+          name={isFollowing ? "checkmark" : "add"}
+          size={12}
+          color={colors.white}
+        />
       </View>
-      <Text style={styles.followPillText}>{isFollowing ? "フォロー中" : "フォローする"}</Text>
+      <Text style={styles.followPillText}>
+        {isFollowing ? "フォロー中" : "フォローする"}
+      </Text>
     </TouchableOpacity>
   );
 };
-

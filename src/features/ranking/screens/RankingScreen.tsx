@@ -2,7 +2,15 @@
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
@@ -14,8 +22,16 @@ import { UserStatsService } from "@core/services/userStatsService";
 import RankingListItem from "@features/ranking/components/RankingListItem";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { useFollowingIds } from "@shared/state/followStore";
-import { useThemedStyles, useAppTheme, spacing, typography, shadows } from "@shared/theme";
-import ProfileCache, { type UserProfileLite } from "@core/services/profileCache";
+import {
+  useThemedStyles,
+  useAppTheme,
+  spacing,
+  typography,
+  shadows,
+} from "@shared/theme";
+import ProfileCache, {
+  type UserProfileLite,
+} from "@core/services/profileCache";
 import { createUiStyles } from "@shared/ui/styles";
 
 const RankingScreen: React.FC = () => {
@@ -31,13 +47,17 @@ const RankingScreen: React.FC = () => {
   const [rankings, setRankings] = useState<UserRanking[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [cursor, setCursor] = useState<{ startedAt: string; userId: string } | undefined>(undefined);
+  const [cursor, setCursor] = useState<
+    { startedAt: string; userId: string } | undefined
+  >(undefined);
   const [hasMore, setHasMore] = useState(true);
   const [avgDaysMap, setAvgDaysMap] = useState<Map<string, number>>(new Map());
   const [activeTab, setActiveTab] = useState<"all" | "following">("all");
   const [showTiers, setShowTiers] = useState(false);
   const followingIds = useFollowingIds();
-  const [profilesMap, setProfilesMap] = useState<Map<string, UserProfileLite | undefined>>(new Map());
+  const [profilesMap, setProfilesMap] = useState<
+    Map<string, UserProfileLite | undefined>
+  >(new Map());
 
   useEffect(() => {
     void refreshRankings();
@@ -53,7 +73,8 @@ const RankingScreen: React.FC = () => {
   const refreshRankings = async () => {
     try {
       if (activeTab === "all") {
-        const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE);
+        const { items, nextCursor } =
+          await RankingService.getUserRankingsPage(PAGE_SIZE);
         items.forEach((r, i) => (r.rank = i + 1));
         setRankings(items);
         setCursor(nextCursor);
@@ -100,7 +121,10 @@ const RankingScreen: React.FC = () => {
     if (activeTab !== "all") return;
     setLoadingMore(true);
     try {
-      const { items, nextCursor } = await RankingService.getUserRankingsPage(PAGE_SIZE, cursor);
+      const { items, nextCursor } = await RankingService.getUserRankingsPage(
+        PAGE_SIZE,
+        cursor,
+      );
       const offset = rankings.length;
       items.forEach((r, i) => (r.rank = offset + i + 1));
       const mergedIds = new Set(rankings.map((r) => r.id));
@@ -135,7 +159,9 @@ const RankingScreen: React.FC = () => {
       setProfilesMap(map);
     });
     return () => {
-      try { unsub?.(); } catch { }
+      try {
+        unsub?.();
+      } catch {}
     };
   }, [rankings]);
 
@@ -148,7 +174,7 @@ const RankingScreen: React.FC = () => {
       const hasProfile = profilesMap.has(r.id);
       return {
         ...r,
-        name: (p?.displayName ?? (hasProfile ? r.name : 'ユーザー')) as any,
+        name: (p?.displayName ?? (hasProfile ? r.name : "ユーザー")) as any,
         avatar: (p?.photoURL ?? r.avatar) as any,
       } as UserRanking;
     });
@@ -246,15 +272,32 @@ const RankingScreen: React.FC = () => {
             if (activeTab !== "all") setActiveTab("all");
           }}
         >
-          <Text style={[uiStyles.tabText, activeTab === "all" && uiStyles.tabTextActive]}>すべて</Text>
+          <Text
+            style={[
+              uiStyles.tabText,
+              activeTab === "all" && uiStyles.tabTextActive,
+            ]}
+          >
+            すべて
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[uiStyles.tab, activeTab === "following" && uiStyles.tabActive]}
+          style={[
+            uiStyles.tab,
+            activeTab === "following" && uiStyles.tabActive,
+          ]}
           onPress={() => {
             if (activeTab !== "following") setActiveTab("following");
           }}
         >
-          <Text style={[uiStyles.tabText, activeTab === "following" && uiStyles.tabTextActive]}>フォロー中</Text>
+          <Text
+            style={[
+              uiStyles.tabText,
+              activeTab === "following" && uiStyles.tabTextActive,
+            ]}
+          >
+            フォロー中
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -264,7 +307,9 @@ const RankingScreen: React.FC = () => {
         renderItem={renderRankingItem}
         keyExtractor={(item) => item.id}
         onEndReachedThreshold={0.5}
-        onEndReached={() => { void loadMore(); }}
+        onEndReached={() => {
+          void loadMore();
+        }}
         removeClippedSubviews
         windowSize={5}
         maxToRenderPerBatch={24}
@@ -295,10 +340,10 @@ const RankingScreen: React.FC = () => {
               <Text style={styles.descriptionTitle}>ランキング</Text>
               <TouchableOpacity
                 onPress={() => setShowTiers((v) => !v)}
-                style={{ marginLeft: 'auto' }}
+                style={{ marginLeft: "auto" }}
               >
-                <Text style={{ color: '#2563EB', fontWeight: '600' }}>
-                  {showTiers ? '詳細を隠す' : '詳細を表示'}
+                <Text style={{ color: "#2563EB", fontWeight: "600" }}>
+                  {showTiers ? "詳細を隠す" : "詳細を表示"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -404,7 +449,8 @@ const RankingScreen: React.FC = () => {
                   <View style={styles.tierItem}>
                     <Text style={styles.tierBadge}>大佐 🏆⭐⭐⭐</Text>
                     <Text style={styles.tierRule}>
-                      200〜299日: 半年以上継続。継続力が人生のあらゆる面で活かされます。
+                      200〜299日:
+                      半年以上継続。継続力が人生のあらゆる面で活かされます。
                     </Text>
                   </View>
                   <View style={styles.tierItem}>
@@ -458,12 +504,16 @@ const RankingScreen: React.FC = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="trophy-outline" size={64} color={colors.textSecondary} />
+            <Ionicons
+              name="trophy-outline"
+              size={64}
+              color={colors.textSecondary}
+            />
             <Text style={styles.emptyTitle}>ランキングデータがありません</Text>
             <Text style={styles.emptyText}>
-              {activeTab === 'following'
-                ? 'No rankings from following users yet'
-                : 'No rankings yet'}
+              {activeTab === "following"
+                ? "No rankings from following users yet"
+                : "No rankings yet"}
             </Text>
           </View>
         }
@@ -694,5 +744,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default RankingScreen;
-
-

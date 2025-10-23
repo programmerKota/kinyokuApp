@@ -17,7 +17,9 @@ const App = () => {
   // Preload icon fonts to prevent first‑paint flicker of vector icons
   const [fontsLoaded] = useFonts((Ionicons as any).font ?? {});
   useEffect(() => {
-    try { (Ionicons as any)?.loadFont?.(); } catch {}
+    try {
+      (Ionicons as any)?.loadFont?.();
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -30,30 +32,31 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-<ErrorBoundary>
-        <AuthPromptProvider>
-          <AuthProvider>
-            {(() => {
-              try {
-                if (typeof window !== 'undefined') {
-                  const q = new URLSearchParams(window.location.search);
-                  if (q.get('e2e') === '1' || (window.navigator as any)?.webdriver) {
-                    return <RootNavigator />;
+        <ErrorBoundary>
+          <AuthPromptProvider>
+            <AuthProvider>
+              {(() => {
+                try {
+                  if (typeof window !== "undefined") {
+                    const q = new URLSearchParams(window.location.search);
+                    if (
+                      q.get("e2e") === "1" ||
+                      (window.navigator as any)?.webdriver
+                    ) {
+                      return <RootNavigator />;
+                    }
                   }
-                }
-              } catch {}
-              return (
-                <AuthGate>
-                  <RootNavigator />
-                </AuthGate>
-              );
-            })()}
-          </AuthProvider>
-        </AuthPromptProvider>
-      </ErrorBoundary>
-
-    </ThemeProvider>
-
+                } catch {}
+                return (
+                  <AuthGate>
+                    <RootNavigator />
+                  </AuthGate>
+                );
+              })()}
+            </AuthProvider>
+          </AuthPromptProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 };

@@ -2,8 +2,10 @@ import { supabase, supabaseConfig } from "@app/config/supabase.config";
 
 const AVATARS_BUCKET = "avatars";
 
-const isHttpUrl = (v?: string) => typeof v === "string" && /^https?:\/\//i.test(v);
-const isDataUrl = (v?: string) => typeof v === "string" && /^data:image\//i.test(v);
+const isHttpUrl = (v?: string) =>
+  typeof v === "string" && /^https?:\/\//i.test(v);
+const isDataUrl = (v?: string) =>
+  typeof v === "string" && /^data:image\//i.test(v);
 const extFromType = (type?: string): string => {
   if (!type) return "jpg";
   if (type.includes("png")) return "png";
@@ -15,9 +17,10 @@ const extFromType = (type?: string): string => {
 
 const decodeBase64ToUint8 = (b64: string): Uint8Array => {
   // Lightweight base64 decoder that works in RN without extra deps
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-  let str = b64.replace(/[^A-Za-z0-9+/=]/g, "");
-  let output: number[] = [];
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  const str = b64.replace(/[^A-Za-z0-9+/=]/g, "");
+  const output: number[] = [];
   let i = 0;
   while (i < str.length) {
     const enc1 = chars.indexOf(str.charAt(i++));
@@ -101,11 +104,12 @@ export async function uploadUserAvatar(
     } else {
       contentType = (blob as any).type || "image/jpeg";
       // Prefer File when available to preserve metadata; otherwise use Blob directly
-      payload = typeof File !== "undefined"
-        ? new File([blob as any], `avatar.${extFromType(contentType)}`, {
-            type: contentType,
-          })
-        : (blob as any);
+      payload =
+        typeof File !== "undefined"
+          ? new File([blob as any], `avatar.${extFromType(contentType)}`, {
+              type: contentType,
+            })
+          : (blob as any);
     }
   }
   const ext = extFromType(contentType);
@@ -138,8 +142,16 @@ export async function uploadUserAvatar(
         upsert: true,
       });
     if (updErr) {
-      // surface better diagnostics
-      const msg = `UPLOAD_FAILED: ${upErr?.message || upErr} / UPDATE_FAILED: ${updErr?.message || updErr}`;
+      // surface better diagnostics (型安全に文字列化)
+      const upErrMsg =
+        typeof (upErr as any)?.message === "string"
+          ? (upErr as any).message
+          : String(upErr);
+      const updErrMsg =
+        typeof (updErr as any)?.message === "string"
+          ? (updErr as any).message
+          : String(updErr);
+      const msg = `UPLOAD_FAILED: ${upErrMsg} / UPDATE_FAILED: ${updErrMsg}`;
       throw new Error(msg);
     }
   }

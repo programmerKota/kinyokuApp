@@ -1,15 +1,30 @@
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, Pressable, Platform } from 'react-native';
-import * as Linking from 'expo-linking';
-import { Ionicons } from '@expo/vector-icons';
-import Modal from '@shared/components/Modal';
-import { oauthConfig } from '@app/config/oauth.config';
-import DSButton from '@shared/designSystem/components/DSButton';
-import { colors, spacing, typography } from '@shared/theme';
-import { screenThemes } from '@shared/theme/screenThemes';
-import { supabase, supabaseConfig } from '@app/config/supabase.config';
-import { featureFlags } from '@app/config/featureFlags.config';
-import { signInWithEmailPassword, signUpWithEmailPassword, sendMagicLink, resetPassword, initSupabaseAuthDeepLinks, getRedirectTo, startOAuthFlow } from '@core/services/supabase/authService';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { View, Text, TextInput, Pressable, Platform } from "react-native";
+import * as Linking from "expo-linking";
+import { Ionicons } from "@expo/vector-icons";
+import Modal from "@shared/components/Modal";
+import { oauthConfig } from "@app/config/oauth.config";
+import DSButton from "@shared/designSystem/components/DSButton";
+import { colors, spacing, typography } from "@shared/theme";
+import { screenThemes } from "@shared/theme/screenThemes";
+import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { featureFlags } from "@app/config/featureFlags.config";
+import {
+  signInWithEmailPassword,
+  signUpWithEmailPassword,
+  sendMagicLink,
+  resetPassword,
+  initSupabaseAuthDeepLinks,
+  getRedirectTo,
+  startOAuthFlow,
+} from "@core/services/supabase/authService";
 
 type Ctx = {
   requireAuth: () => Promise<boolean>;
@@ -27,16 +42,22 @@ async function waitForSession(ms = 20000): Promise<boolean> {
   return false;
 }
 
-export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [visible, setVisible] = useState(false);
-  const [authing, setAuthing] = useState<null | 'login' | 'signup' | 'magic' | 'reset'>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [authing, setAuthing] = useState<
+    null | "login" | "signup" | "magic" | "reset"
+  >(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [emailHint, setEmailHint] = useState<string | null>(null);
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [emailFocus, setEmailFocus] = useState(false);
   const [passFocus, setPassFocus] = useState(false);
-  React.useEffect(() => { void initSupabaseAuthDeepLinks(); }, []);
+  React.useEffect(() => {
+    void initSupabaseAuthDeepLinks();
+  }, []);
   const resolverRef = useRef<((v: boolean) => void) | null>(null);
 
   // Auto-close when a session appears (e.g., after OAuth return)
@@ -48,9 +69,13 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           resolverRef.current?.(true);
           resolverRef.current = null;
         }
-      } catch { }
+      } catch {}
     });
-    return () => { try { data?.subscription?.unsubscribe(); } catch { } };
+    return () => {
+      try {
+        data?.subscription?.unsubscribe();
+      } catch {}
+    };
   }, []);
 
   const close = useCallback((v: boolean) => {
@@ -61,16 +86,16 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doLogin = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚ÆƒpƒXƒ[ƒh‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
+      setEmailHint("ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½Æƒpï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
       return;
     }
     try {
-      setAuthing('login');
+      setAuthing("login");
       await signInWithEmailPassword(email.trim(), password);
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚Ü‚½‚ÍƒpƒXƒ[ƒh‚ª³‚µ‚­‚ ‚è‚Ü‚¹‚ñ');
+      setEmailHint("ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½Ü‚ï¿½ï¿½Íƒpï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
     } finally {
       setAuthing(null);
     }
@@ -78,16 +103,16 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doSignup = useCallback(async () => {
     if (!email || !password) {
-      setEmailHint('ƒ[ƒ‹ƒAƒhƒŒƒX‚ÆƒpƒXƒ[ƒh‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
+      setEmailHint("ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½Æƒpï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
       return;
     }
     try {
-      setAuthing('signup');
+      setAuthing("signup");
       await signUpWithEmailPassword(email.trim(), password);
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ƒTƒCƒ“ƒAƒbƒv‚É¸”s‚µ‚Ü‚µ‚½');
+      setEmailHint("ï¿½Tï¿½Cï¿½ï¿½ï¿½Aï¿½bï¿½vï¿½Éï¿½ï¿½sï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
     } finally {
       setAuthing(null);
     }
@@ -95,17 +120,19 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleMagic = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint('³‚µ‚¢ƒ[ƒ‹ƒAƒhƒŒƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
+      setEmailHint("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
       return;
     }
     try {
-      setAuthing('magic');
-      setEmailHint('ƒ[ƒ‹‚ğ‘—M‚µ‚Ü‚µ‚½BóMƒgƒŒƒC‚ğ‚²Šm”F‚­‚¾‚³‚¢');
-      await sendMagicLink(email.trim(), { shouldCreateUser: mode === 'signup' });
+      setAuthing("magic");
+      setEmailHint("ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ğ‘—Mï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½Bï¿½ï¿½Mï¿½gï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
+      await sendMagicLink(email.trim(), {
+        shouldCreateUser: mode === "signup",
+      });
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint('ƒ[ƒ‹‚Ì‘—M‚É¸”s‚µ‚Ü‚µ‚½BŠÔ‚ğ‚¨‚¢‚Ä‚¨‚µ‚­‚¾‚³‚¢');
+      setEmailHint("ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ì‘ï¿½ï¿½Mï¿½Éï¿½ï¿½sï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
     } finally {
       setAuthing(null);
     }
@@ -113,40 +140,45 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doResetPassword = useCallback(async () => {
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailHint('³‚µ‚¢ƒ[ƒ‹ƒAƒhƒŒƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢');
+      setEmailHint("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
       return;
     }
     try {
-      setAuthing('reset');
+      setAuthing("reset");
       await resetPassword(email.trim());
-      setEmailHint('ƒpƒXƒ[ƒhÄİ’èƒ[ƒ‹‚ğ‘—M‚µ‚Ü‚µ‚½');
+      setEmailHint("ï¿½pï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½Äİ’èƒï¿½[ï¿½ï¿½ï¿½ğ‘—Mï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
     } catch {
-      setEmailHint('ƒpƒXƒ[ƒhÄİ’èƒ[ƒ‹‚Ì‘—M‚É¸”s‚µ‚Ü‚µ‚½');
+      setEmailHint("ï¿½pï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½Äİ’èƒï¿½[ï¿½ï¿½ï¿½Ì‘ï¿½ï¿½Mï¿½Éï¿½ï¿½sï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
     } finally {
       setAuthing(null);
     }
   }, [email]);
 
   // OAuth providers (Google / Twitter(X) / Amazon / Facebook)
-  const startOAuth = useCallback(async (provider: 'google' | 'twitter' | 'amazon' | 'line') => {
-    try {
-      setAuthing(provider as any);
-      await startOAuthFlow(provider as any);
-    } finally {
-      setAuthing(null);
-    }
-  }, []);
+  const startOAuth = useCallback(
+    async (provider: "google" | "twitter" | "amazon" | "line") => {
+      try {
+        setAuthing(provider as any);
+        await startOAuthFlow(provider as any);
+      } finally {
+        setAuthing(null);
+      }
+    },
+    [],
+  );
 
   const requireAuth = useCallback(async () => {
     // E2E/Web test bypass: allow flows to continue without Supabase session
     try {
       if (featureFlags.authDisabled) return true;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
-        const bypass = params.get('e2e') === '1' || localStorage.getItem('__e2e_auth_bypass') === '1';
+        const bypass =
+          params.get("e2e") === "1" ||
+          localStorage.getItem("__e2e_auth_bypass") === "1";
         if (bypass) return true;
       }
-    } catch { }
+    } catch {}
     const { data } = await supabase.auth.getSession();
     if (data?.session?.user?.id) return true;
     setVisible(true);
@@ -157,34 +189,63 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const value = useMemo<Ctx>(() => ({ requireAuth }), [requireAuth]);
 
-  const anyOAuth = oauthConfig.twitter || oauthConfig.google || oauthConfig.amazon || oauthConfig.line;
+  const anyOAuth =
+    oauthConfig.twitter ||
+    oauthConfig.google ||
+    oauthConfig.amazon ||
+    oauthConfig.line;
 
   return (
     <AuthPromptContext.Provider value={value}>
       {children}
-      <Modal visible={visible} onClose={() => close(false)} hideHeader maxWidth={520}>
-        <View style={{
-          backgroundColor: colors.primary,
-          borderRadius: 14,
-          padding: spacing['2xl'],
-          marginBottom: spacing['2xl'],
-        }}>
-          <Text style={{ color: 'white', fontWeight: '800', fontSize: typography.fontSize['2xl'] }}>‚æ‚¤‚±‚»</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>ƒAƒJƒEƒ“ƒg‚ÉƒƒOƒCƒ“‚µ‚Ä‹@”\‚ğ—˜—p‚Å‚«‚Ü‚·</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: spacing.lg }}>
+      <Modal
+        visible={visible}
+        onClose={() => close(false)}
+        hideHeader
+        maxWidth={520}
+      >
+        <View
+          style={{
+            backgroundColor: colors.primary,
+            borderRadius: 14,
+            padding: spacing["2xl"],
+            marginBottom: spacing["2xl"],
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontWeight: "800",
+              fontSize: typography.fontSize["2xl"],
+            }}
+          >
+            ï¿½æ‚¤ï¿½ï¿½ï¿½ï¿½
+          </Text>
+          <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 6 }}>
+            ï¿½Aï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½Éƒï¿½ï¿½Oï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ä‹@ï¿½\ï¿½ğ—˜—pï¿½Å‚ï¿½ï¿½Ü‚ï¿½
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: spacing.lg }}>
             <DSButton
-              title="ƒƒOƒCƒ“"
-              variant={mode === 'login' ? 'secondary' : 'ghost'}
-              onPress={() => setMode('login')}
-              textColor={mode === 'login' ? undefined : 'white'}
-              style={mode === 'login' ? undefined : { borderColor: 'rgba(255,255,255,0.5)' }}
+              title="ï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½"
+              variant={mode === "login" ? "secondary" : "ghost"}
+              onPress={() => setMode("login")}
+              textColor={mode === "login" ? undefined : "white"}
+              style={
+                mode === "login"
+                  ? undefined
+                  : { borderColor: "rgba(255,255,255,0.5)" }
+              }
             />
             <DSButton
-              title="V‹K“o˜^"
-              variant={mode === 'signup' ? 'secondary' : 'ghost'}
-              onPress={() => setMode('signup')}
-              textColor={mode === 'signup' ? undefined : 'white'}
-              style={mode === 'signup' ? undefined : { borderColor: 'rgba(255,255,255,0.5)' }}
+              title="ï¿½Vï¿½Kï¿½oï¿½^"
+              variant={mode === "signup" ? "secondary" : "ghost"}
+              onPress={() => setMode("signup")}
+              textColor={mode === "signup" ? undefined : "white"}
+              style={
+                mode === "signup"
+                  ? undefined
+                  : { borderColor: "rgba(255,255,255,0.5)" }
+              }
             />
           </View>
         </View>
@@ -193,12 +254,15 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             placeholder="email@example.com"
             placeholderTextColor={colors.textSecondary}
             value={email}
-            onChangeText={(t) => { setEmail(t); setEmailHint(null); }}
+            onChangeText={(t) => {
+              setEmail(t);
+              setEmailHint(null);
+            }}
             style={{
               borderWidth: 1,
               borderColor: emailFocus ? colors.primary : colors.borderPrimary,
               borderRadius: 12,
-              paddingHorizontal: spacing['2xl'],
+              paddingHorizontal: spacing["2xl"],
               paddingVertical: 14,
               color: colors.textPrimary,
               backgroundColor: screenThemes.auth.tintSoft,
@@ -209,7 +273,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             onBlur={() => setEmailFocus(false)}
           />
           <TextInput
-            placeholder="ƒpƒXƒ[ƒh"
+            placeholder="ï¿½pï¿½Xï¿½ï¿½ï¿½[ï¿½h"
             placeholderTextColor={colors.textSecondary}
             value={password}
             onChangeText={(t) => setPassword(t)}
@@ -217,7 +281,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               borderWidth: 1,
               borderColor: passFocus ? colors.primary : colors.borderPrimary,
               borderRadius: 12,
-              paddingHorizontal: spacing['2xl'],
+              paddingHorizontal: spacing["2xl"],
               paddingVertical: 14,
               color: colors.textPrimary,
               backgroundColor: screenThemes.auth.tintSoft,
@@ -230,79 +294,161 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             <Text style={{ color: colors.error }}>{emailHint}</Text>
           ) : null}
 
-          {/* ‘—M‚Í1‰ñ‚É§ŒÀ */}
+          {/* ï¿½ï¿½ï¿½Mï¿½ï¿½1ï¿½ï¿½Éï¿½ï¿½ï¿½ */}
           <DSButton
             title={
-              mode === 'login'
-                ? (authing === 'login' ? 'ƒƒOƒCƒ“’†c' : 'ƒƒOƒCƒ“')
-                : (authing === 'signup' ? '“o˜^’†c' : 'V‹K“o˜^')
+              mode === "login"
+                ? authing === "login"
+                  ? "ï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½c"
+                  : "ï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½"
+                : authing === "signup"
+                  ? "ï¿½oï¿½^ï¿½ï¿½ï¿½c"
+                  : "ï¿½Vï¿½Kï¿½oï¿½^"
             }
-            onPress={() => { void (mode === 'login' ? doLogin() : doSignup()); }}
-            loading={authing === (mode === 'login' ? 'login' : 'signup')}
-            style={{ width: '100%' }}
+            onPress={() => {
+              void (mode === "login" ? doLogin() : doSignup());
+            }}
+            loading={authing === (mode === "login" ? "login" : "signup")}
+            style={{ width: "100%" }}
           />
 
-          {/* ƒpƒXƒ[ƒh‚ğ–Y‚ê‚½•û‚Í‰º‚Ìƒ[ƒ‹‚ğ‚²—˜—p‚­‚¾‚³‚¢ */}
-          <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
-            {mode === 'login' ? (
+          {/* ï¿½pï¿½Xï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½Yï¿½ê‚½ï¿½ï¿½ï¿½Í‰ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */}
+          <View style={{ alignItems: "center", marginTop: spacing.sm }}>
+            {mode === "login" ? (
               <Text style={{ color: colors.textSecondary }}>
-                ƒAƒJƒEƒ“ƒg‚ª•K—v‚Å‚·‚©H
+                ï¿½Aï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Kï¿½vï¿½Å‚ï¿½ï¿½ï¿½ï¿½H
                 <Text
-                  onPress={() => setMode('signup')}
-                  style={{ color: colors.primary, fontWeight: '700' }}
+                  onPress={() => setMode("signup")}
+                  style={{ color: colors.primary, fontWeight: "700" }}
                 >
-                  V‹K“o˜^
+                  ï¿½Vï¿½Kï¿½oï¿½^
                 </Text>
               </Text>
             ) : (
               <Text style={{ color: colors.textSecondary }}>
-                ‚·‚Å‚ÉƒAƒJƒEƒ“ƒg‚ğ‚¨‚¿‚Å‚·‚©H
+                ï¿½ï¿½ï¿½Å‚ÉƒAï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½H
                 <Text
-                  onPress={() => setMode('login')}
-                  style={{ color: colors.primary, fontWeight: '700' }}
+                  onPress={() => setMode("login")}
+                  style={{ color: colors.primary, fontWeight: "700" }}
                 >
-                  ƒƒOƒCƒ“
+                  ï¿½ï¿½ï¿½Oï¿½Cï¿½ï¿½
                 </Text>
               </Text>
             )}
           </View>
 
           {anyOAuth ? (
-            <View style={{ alignItems: 'center', marginTop: spacing.sm, gap: 10 }}>
-              <Text style={{ color: colors.textSecondary }}>‚Ü‚½‚Í</Text>
-              <Text style={{ color: colors.textSecondary, fontWeight: '600', marginTop: 2 }}>‘¼‚ÌƒAƒJƒEƒ“ƒg‚ÅƒƒOƒCƒ“</Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
+            <View
+              style={{ alignItems: "center", marginTop: spacing.sm, gap: 10 }}
+            >
+              <Text style={{ color: colors.textSecondary }}>ï¿½Ü‚ï¿½ï¿½ï¿½</Text>
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontWeight: "600",
+                  marginTop: 2,
+                }}
+              >
+                ï¿½ï¿½ï¿½ÌƒAï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½Åƒï¿½ï¿½Oï¿½Cï¿½ï¿½
+              </Text>
+              <View style={{ flexDirection: "row", gap: 12, marginTop: 6 }}>
                 {oauthConfig.twitter && (
                   <Pressable
-                    onPress={() => { void startOAuth('twitter'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    onPress={() => {
+                      void startOAuth("twitter");
+                    }}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.7 : 1,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.backgroundSecondary,
+                      borderWidth: 1,
+                      borderColor: colors.borderPrimary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    })}
                   >
-                    <Ionicons name="logo-twitter" size={20} color={colors.textPrimary} />
+                    <Ionicons
+                      name="logo-twitter"
+                      size={20}
+                      color={colors.textPrimary}
+                    />
                   </Pressable>
                 )}
                 {oauthConfig.google && (
                   <Pressable
-                    onPress={() => { void startOAuth('google'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    onPress={() => {
+                      void startOAuth("google");
+                    }}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.7 : 1,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.backgroundSecondary,
+                      borderWidth: 1,
+                      borderColor: colors.borderPrimary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    })}
                   >
-                    <Ionicons name="logo-google" size={20} color={colors.textPrimary} />
+                    <Ionicons
+                      name="logo-google"
+                      size={20}
+                      color={colors.textPrimary}
+                    />
                   </Pressable>
                 )}
                 {oauthConfig.amazon && (
                   <Pressable
-                    onPress={() => { void startOAuth('amazon'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.borderPrimary, alignItems: 'center', justifyContent: 'center' })}
+                    onPress={() => {
+                      void startOAuth("amazon");
+                    }}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.7 : 1,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.backgroundSecondary,
+                      borderWidth: 1,
+                      borderColor: colors.borderPrimary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    })}
                   >
-                    <Ionicons name="logo-amazon" size={20} color={colors.textPrimary} />
+                    <Ionicons
+                      name="logo-amazon"
+                      size={20}
+                      color={colors.textPrimary}
+                    />
                   </Pressable>
                 )}
                 {oauthConfig.line && (
                   <Pressable
                     accessibilityLabel="Sign in with LINE"
-                    onPress={() => { void startOAuth('line'); }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1, width: 44, height: 44, borderRadius: 22, backgroundColor: '#06C755', alignItems: 'center', justifyContent: 'center' })}
+                    onPress={() => {
+                      void startOAuth("line");
+                    }}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.9 : 1,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: "#06C755",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    })}
                   >
-                    <Text style={{ color: 'white', fontWeight: '800', fontSize: 12 }}>LINE</Text>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontWeight: "800",
+                        fontSize: 12,
+                      }}
+                    >
+                      LINE
+                    </Text>
                   </Pressable>
                 )}
               </View>
@@ -310,13 +456,13 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           ) : null}
         </View>
       </Modal>
-    </AuthPromptContext.Provider >
+    </AuthPromptContext.Provider>
   );
 };
 
 export function useAuthPrompt(): Ctx {
   const ctx = useContext(AuthPromptContext);
-  if (!ctx) throw new Error('useAuthPrompt must be used within AuthPromptProvider');
+  if (!ctx)
+    throw new Error("useAuthPrompt must be used within AuthPromptProvider");
   return ctx;
 }
-

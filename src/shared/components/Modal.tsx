@@ -68,7 +68,10 @@ const Modal: React.FC<ModalProps> = ({
     >
       <View style={styles.overlay}>
         {/* Backdrop press area behind the content */}
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleBackdropPress} />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={handleBackdropPress}
+        />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -91,7 +94,10 @@ const Modal: React.FC<ModalProps> = ({
               {scrollable ? (
                 <ScrollView
                   style={styles.content}
-                  contentContainerStyle={[styles.contentInner, { paddingBottom: contentBottomPad }]}
+                  contentContainerStyle={[
+                    styles.contentInner,
+                    { paddingBottom: contentBottomPad },
+                  ]}
                   keyboardShouldPersistTaps="handled"
                   showsVerticalScrollIndicator={true}
                   persistentScrollbar={true}
@@ -99,7 +105,13 @@ const Modal: React.FC<ModalProps> = ({
                   {children}
                 </ScrollView>
               ) : (
-                <View style={[styles.content, styles.contentInner, { paddingBottom: contentBottomPad }]}>
+                <View
+                  style={[
+                    styles.content,
+                    styles.contentInner,
+                    { paddingBottom: contentBottomPad },
+                  ]}
+                >
                   {children}
                 </View>
               )}
@@ -118,7 +130,8 @@ const createStyles = (mode: "light" | "dark") => {
   return StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: mode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
+      backgroundColor:
+        mode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
       justifyContent: "center",
       alignItems: "center",
       paddingHorizontal: spacing.xl,

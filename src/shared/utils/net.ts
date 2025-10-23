@@ -17,15 +17,14 @@ export async function withRetry<T>(
 ): Promise<T> {
   const retries = Math.max(0, opts.retries ?? 2);
   const delayMs = Math.max(0, opts.delayMs ?? 500);
-  let attempt = 0;
-  while (true) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await task();
     } catch (e) {
-      attempt += 1;
-      if (attempt > retries || !isTransientFetchError(e)) throw e;
-      await new Promise((r) => setTimeout(r, delayMs * attempt));
+      if (attempt >= retries || !isTransientFetchError(e)) throw e;
+      await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
     }
   }
+  // 理論上ここには到達しない
+  throw new Error("unreachable");
 }
-

@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             avatarUrl = undefined;
           }
           // Pull latest profile from Supabase if present
-          const profResult = await withRetry(
+          const profResult = (await withRetry(
             async () =>
               await supabase
                 .from("profiles")
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 .eq("id", uid)
                 .maybeSingle(),
             { retries: 2, delayMs: 400 },
-          ) as { data: any; error: any };
+          )) as { data: any; error: any };
           const prof = profResult.data;
           if (prof) {
             displayName = (prof as any).displayName || displayName || "User";
@@ -133,7 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
           // If profile row is missing or effectively empty, mark for profile setup modal
           try {
-            const emptyProfile = !prof || (!((prof as any).displayName) && !((prof as any).photoURL));
+            const emptyProfile =
+              !prof || (!(prof as any).displayName && !(prof as any).photoURL);
             if (emptyProfile) {
               await AsyncStorage.setItem("__post_signup_profile", "1");
             }
@@ -162,22 +163,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             uid: supaSessionUid,
             displayName,
             // Supabaseのユーザー情報に email がある場合は反映（ないケースもある）
-            email: (await supabase.auth.getUser()).data?.user?.email || undefined,
-            platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
+            email:
+              (await supabase.auth.getUser()).data?.user?.email || undefined,
+            platform:
+              (typeof navigator !== "undefined"
+                ? "web"
+                : (Platform as any)?.OS) || "unknown",
           });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       // Best-effort: reflect profile to posts/comments right after login so UI updates without manual edit
       if (supaSessionUid) {
         void Promise.allSettled([
-          CommunityService.reflectUserProfile(supaSessionUid, displayName, avatarUrl || undefined),
-          TournamentService.reflectUserProfile(supaSessionUid, displayName, avatarUrl || undefined),
+          CommunityService.reflectUserProfile(
+            supaSessionUid,
+            displayName,
+            avatarUrl || undefined,
+          ),
+          TournamentService.reflectUserProfile(
+            supaSessionUid,
+            displayName,
+            avatarUrl || undefined,
+          ),
         ]);
       }
     } catch (error) {
       if (__DEV__) {
-        try { console.error("AuthContext: load failed", error); } catch {}
+        try {
+          console.error("AuthContext: load failed", error);
+        } catch {}
       }
       const fallbackUser: User = {
         uid: "fallback-user",
@@ -188,7 +205,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         updatedAt: new Date(),
       } as unknown as User;
       if (__DEV__) {
-        try { console.log("AuthContext: fallbackUser", fallbackUser); } catch {}
+        try {
+          console.log("AuthContext: fallbackUser", fallbackUser);
+        } catch {}
       }
       setUser(fallbackUser);
     } finally {
@@ -246,7 +265,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           finalAvatar = await uploadUserAvatar(finalAvatar, suid);
         }
       } catch (e) {
-        console.warn("avatar upload failed; keeping previous http(s) avatar if any", e);
+        console.warn(
+          "avatar upload failed; keeping previous http(s) avatar if any",
+          e,
+        );
         const prev = user?.avatarUrl;
         finalAvatar = prev && /^https?:\/\//i.test(prev) ? prev : undefined;
       }
@@ -263,26 +285,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
         } else if (!featureFlags.authDisabled) {
           // If auth is not intentionally disabled and no session, surface a soft warning
-          console.warn("updateProfile: no Supabase session; saved locally only");
+          console.warn(
+            "updateProfile: no Supabase session; saved locally only",
+          );
         }
       } catch (e) {
-        console.warn("updateProfile: remote save failed; local changes kept", e);
+        console.warn(
+          "updateProfile: remote save failed; local changes kept",
+          e,
+        );
       }
 
       // Update local AuthContext state immediately
-      setUser((prev) => ({
-        uid: suid || prev?.uid,
-        displayName,
-        avatarUrl: finalAvatar,
-        avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
-        createdAt: prev?.createdAt || new Date(),
-        updatedAt: new Date(),
-      } as User));
+      setUser(
+        (prev) =>
+          ({
+            uid: suid || prev?.uid,
+            displayName,
+            avatarUrl: finalAvatar,
+            avatarVersion: (prev?.avatarVersion || 0) + (finalAvatar ? 1 : 0),
+            createdAt: prev?.createdAt || new Date(),
+            updatedAt: new Date(),
+          }) as User,
+      );
 
       // Prime ProfileCache so all screens reflect immediately (do not wait for Realtime)
       try {
         const { ProfileCache } = await import("@core/services/profileCache");
-        if (suid) ProfileCache.getInstance().prime(suid, { displayName, photoURL: finalAvatar });
+        if (suid)
+          ProfileCache.getInstance().prime(suid, {
+            displayName,
+            photoURL: finalAvatar,
+          });
       } catch {}
 
       // RevenueCat へプロフィール属性を反映（ベストエフォート）
@@ -291,11 +325,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           await PurchasesService.registerUser({
             uid: suid,
             displayName,
-            email: (await supabase.auth.getUser()).data?.user?.email || undefined,
-            platform: (typeof navigator !== 'undefined' ? 'web' : (Platform as any)?.OS) || 'unknown',
+            email:
+              (await supabase.auth.getUser()).data?.user?.email || undefined,
+            platform:
+              (typeof navigator !== "undefined"
+                ? "web"
+                : (Platform as any)?.OS) || "unknown",
           });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       // Best-effort reflection to related tables
       if (suid) {
@@ -324,4 +364,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

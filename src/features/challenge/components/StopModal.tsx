@@ -76,7 +76,12 @@ const StopModal: React.FC<StopModalProps> = ({
               variant="secondary"
               style={styles.modalButton}
             />
-            <Button testID="confirm-btn" title="OK" onPress={onConfirm} style={styles.modalButton} />
+            <Button
+              testID="confirm-btn"
+              title="OK"
+              onPress={onConfirm}
+              style={styles.modalButton}
+            />
           </View>
         </View>
       ) : (
@@ -97,42 +102,43 @@ const StopModal: React.FC<StopModalProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: spacing["2xl"],
-  },
-  modalButton: {
-    flex: 1,
-    marginHorizontal: spacing.sm,
-    minWidth: 120,
-  },
-  modalMessage: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: "center",
-    marginBottom: spacing["2xl"],
-    lineHeight: typography.lineHeight.normal * typography.fontSize.base,
-  },
-  modalSummaryBox: {
-    alignItems: "center",
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: spacing.lg,
-  },
-  modalSummaryLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textTertiary,
-  },
-  modalEmphasis: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-  },
-  penaltyText: {
-    color: colors.error,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: spacing["2xl"],
+    },
+    modalButton: {
+      flex: 1,
+      marginHorizontal: spacing.sm,
+      minWidth: 120,
+    },
+    modalMessage: {
+      fontSize: typography.fontSize.base,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: spacing["2xl"],
+      lineHeight: typography.lineHeight.normal * typography.fontSize.base,
+    },
+    modalSummaryBox: {
+      alignItems: "center",
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: spacing.lg,
+    },
+    modalSummaryLabel: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textTertiary,
+    },
+    modalEmphasis: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: typography.fontWeight.semibold,
+      color: colors.textPrimary,
+    },
+    penaltyText: {
+      color: colors.error,
+    },
+  });
 
 export default StopModal;

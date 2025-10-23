@@ -4,7 +4,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import { StatsService } from "@core/services/statsService";
 import type { Challenge, Payment } from "@project-types";
-import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 import { formatDateTimeJP } from "@shared/utils/date";
 

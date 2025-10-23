@@ -14,9 +14,6 @@
       "@project-types": ["src/types/index.ts"],
       "@project-types/*": ["src/types/*"]
     }
-  }
-  ,
-  "exclude": [
-    "supabase/functions/**"
-  ]
+  },
+  "exclude": ["supabase/functions/**"]
 }

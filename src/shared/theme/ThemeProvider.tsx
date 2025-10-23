@@ -1,9 +1,31 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { Appearance, Platform, Text, View, ScrollView, TextInput } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  Appearance,
+  Platform,
+  Text,
+  View,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Provider as PaperProvider, MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
-import { DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationDefaultTheme, type Theme as NavigationTheme } from "@react-navigation/native";
+import {
+  Provider as PaperProvider,
+  MD3DarkTheme,
+  MD3LightTheme,
+  type MD3Theme,
+} from "react-native-paper";
+import {
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+  type Theme as NavigationTheme,
+} from "@react-navigation/native";
 
 import { applyColorScheme, colorSchemes, type ColorSchemeName } from "./colors";
 
@@ -25,7 +47,9 @@ type ThemeCtx = {
 
 const ThemeContext = createContext<ThemeCtx | undefined>(undefined);
 
-export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const ThemeProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [mode, setMode] = useState<ThemeMode>(initialMode);
   const [hydrated, setHydrated] = useState(false);
 
@@ -55,10 +79,7 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     try {
       const prev = (Text as any).defaultProps?.style;
       (Text as any).defaultProps = (Text as any).defaultProps || {};
-      (Text as any).defaultProps.style = [
-        { color: defaultTextColor },
-        prev,
-      ];
+      (Text as any).defaultProps.style = [{ color: defaultTextColor }, prev];
     } catch {}
 
     // TextInput（文字色）
@@ -70,7 +91,8 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
         prev,
       ];
       // placeholderTextColor は別プロップ
-      (TextInput as any).defaultProps.placeholderTextColor = mode === "dark" ? "#9CA3AF" : "#94A3B8";
+      (TextInput as any).defaultProps.placeholderTextColor =
+        mode === "dark" ? "#9CA3AF" : "#94A3B8";
     } catch {}
 
     // View 系（背景色）
@@ -82,10 +104,7 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
         const prev = Comp.defaultProps?.style;
         Comp.defaultProps = Comp.defaultProps || {};
         // 既存の default 背景指定は保持せず、透明にして個別スタイルの指定に委ねる
-        Comp.defaultProps.style = [
-          { backgroundColor: "transparent" },
-          prev,
-        ];
+        Comp.defaultProps.style = [{ backgroundColor: "transparent" }, prev];
       };
       clearBg(View as any);
       clearBg(ScrollView as any);
@@ -143,7 +162,7 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({ children }) =
       paperTheme,
       navigationTheme,
     }),
-    [mode, paperTheme, navigationTheme]
+    [mode, paperTheme, navigationTheme],
   );
 
   if (Platform.OS === "web" && !hydrated) return null;

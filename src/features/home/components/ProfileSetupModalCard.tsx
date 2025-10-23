@@ -37,8 +37,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const sanitize = (s?: string) =>
-    s && /[\uFFFD]/.test(s) ? "" : s || "";
+  const sanitize = (s?: string) => (s && /[\uFFFD]/.test(s) ? "" : s || "");
 
   useEffect(() => {
     if (!visible) return;
@@ -129,11 +128,7 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               <Image source={{ uri: avatarUri }} style={styles.avatarLarge} />
             ) : (
               <View style={[styles.avatarLarge, styles.avatarPlaceholder]}>
-                <Ionicons
-                  name="person"
-                  size={42}
-                  color="#9CA3AF"
-                />
+                <Ionicons name="person" size={42} color="#9CA3AF" />
               </View>
             )}
           </TouchableOpacity>

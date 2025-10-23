@@ -1,9 +1,12 @@
 let inputBarHeight = 140; // 初期推定値（空のときの最小高）
 const subs = new Set<() => void>();
 
-const emit = () => subs.forEach((cb) => {
-  try { cb(); } catch {}
-});
+const emit = () =>
+  subs.forEach((cb) => {
+    try {
+      cb();
+    } catch {}
+  });
 
 export const ReplyUiStore = {
   getInputBarHeight(): number {

@@ -37,7 +37,7 @@ const ReplyInputBar: React.FC<ReplyInputBarProps> = ({
     try {
       const h = e?.nativeEvent?.layout?.height as number | undefined;
       if (h && h > 0) ReplyUiStore.setInputBarHeight(h);
-    } catch { }
+    } catch {}
   }, []);
   const inputRef = useRef<TextInput>(null);
 

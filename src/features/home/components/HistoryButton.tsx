@@ -20,8 +20,10 @@ const HistoryButton: React.FC<HistoryButtonProps> = ({
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
 
-  const bgColor = backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
-  const labelColor = textColor ?? (mode === "dark" ? colors.white : colors.black);
+  const bgColor =
+    backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
+  const labelColor =
+    textColor ?? (mode === "dark" ? colors.white : colors.black);
   const borderColor = mode === "dark" ? colors.gray300 : colors.gray200;
 
   return (
@@ -29,7 +31,9 @@ const HistoryButton: React.FC<HistoryButtonProps> = ({
       style={[styles.button, { backgroundColor: bgColor, borderColor }]}
       onPress={onPress}
     >
-      <View style={[styles.iconContainer, { backgroundColor: colors.primaryLight }]}>
+      <View
+        style={[styles.iconContainer, { backgroundColor: colors.primaryLight }]}
+      >
         <Ionicons name="time" size={20} color={colors.primary} />
       </View>
       <Text style={[styles.text, { color: labelColor }]}>履歴</Text>

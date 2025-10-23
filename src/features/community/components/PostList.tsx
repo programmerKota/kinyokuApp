@@ -1,6 +1,11 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, memo, useRef, useMemo } from "react";
-import { Dimensions, InteractionManager, Keyboard, Platform } from "react-native";
+import {
+  Dimensions,
+  InteractionManager,
+  Keyboard,
+  Platform,
+} from "react-native";
 import ReplyUiStore from "@shared/state/replyUiStore";
 import {
   FlatList,
@@ -82,9 +87,20 @@ const PostList: React.FC<PostListProps> = ({
       let kbTop: number | null = null;
       const needHeight = () => (ReplyUiStore.getInputBarHeight?.() || 0) > 60;
 
-      const cleanupAll = (subs: { remove?: () => void }[], extra: (() => void)[] = []) => {
-        for (const s of subs) { try { s?.remove?.(); } catch { } }
-        for (const f of extra) { try { f(); } catch { } }
+      const cleanupAll = (
+        subs: { remove?: () => void }[],
+        extra: (() => void)[] = [],
+      ) => {
+        for (const s of subs) {
+          try {
+            s?.remove?.();
+          } catch {}
+        }
+        for (const f of extra) {
+          try {
+            f();
+          } catch {}
+        }
       };
 
       const tryScroll = () => {
@@ -93,23 +109,40 @@ const PostList: React.FC<PostListProps> = ({
         done = true;
         requestAnimationFrame(() => {
           try {
-            node.measureInWindow?.((x: number, y: number, w: number, h: number) => {
-              const viewportH = viewportHRef.current || Dimensions.get("window").height;
-              const keyboardTop = kbTop ?? viewportH;
-              const inputH = ReplyUiStore.getInputBarHeight();
-              const gap = 8;
-              const targetBottom = Math.max(0, keyboardTop - inputH - gap);
-              const buttonBottom = (y || 0) + (h || 0);
-              const delta = (buttonBottom || 0) - targetBottom;
-              const newOffset = Math.max(0, (scrollYRef.current || 0) + (delta || 0));
-              try { list.scrollToOffset({ offset: newOffset, animated: true }); } catch (e) { Logger.warn("PostList.scrollToOffset", e); }
-            });
+            node.measureInWindow?.(
+              (x: number, y: number, w: number, h: number) => {
+                const viewportH =
+                  viewportHRef.current || Dimensions.get("window").height;
+                const keyboardTop = kbTop ?? viewportH;
+                const inputH = ReplyUiStore.getInputBarHeight();
+                const gap = 8;
+                const targetBottom = Math.max(0, keyboardTop - inputH - gap);
+                const buttonBottom = (y || 0) + (h || 0);
+                const delta = (buttonBottom || 0) - targetBottom;
+                const newOffset = Math.max(
+                  0,
+                  (scrollYRef.current || 0) + (delta || 0),
+                );
+                try {
+                  list.scrollToOffset({ offset: newOffset, animated: true });
+                } catch (e) {
+                  Logger.warn("PostList.scrollToOffset", e);
+                }
+              },
+            );
           } catch (e) {
             Logger.warn("PostList.measureFallback", e);
             try {
               const index = posts.findIndex((p) => p.id === postId);
-              if (index >= 0) list.scrollToIndex({ index, animated: true, viewPosition: 0.98 });
-            } catch (e2) { Logger.warn("PostList.scrollToIndexFallback", e2); }
+              if (index >= 0)
+                list.scrollToIndex({
+                  index,
+                  animated: true,
+                  viewPosition: 0.98,
+                });
+            } catch (e2) {
+              Logger.warn("PostList.scrollToIndexFallback", e2);
+            }
           }
         });
       };
@@ -182,13 +215,16 @@ const PostList: React.FC<PostListProps> = ({
     ],
   );
 
-  const extra = React.useMemo(() => ({
-    likedPosts,
-    replyCounts,
-    authorAverageDays,
-    loadingMore,
-    hasMore,
-  }), [likedPosts, replyCounts, authorAverageDays, loadingMore, hasMore]);
+  const extra = React.useMemo(
+    () => ({
+      likedPosts,
+      replyCounts,
+      authorAverageDays,
+      loadingMore,
+      hasMore,
+    }),
+    [likedPosts, replyCounts, authorAverageDays, loadingMore, hasMore],
+  );
 
   return (
     <FlatList
@@ -196,13 +232,18 @@ const PostList: React.FC<PostListProps> = ({
       extraData={extra}
       onLayout={(e) => {
         try {
-          viewportHRef.current = e?.nativeEvent?.layout?.height || viewportHRef.current;
-        } catch (err) { Logger.warn("PostList.onLayout", err); }
+          viewportHRef.current =
+            e?.nativeEvent?.layout?.height || viewportHRef.current;
+        } catch (err) {
+          Logger.warn("PostList.onLayout", err);
+        }
       }}
       onScroll={(e) => {
         try {
           scrollYRef.current = e?.nativeEvent?.contentOffset?.y || 0;
-        } catch (err) { Logger.warn("PostList.onScroll", err); }
+        } catch (err) {
+          Logger.warn("PostList.onScroll", err);
+        }
       }}
       scrollEventThrottle={16}
       style={listStyle}
@@ -227,7 +268,9 @@ const PostList: React.FC<PostListProps> = ({
               animated: true,
               viewPosition: 1,
             });
-          } catch (err) { Logger.warn("PostList.onScrollToIndexFailed", err); }
+          } catch (err) {
+            Logger.warn("PostList.onScrollToIndexFailed", err);
+          }
         }, 80);
       }}
       ListEmptyComponent={() => {
@@ -262,133 +305,138 @@ const PostListRow: React.FC<{
   onReply: (postId: string) => void;
   onScrollToReplyButton: (postId: string, ref: React.RefObject<any>) => void;
   onUserPress: (userId: string, userName: string, userAvatar?: string) => void;
-}> = memo(({
-  item,
-  likedPosts,
-  authorAverageDays,
-  allowBlockedReplies = false,
-  replyCounts,
-  onLike,
-  onComment,
-  onReply,
-  onScrollToReplyButton,
-  onUserPress,
-}) => {
-  const replyBtnRef = React.useRef<any>(null);
-  const visible = useReplyVisibility(item.id, false);
-  const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const rowStyles = useMemo(() => createRowStyles(colors), [colors]);
+}> = memo(
+  ({
+    item,
+    likedPosts,
+    authorAverageDays,
+    allowBlockedReplies = false,
+    replyCounts,
+    onLike,
+    onComment,
+    onReply,
+    onScrollToReplyButton,
+    onUserPress,
+  }) => {
+    const replyBtnRef = React.useRef<any>(null);
+    const visible = useReplyVisibility(item.id, false);
+    const { mode } = useAppTheme();
+    const { colorSchemes } = require("@shared/theme/colors");
+    const colors = useMemo(() => colorSchemes[mode], [mode]);
+    const rowStyles = useMemo(() => createRowStyles(colors), [colors]);
 
-  const avgDays =
-    typeof authorAverageDays === "number"
-      ? authorAverageDays
-      : ((authorAverageDays as Map<string, number>)?.get?.(
-        item.authorId,
-      ) as number) || 0;
-  const comments = replyCounts?.get(item.id) ?? item.comments ?? 0;
+    const avgDays =
+      typeof authorAverageDays === "number"
+        ? authorAverageDays
+        : ((authorAverageDays as Map<string, number>)?.get?.(
+            item.authorId,
+          ) as number) || 0;
+    const comments = replyCounts?.get(item.id) ?? item.comments ?? 0;
 
-  return (
-    <View>
-      <PostCard
-        post={item}
-        postId={item.id}
-        onLikeId={onLike}
-        onCommentId={onComment}
-        onReplyId={onReply}
-        onUserPressId={(uid, uname) =>
-          onUserPress(uid, uname, item.authorAvatar)
-        }
-        initialIsLiked={likedPosts.has(item.id)}
-        authorAverageDays={avgDays}
-        commentsCount={comments}
-      />
-
-      {false && visible && (
-        <View style={rowStyles.replyButtonContainer}>
-          <View style={rowStyles.replyButtonSpacer} />
-          <TouchableOpacity
-            style={rowStyles.replyButton}
-            onPress={() => {
-              onReply(item.id);
-              // 入力欄とキーボード表示に合わせて自動調整
-              onScrollToReplyButton(item.id, replyBtnRef);
-            }}
-            ref={replyBtnRef}
-          >
-            <View style={rowStyles.replyIconContainer}>
-              <Ionicons name="add" size={16} color={colors.white} />
-            </View>
-            <Text style={rowStyles.replyText}>返信を書く</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {visible && (
-        <RepliesList
+    return (
+      <View>
+        <PostCard
+          post={item}
           postId={item.id}
-          onUserPress={(uid, uname, uavatar) => onUserPress(uid, uname, uavatar)}
-          allowBlockedReplies={allowBlockedReplies}
+          onLikeId={onLike}
+          onCommentId={onComment}
+          onReplyId={onReply}
+          onUserPressId={(uid, uname) =>
+            onUserPress(uid, uname, item.authorAvatar)
+          }
+          initialIsLiked={likedPosts.has(item.id)}
+          authorAverageDays={avgDays}
+          commentsCount={comments}
         />
-      )}
 
-      {visible && (
-        <View style={rowStyles.replyButtonContainer}>
-          <View style={rowStyles.replyButtonSpacer} />
-          <TouchableOpacity
-            style={rowStyles.replyButton}
-            onPress={() => {
-              onReply(item.id);
-              // 入力欄とキーボード表示に合わせて自動調整
-              onScrollToReplyButton(item.id, replyBtnRef);
-            }}
-            ref={replyBtnRef}
-          >
-            <View style={rowStyles.replyIconContainer}>
-              <Ionicons name="add" size={16} color={colors.white} />
-            </View>
-            <Text style={rowStyles.replyText}>返信を書く</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-});
+        {false && visible && (
+          <View style={rowStyles.replyButtonContainer}>
+            <View style={rowStyles.replyButtonSpacer} />
+            <TouchableOpacity
+              style={rowStyles.replyButton}
+              onPress={() => {
+                onReply(item.id);
+                // 入力欄とキーボード表示に合わせて自動調整
+                onScrollToReplyButton(item.id, replyBtnRef);
+              }}
+              ref={replyBtnRef}
+            >
+              <View style={rowStyles.replyIconContainer}>
+                <Ionicons name="add" size={16} color={colors.white} />
+              </View>
+              <Text style={rowStyles.replyText}>返信を書く</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-const createRowStyles = (colors: any) => StyleSheet.create({
-  replyButtonContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.backgroundSecondary,
+        {visible && (
+          <RepliesList
+            postId={item.id}
+            onUserPress={(uid, uname, uavatar) =>
+              onUserPress(uid, uname, uavatar)
+            }
+            allowBlockedReplies={allowBlockedReplies}
+          />
+        )}
+
+        {visible && (
+          <View style={rowStyles.replyButtonContainer}>
+            <View style={rowStyles.replyButtonSpacer} />
+            <TouchableOpacity
+              style={rowStyles.replyButton}
+              onPress={() => {
+                onReply(item.id);
+                // 入力欄とキーボード表示に合わせて自動調整
+                onScrollToReplyButton(item.id, replyBtnRef);
+              }}
+              ref={replyBtnRef}
+            >
+              <View style={rowStyles.replyIconContainer}>
+                <Ionicons name="add" size={16} color={colors.white} />
+              </View>
+              <Text style={rowStyles.replyText}>返信を書く</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
   },
-  replyButtonSpacer: {
-    width: spacing.lg + CONTENT_LEFT_MARGIN.small,
-  },
-  replyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    paddingHorizontal: 0,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  replyIconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.info,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  replyText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.info,
-    marginLeft: spacing.sm,
-    fontWeight: "500",
-  },
-});
+);
+
+const createRowStyles = (colors: any) =>
+  StyleSheet.create({
+    replyButtonContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.backgroundSecondary,
+    },
+    replyButtonSpacer: {
+      width: spacing.lg + CONTENT_LEFT_MARGIN.small,
+    },
+    replyButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "transparent",
+      paddingHorizontal: 0,
+      paddingVertical: spacing.xs,
+      borderRadius: 8,
+      alignSelf: "flex-start",
+    },
+    replyIconContainer: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.info,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    replyText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.info,
+      marginLeft: spacing.sm,
+      fontWeight: "500",
+    },
+  });
 
 const stylesEmpty = StyleSheet.create({
   loadingContainer: {

@@ -24,8 +24,10 @@ const RankingButton: React.FC<RankingButtonProps> = ({
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
 
-  const bgColor = backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
-  const labelColor = textColor ?? (mode === "dark" ? colors.white : colors.black);
+  const bgColor =
+    backgroundColor ?? (mode === "dark" ? colors.black : colors.white);
+  const labelColor =
+    textColor ?? (mode === "dark" ? colors.white : colors.black);
   const borderColor = mode === "dark" ? colors.gray300 : colors.gray200;
 
   return (
@@ -33,7 +35,9 @@ const RankingButton: React.FC<RankingButtonProps> = ({
       style={[styles.button, style, { backgroundColor: bgColor, borderColor }]}
       onPress={onPress}
     >
-      <View style={[styles.iconContainer, { backgroundColor: colors.warningLight }]}>
+      <View
+        style={[styles.iconContainer, { backgroundColor: colors.warningLight }]}
+      >
         <Ionicons name={"trophy"} size={20} color={colors.warning} />
       </View>
       <Text

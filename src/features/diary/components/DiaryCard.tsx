@@ -56,8 +56,15 @@ const DiaryCard: React.FC<Props> = ({
           <RelativeTime value={createdAt} style={styles.timestampRight} />
         </View>
 
-        <View style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}>
-          <Text style={[styles.text, getContentStyle("small", colors.textPrimary)]}> {content} </Text>
+        <View
+          style={[styles.content, { marginLeft: getBlockLeftMargin("small") }]}
+        >
+          <Text
+            style={[styles.text, getContentStyle("small", colors.textPrimary)]}
+          >
+            {" "}
+            {content}{" "}
+          </Text>
         </View>
       </View>
     </View>
@@ -71,17 +78,30 @@ const createStyles = (mode: "light" | "dark") => {
   return StyleSheet.create({
     container: { backgroundColor: colors.backgroundSecondary, marginBottom: 0 },
     inner: { padding: spacing.lg },
-    header: { flexDirection: "row", alignItems: "flex-start", marginBottom: spacing.sm, width: "100%", justifyContent: "space-between" },
-    timestampRight: { marginLeft: spacing.md, color: colors.textSecondary, fontSize: 14, flexShrink: 0 },
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: spacing.sm,
+      width: "100%",
+      justifyContent: "space-between",
+    },
+    timestampRight: {
+      marginLeft: spacing.md,
+      color: colors.textSecondary,
+      fontSize: 14,
+      flexShrink: 0,
+    },
     userProfileContainer: { flex: 1 },
     content: { marginBottom: spacing.xs },
     text: {},
   });
 };
 
-export default React.memo(DiaryCard, (a, b) =>
-  a.authorId === b.authorId &&
-  a.content === b.content &&
-  String(a.createdAt) === String(b.createdAt) &&
-  a.averageDays === b.averageDays,
+export default React.memo(
+  DiaryCard,
+  (a, b) =>
+    a.authorId === b.authorId &&
+    a.content === b.content &&
+    String(a.createdAt) === String(b.createdAt) &&
+    a.averageDays === b.averageDays,
 );

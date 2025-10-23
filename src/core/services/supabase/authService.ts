@@ -22,7 +22,9 @@ export const getRedirectTo = () => {
     ) {
       const url = `${(window as any).location.origin}/auth/callback`;
       if (__DEV__) {
-        try { console.log("[getRedirectTo] Mode: Web, URL:", url); } catch {}
+        try {
+          console.log("[getRedirectTo] Mode: Web, URL:", url);
+        } catch {}
       }
       return url;
     }
@@ -37,7 +39,9 @@ export const getRedirectTo = () => {
       // useProxy option exists at runtime; cast to any to avoid type drift across SDKs
       const url = (makeRedirectUri as any)({ useProxy: true });
       if (__DEV__) {
-        try { console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url); } catch {}
+        try {
+          console.log("[getRedirectTo] Mode: Expo Go (Proxy), URL:", url);
+        } catch {}
       }
       return url;
     }
@@ -50,14 +54,21 @@ export const getRedirectTo = () => {
 
     const url = `${scheme}://auth/callback`;
     if (__DEV__) {
-      try { console.log("[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:", url); } catch {}
+      try {
+        console.log(
+          "[getRedirectTo] Mode: EAS Dev Client (固定URL), URL:",
+          url,
+        );
+      } catch {}
     }
     return url;
   } catch (e) {
     // Safe fallback
     const url = Linking.createURL("auth/callback");
     if (__DEV__) {
-      try { console.log("[getRedirectTo] Mode: Fallback, URL:", url); } catch {}
+      try {
+        console.log("[getRedirectTo] Mode: Fallback, URL:", url);
+      } catch {}
     }
     return url;
   }
@@ -71,7 +82,9 @@ export async function initSupabaseAuthDeepLinks() {
     try {
       // debug
       if (__DEV__) {
-        try { console.log("[auth] deep link url:", url); } catch {}
+        try {
+          console.log("[auth] deep link url:", url);
+        } catch {}
       }
 
       // Robustly parse both query (?a=b) and hash (#a=b) tokens
@@ -97,7 +110,11 @@ export async function initSupabaseAuthDeepLinks() {
       const code = (qp?.code as string) || (hp?.code as string) || "";
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
-        if (__DEV__) { try { console.log("[auth] exchange via code ok"); } catch {} }
+        if (__DEV__) {
+          try {
+            console.log("[auth] exchange via code ok");
+          } catch {}
+        }
         return;
       }
 
@@ -108,7 +125,11 @@ export async function initSupabaseAuthDeepLinks() {
         (qp?.refresh_token as string) || (hp?.refresh_token as string) || "";
       if (access_token && refresh_token) {
         await supabase.auth.setSession({ access_token, refresh_token });
-        if (__DEV__) { try { console.log("[auth] setSession via hash tokens ok"); } catch {} }
+        if (__DEV__) {
+          try {
+            console.log("[auth] setSession via hash tokens ok");
+          } catch {}
+        }
         return;
       }
 
@@ -118,17 +139,27 @@ export async function initSupabaseAuthDeepLinks() {
       const type = ((qp?.type as string) || (hp?.type as string) || "") as any;
       // Flag pending password recovery so UI can prompt even if event name differs
       if (type === "recovery") {
-        try { await AsyncStorage.setItem("__auth_pending_recovery", "1"); } catch {}
+        try {
+          await AsyncStorage.setItem("__auth_pending_recovery", "1");
+        } catch {}
       }
       if (token_hash && type) {
         const email =
           (qp?.email as string) || (hp?.email as string) || "" || undefined;
         await supabase.auth.verifyOtp({ type, token_hash, email } as any);
-        if (__DEV__) { try { console.log("[auth] verifyOtp via token_hash ok"); } catch {} }
+        if (__DEV__) {
+          try {
+            console.log("[auth] verifyOtp via token_hash ok");
+          } catch {}
+        }
         return;
       }
     } catch (e) {
-      if (__DEV__) { try { console.error("[auth] deep link handle error:", e); } catch {} }
+      if (__DEV__) {
+        try {
+          console.error("[auth] deep link handle error:", e);
+        } catch {}
+      }
       // noop: let caller surface auth state via UI if needed
     }
   };
@@ -228,13 +259,17 @@ export async function startOAuthFlow(
   });
   if (error || !data?.url) {
     if (__DEV__) {
-      try { console.error("[auth] OAuth start failed", error); } catch {}
+      try {
+        console.error("[auth] OAuth start failed", error);
+      } catch {}
     }
     throw error ?? new Error("OAUTH_START_FAILED");
   }
 
   if (Platform.OS === "web") {
-    try { (window as any).location.href = data.url; } catch {}
+    try {
+      (window as any).location.href = data.url;
+    } catch {}
     return;
   }
 
@@ -243,6 +278,8 @@ export async function startOAuthFlow(
     const returnUrl = Linking.createURL("auth/callback");
     await WebBrowser.openAuthSessionAsync(data.url, returnUrl);
   } catch (e) {
-    try { await Linking.openURL(data.url); } catch {}
+    try {
+      await Linking.openURL(data.url);
+    } catch {}
   }
 }

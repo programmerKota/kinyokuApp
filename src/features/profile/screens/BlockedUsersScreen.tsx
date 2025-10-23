@@ -2,8 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, View, FlatList, TouchableOpacity, Text } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Text,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
@@ -39,7 +45,10 @@ const BlockedUsersScreen: React.FC = () => {
   }, [user?.uid]);
 
   useEffect(() => {
-    if (blockedIds.size === 0) { setUsers([]); return; }
+    if (blockedIds.size === 0) {
+      setUsers([]);
+      return;
+    }
     const ids = Array.from(blockedIds);
     const unsub = ProfileCache.getInstance().subscribeMany(ids, (map) => {
       const list: SimpleUser[] = ids.map((id) => {
@@ -52,7 +61,11 @@ const BlockedUsersScreen: React.FC = () => {
       });
       setUsers(list);
     });
-    return () => { try { unsub?.(); } catch {} };
+    return () => {
+      try {
+        unsub?.();
+      } catch {}
+    };
   }, [blockedIds]);
 
   const empty = useMemo(
@@ -110,43 +123,44 @@ const BlockedUsersScreen: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundTertiary,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderPrimary,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: typography.fontSize.lg,
-    fontWeight: "700",
-    color: colors.gray800,
-  },
-  listContent: {
-    padding: spacing.lg,
-  },
-  item: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  emptyContainer: {
-    padding: spacing.xl,
-    alignItems: "center",
-  },
-  emptyText: {
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.backgroundTertiary,
+    },
+    header: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.lg,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderPrimary,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: typography.fontSize.lg,
+      fontWeight: "700",
+      color: colors.gray800,
+    },
+    listContent: {
+      padding: spacing.lg,
+    },
+    item: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 12,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    emptyContainer: {
+      padding: spacing.xl,
+      alignItems: "center",
+    },
+    emptyText: {
+      color: colors.textSecondary,
+    },
+  });
 
 export default BlockedUsersScreen;

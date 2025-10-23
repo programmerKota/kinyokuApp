@@ -1,12 +1,15 @@
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 type EnvLike = { [k: string]: any };
-const extra: EnvLike = (Constants?.expoConfig as any)?.extra ?? (Constants as any)?.manifestExtra ?? {};
+const extra: EnvLike =
+  (Constants?.expoConfig as any)?.extra ??
+  (Constants as any)?.manifestExtra ??
+  {};
 
 const parseNumberCsv = (v: unknown): number[] => {
-  if (typeof v !== 'string') return [];
+  if (typeof v !== "string") return [];
   return v
-    .split(',')
+    .split(",")
     .map((s) => Number(String(s).trim()))
     .filter((n) => Number.isFinite(n) && n >= 0);
 };
@@ -20,4 +23,3 @@ export const paymentsConfig = {
 } as const;
 
 export default paymentsConfig;
-

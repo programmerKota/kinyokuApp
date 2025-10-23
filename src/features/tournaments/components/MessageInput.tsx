@@ -46,7 +46,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           style={[
             styles.sendButton,
             (!messageText.trim() || !guard.canSend) &&
-            styles.sendButtonDisabled,
+              styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
           disabled={!messageText.trim() || !guard.canSend}
@@ -117,6 +117,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default React.memo(MessageInput);
-
-
-

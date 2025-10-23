@@ -30,4 +30,3 @@ export const validateMaxLength = (
 
   return { isValid: true };
 };
-

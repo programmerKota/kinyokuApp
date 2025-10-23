@@ -1,12 +1,23 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import { ChallengeService, PaymentFirestoreService } from "@core/services/firestore";
+import {
+  ChallengeService,
+  PaymentFirestoreService,
+} from "@core/services/firestore";
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
@@ -80,8 +91,14 @@ const HistoryScreen: React.FC = () => {
             type: p.type as Payment["type"],
             status: p.status as Payment["status"],
             transactionId: p.transactionId ?? undefined,
-            createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any),
-            updatedAt: p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt as any),
+            createdAt:
+              p.createdAt instanceof Date
+                ? p.createdAt
+                : new Date(p.createdAt as any),
+            updatedAt:
+              p.updatedAt instanceof Date
+                ? p.updatedAt
+                : new Date(p.updatedAt as any),
           }));
           setPayments(mapped);
         } catch {
@@ -149,8 +166,14 @@ const HistoryScreen: React.FC = () => {
           type: p.type as Payment["type"],
           status: p.status as Payment["status"],
           transactionId: p.transactionId ?? undefined,
-          createdAt: p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as any),
-          updatedAt: p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt as any),
+          createdAt:
+            p.createdAt instanceof Date
+              ? p.createdAt
+              : new Date(p.createdAt as any),
+          updatedAt:
+            p.updatedAt instanceof Date
+              ? p.updatedAt
+              : new Date(p.updatedAt as any),
         }));
         setPayments(mapped);
       } catch {
@@ -405,7 +428,8 @@ const createStyles = (mode: "light" | "dark") => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
+      backgroundColor:
+        screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
       justifyContent: "center",
       alignItems: "center",
       marginBottom: spacing.sm,
@@ -438,7 +462,8 @@ const createStyles = (mode: "light" | "dark") => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
+      backgroundColor:
+        screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.2)",
       justifyContent: "center",
       alignItems: "center",
       marginRight: spacing.md,
@@ -495,7 +520,3 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default HistoryScreen;
-
-
-
-

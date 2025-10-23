@@ -31,13 +31,22 @@ export class UserStatsService {
     try {
       const active = await ChallengeService.getActiveChallenge(userId);
       if (!active?.startedAt) {
-        this.userStatsCache.set(userId, { averageDays: 0, timestamp: Date.now() });
+        this.userStatsCache.set(userId, {
+          averageDays: 0,
+          timestamp: Date.now(),
+        });
         return 0;
       }
       const start = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
-      const days = Math.max(0, (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
-      this.userStatsCache.set(userId, { averageDays: days, timestamp: Date.now() });
+      const days = Math.max(
+        0,
+        (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
+      );
+      this.userStatsCache.set(userId, {
+        averageDays: days,
+        timestamp: Date.now(),
+      });
       return days;
     } catch (error) {
       console.error("ユーザーの平均日数取得に失敗:", error);
@@ -73,14 +82,23 @@ export class UserStatsService {
       // 新仕様: 現在のアクティブなチャレンジのみから算出
       const active = await ChallengeService.getActiveChallenge(userId);
       if (!active?.startedAt) {
-        this.rankCache.set(userId, { averageDays: 0, timestamp: baseTime.getTime() });
+        this.rankCache.set(userId, {
+          averageDays: 0,
+          timestamp: baseTime.getTime(),
+        });
         return 0;
       }
       const start = toDateSafe((active as any).startedAt) ?? new Date();
       const now = new Date();
-      const days = Math.max(0, (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+      const days = Math.max(
+        0,
+        (now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
+      );
 
-      this.rankCache.set(userId, { averageDays: days, timestamp: baseTime.getTime() });
+      this.rankCache.set(userId, {
+        averageDays: days,
+        timestamp: baseTime.getTime(),
+      });
       return days;
     } catch (error) {
       console.error("ユーザーの平均日数取得に失敗:", error);
@@ -119,7 +137,9 @@ export class UserStatsService {
     }
   }
 
-  static async getManyUsersCurrentDaysForRank(userIds: string[]): Promise<Map<string, number>> {
+  static async getManyUsersCurrentDaysForRank(
+    userIds: string[],
+  ): Promise<Map<string, number>> {
     const out = new Map<string, number>();
     const ids = Array.from(new Set(userIds)).filter(Boolean);
     if (ids.length === 0) return out;
@@ -137,10 +157,15 @@ export class UserStatsService {
         }
         if (out.size === ids.length) return out;
       }
-    } catch { /* ignore and fallback */ }
+    } catch {
+      /* ignore and fallback */
+    }
     // Fallback: individual RPCs in parallel
     const results = await Promise.all(
-      ids.map(async (id) => ({ id, days: await this.getUserCurrentDaysForRank(id) })),
+      ids.map(async (id) => ({
+        id,
+        days: await this.getUserCurrentDaysForRank(id),
+      })),
     );
     results.forEach(({ id, days }) => out.set(id, days));
     return out;

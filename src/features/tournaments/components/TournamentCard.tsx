@@ -4,7 +4,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import AvatarImage from "@shared/components/AvatarImage";
 import Button from "@shared/components/Button";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { spacing, typography, shadows, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { createUiStyles } from "@shared/ui/styles";
 
 export interface UITournament {
@@ -62,9 +68,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
         </View>
       </View>
 
-      <Text style={styles.description}>
-        {tournament.description}
-      </Text>
+      <Text style={styles.description}>{tournament.description}</Text>
 
       <View style={[uiStyles.rowBetween, styles.footer]}>
         <View style={[uiStyles.row, styles.leftInfo]}>

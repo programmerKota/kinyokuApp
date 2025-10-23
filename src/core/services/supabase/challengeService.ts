@@ -41,7 +41,8 @@ export class ChallengeService {
       throw new Error("Supabase未設定です。環境変数を設定してください。");
     // conflict check: active exists?
     const { data: s } = await supabase.auth.getSession();
-    const uid = (s?.session?.user?.id as string | undefined) || challengeData.userId;
+    const uid =
+      (s?.session?.user?.id as string | undefined) || challengeData.userId;
     const { data: active } = await supabase
       .from("challenges")
       .select("id")
@@ -90,11 +91,17 @@ export class ChallengeService {
     const { data, error } = await supabase
       .from("challenges")
       .select("*")
-      .eq("userId", ((await supabase.auth.getSession()).data?.session?.user?.id as string | undefined) || userId)
+      .eq(
+        "userId",
+        ((await supabase.auth.getSession()).data?.session?.user?.id as
+          | string
+          | undefined) || userId,
+      )
       .order("createdAt", { ascending: false });
     if (error) throw error;
     const rows = (data || []) as unknown as SupaChallengeRow[];
-    return rows.map(ChallengeService.toFirestore);
+    // static メソッド参照のアンバウンド警告を回避
+    return rows.map((r) => ChallengeService.toFirestore(r));
   }
 
   static async updateChallenge(
@@ -184,26 +191,56 @@ export class ChallengeService {
         .channel(`realtime:challenges:active:${userId}`)
         .on(
           "postgres_changes",
-          { event: "INSERT", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "challenges",
+            filter: `userId=eq.${userId}`,
+          },
           async () => {
-            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
-            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
+            try {
+              const ch = await ChallengeService.getActiveChallenge(userId);
+              callback(ch);
+            } catch (e) {
+              Logger.warn("ChallengeService.subscription", e, { userId });
+              callback(null);
+            }
           },
         )
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "challenges",
+            filter: `userId=eq.${userId}`,
+          },
           async () => {
-            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
-            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
+            try {
+              const ch = await ChallengeService.getActiveChallenge(userId);
+              callback(ch);
+            } catch (e) {
+              Logger.warn("ChallengeService.subscription", e, { userId });
+              callback(null);
+            }
           },
         )
         .on(
           "postgres_changes",
-          { event: "DELETE", schema: "public", table: "challenges", filter: `userId=eq.${userId}` },
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "challenges",
+            filter: `userId=eq.${userId}`,
+          },
           async () => {
-            try { const ch = await ChallengeService.getActiveChallenge(userId); callback(ch); }
-            catch (e) { Logger.warn("ChallengeService.subscription", e, { userId }); callback(null); }
+            try {
+              const ch = await ChallengeService.getActiveChallenge(userId);
+              callback(ch);
+            } catch (e) {
+              Logger.warn("ChallengeService.subscription", e, { userId });
+              callback(null);
+            }
           },
         )
         .subscribe();

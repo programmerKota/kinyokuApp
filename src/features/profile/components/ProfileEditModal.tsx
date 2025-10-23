@@ -23,14 +23,24 @@ const ProfileEditModal: React.FC<Props> = ({ visible, onClose, onSaved }) => {
   const styles = React.useMemo(() => createStyles(mode), [mode]);
 
   const { editName, editAvatar, loading } = state;
-  const { setEditName, handleImagePicker, handleRemoveImage, handleSaveProfile } = actions;
+  const {
+    setEditName,
+    handleImagePicker,
+    handleRemoveImage,
+    handleSaveProfile,
+  } = actions;
 
   useEffect(() => {
     // No-op: useProfileScreen initializes fields from current user
   }, [visible]);
 
   return (
-    <Modal visible={visible} onClose={onClose} title="プロフィール設定" maxWidth={520}>
+    <Modal
+      visible={visible}
+      onClose={onClose}
+      title="プロフィール設定"
+      maxWidth={520}
+    >
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
           <TouchableOpacity
@@ -53,8 +63,14 @@ const ProfileEditModal: React.FC<Props> = ({ visible, onClose, onSaved }) => {
               </>
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
-                <Text style={styles.placeholderText}>タップして{"\n"}写真を選択</Text>
+                <Ionicons
+                  name="camera-outline"
+                  size={32}
+                  color={colors.textSecondary}
+                />
+                <Text style={styles.placeholderText}>
+                  タップして{"\n"}写真を選択
+                </Text>
               </View>
             )}
             <View style={[styles.overlayButton, styles.editIconOverlay]}>
@@ -77,7 +93,12 @@ const ProfileEditModal: React.FC<Props> = ({ visible, onClose, onSaved }) => {
         </View>
 
         <View style={styles.editButtons}>
-          <Button title="キャンセル" variant="secondary" onPress={onClose} style={styles.editButton} />
+          <Button
+            title="キャンセル"
+            variant="secondary"
+            onPress={onClose}
+            style={styles.editButton}
+          />
           <Button
             title="保存"
             onPress={async () => {
@@ -134,8 +155,18 @@ const createStyles = (mode: "light" | "dark") => {
       shadowRadius: 6,
       elevation: 6,
     },
-    editIconOverlay: { bottom: -6, right: -6, backgroundColor: colors.info, shadowColor: colors.info },
-    removeIconOverlay: { top: -6, left: -6, backgroundColor: colors.error, shadowColor: colors.error },
+    editIconOverlay: {
+      bottom: -6,
+      right: -6,
+      backgroundColor: colors.info,
+      shadowColor: colors.info,
+    },
+    removeIconOverlay: {
+      top: -6,
+      left: -6,
+      backgroundColor: colors.error,
+      shadowColor: colors.error,
+    },
     nameEditContainer: { width: "100%", marginTop: 6, marginBottom: 6 },
     nameInput: {
       backgroundColor: "transparent",
@@ -147,12 +178,26 @@ const createStyles = (mode: "light" | "dark") => {
       width: "80%",
       paddingBottom: spacing.xs,
     },
-    nameInputText: { fontSize: 20, fontWeight: "bold", color: colors.gray800, textAlign: "center" },
-    editButtons: { flexDirection: "row", justifyContent: "center", marginTop: spacing["2xl"] },
+    nameInputText: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: colors.gray800,
+      textAlign: "center",
+    },
+    editButtons: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: spacing["2xl"],
+    },
     editButton: { minWidth: 100, marginHorizontal: spacing.sm },
-    saveButton: { backgroundColor: colors.info, paddingHorizontal: 20, paddingVertical: 10, minWidth: 100, borderRadius: 22 },
+    saveButton: {
+      backgroundColor: colors.info,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      minWidth: 100,
+      borderRadius: 22,
+    },
   });
 };
 
 export default ProfileEditModal;
-

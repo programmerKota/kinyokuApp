@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import { useProfile } from '@shared/hooks/useProfile';
+import { useProfile } from "@shared/hooks/useProfile";
 
 /**
  * useDisplayProfile
@@ -15,10 +15,13 @@ export const useDisplayProfile = (
 ) => {
   const live = useProfile(userId);
   return useMemo(() => {
-    const rawName = (live?.displayName ?? fallbackName ?? 'ユーザー');
-    const nameTrimmed = (typeof rawName === 'string' ? rawName.trim() : 'ユーザー');
-    const name = nameTrimmed.length > 0 ? nameTrimmed : 'ユーザー';
-    const avatar = live?.photoURL ?? (fallbackAvatar && fallbackAvatar.trim() ? fallbackAvatar : undefined);
+    const rawName = live?.displayName ?? fallbackName ?? "ユーザー";
+    const nameTrimmed =
+      typeof rawName === "string" ? rawName.trim() : "ユーザー";
+    const name = nameTrimmed.length > 0 ? nameTrimmed : "ユーザー";
+    const avatar =
+      live?.photoURL ??
+      (fallbackAvatar && fallbackAvatar.trim() ? fallbackAvatar : undefined);
     return { name, avatar } as const;
   }, [live?.displayName, live?.photoURL, fallbackName, fallbackAvatar]);
 };
