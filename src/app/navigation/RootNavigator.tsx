@@ -115,7 +115,21 @@ const MainTabs: React.FC = () => {
 };
 
 const RootNavigator: React.FC = () => {
-  const isE2E = (() => {
+  const enableE2E = (() => {
+    try {
+      if (__DEV__) return true;
+      // Allow enabling E2E route explicitly via env in preview builds
+      const env = (typeof process !== "undefined"
+        ? ((process as unknown) as { env?: Record<string, string | undefined> })
+            .env
+        : undefined) as Record<string, string | undefined> | undefined;
+      return env?.EXPO_PUBLIC_ENABLE_E2E === "true";
+    } catch {
+      return false;
+    }
+  })();
+
+  const isE2ERequested = (() => {
     try {
       if (typeof window !== "undefined") {
         return new URLSearchParams(window.location.search).get("e2e") === "1";
@@ -128,7 +142,7 @@ const RootNavigator: React.FC = () => {
     <NavigationContainer theme={navigationTheme}>
       <RootStack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName={isE2E ? "E2E" : "MainTabs"}
+        initialRouteName={enableE2E && isE2ERequested ? "E2E" : "MainTabs"}
       >
         <RootStack.Screen name="MainTabs" component={MainTabs} />
         <RootStack.Screen name="History" component={HistoryStackNavigator} />
@@ -141,7 +155,9 @@ const RootNavigator: React.FC = () => {
         {DevCrudTestScreen && (
           <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
         )}
-        <RootStack.Screen name="E2E" component={E2EScreen} />
+        {enableE2E && (
+          <RootStack.Screen name="E2E" component={E2EScreen} />
+        )}
       </RootStack.Navigator>
     </NavigationContainer>
   );
