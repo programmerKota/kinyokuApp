@@ -3,6 +3,10 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
+      // 本番では console.* を抑止（warn/error は許可）
+      process.env.NODE_ENV === "production"
+        ? ["transform-remove-console", { exclude: ["error", "warn"] }]
+        : null,
       [
         "module-resolver",
         {
@@ -18,6 +22,6 @@ module.exports = function (api) {
         },
       ],
       "react-native-reanimated/plugin",
-    ],
+    ].filter(Boolean),
   };
 };

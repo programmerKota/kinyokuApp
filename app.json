@@ -64,6 +64,7 @@
     "extra": {
       "EXPO_PUBLIC_SUPABASE_URL": "https://tssfhgfkelsuslpwschl.supabase.co",
       "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzc2ZoZ2ZrZWxzdXNscHdzY2hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MDE2MTgsImV4cCI6MjA3NDk3NzYxOH0.pqDLzEgQJMPkQwQAqgihP4mt_4GiVMUkxmcjw1O_qEU",
+      "EXPO_PUBLIC_AUTH_DISABLED": "true",
       "EXPO_PUBLIC_FORCE_PROFILE_SETUP_MODAL": "true",
       "EXPO_PUBLIC_RC_IOS_PUBLIC_API_KEY": "appl_SByWcqIzkLsDEETgniNtsinAFip",
       "EXPO_PUBLIC_RC_ANDROID_PUBLIC_API_KEY": "",
