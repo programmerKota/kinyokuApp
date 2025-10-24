@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 
+import { feedbackConfig } from "@app/config/feedback.config";
 import { useAuth } from "@app/contexts/AuthContext";
 import Button from "@shared/components/Button";
 import { spacing, typography, useAppTheme } from "@shared/theme";
@@ -32,8 +33,7 @@ const FeedbackScreen: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   // 送信先メールアドレス（EXPO_PUBLIC_FEEDBACK_EMAIL があれば優先）
-  const FEEDBACK_EMAIL =
-    (process.env.EXPO_PUBLIC_FEEDBACK_EMAIL as string | undefined) || "";
+  const FEEDBACK_EMAIL = feedbackConfig.email ?? "";
   const emailConfigured = FEEDBACK_EMAIL.length > 0;
 
   const canSend = useMemo(
