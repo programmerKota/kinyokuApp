@@ -80,13 +80,20 @@ export class ProfileCache {
           .on(
             "postgres_changes",
             {
-              event: "UPDATE",
+              event: "*",
               schema: "public",
               table: "profiles",
               filter: `id=eq.${userId}`,
             },
             (payload) => {
-              const row = (payload.new || payload.old) as
+              const eventType = payload.eventType;
+              if (eventType === "DELETE") {
+                entry.data = undefined;
+                entry.listeners.forEach((l) => l(entry.data));
+                return;
+              }
+              const row = (payload.new ||
+                payload.old) as
                 | { displayName?: string; photoURL?: string }
                 | undefined;
               if (!row) return;

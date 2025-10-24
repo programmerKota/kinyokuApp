@@ -340,12 +340,22 @@ const TournamentsScreen: React.FC = () => {
 
   const handleToggleRecruitment = useCallback(
     async (id: string, open: boolean) => {
+      let previousOpen: boolean | undefined;
+      setTournaments((prev) =>
+        prev.map((t) => {
+          if (t.id !== id) return t;
+          previousOpen = t.recruitmentOpen;
+          return { ...t, recruitmentOpen: open };
+        }),
+      );
       try {
         await TournamentService.setRecruitmentOpen(id, open);
-        setTournaments((prev) =>
-          prev.map((t) => (t.id === id ? { ...t, recruitmentOpen: open } : t)),
-        );
       } catch (error) {
+        setTournaments((prev) =>
+          prev.map((t) =>
+            t.id === id ? { ...t, recruitmentOpen: previousOpen } : t,
+          ),
+        );
         handleError(
           error,
           {
