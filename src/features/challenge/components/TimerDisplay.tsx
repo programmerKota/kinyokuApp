@@ -46,7 +46,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
             style={styles.startButton}
             onPress={onStartPress}
           >
-            <Text style={styles.startButtonText}>禁欲開始</Text>
+            <Text style={styles.startButtonText}>開始</Text>
           </TouchableOpacity>
         </View>
       ) : (

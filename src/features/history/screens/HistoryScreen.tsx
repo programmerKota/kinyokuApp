@@ -350,6 +350,13 @@ const createStyles = (mode: "light" | "dark") => {
       margin: spacing.xl,
       borderRadius: 20,
       padding: spacing.xl,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.08)",
+      shadowColor: colors.black,
+      shadowOpacity: 0.15,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 8,
     },
     recordHeader: {
       flexDirection: "row",
@@ -360,7 +367,8 @@ const createStyles = (mode: "light" | "dark") => {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      backgroundColor:
+        screenThemes.history.badgeBg || "rgba(255, 255, 255, 0.18)",
       justifyContent: "center",
       alignItems: "center",
       marginRight: spacing.md,
@@ -382,6 +390,8 @@ const createStyles = (mode: "light" | "dark") => {
       backgroundColor: screenThemes.history.tintSoft,
       borderRadius: 16,
       padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.08)",
     },
     statIcon: {
       width: 32,
@@ -416,6 +426,8 @@ const createStyles = (mode: "light" | "dark") => {
       backgroundColor: screenThemes.history.tintSoft,
       borderRadius: 16,
       padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.08)",
     },
     challengeIcon: {
       width: 32,

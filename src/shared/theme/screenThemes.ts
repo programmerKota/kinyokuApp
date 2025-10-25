@@ -19,10 +19,10 @@ export const createScreenThemes = (colors: ColorPalette) => ({
 
   // 履歴画面: カードは落ち着いた情報色ブルー、微細要素は白/淡色
   history: {
-    accent: colors.info,
-    tintSoft: "rgba(255,255,255,0.1)",
-    cardBg: colors.info,
-    badgeBg: "rgba(255,255,255,0.2)",
+    accent: "#1B6C82",
+    tintSoft: "rgba(255,255,255,0.12)",
+    cardBg: "#0D3A4A",
+    badgeBg: "rgba(255,255,255,0.18)",
     badgeText: colors.white,
   },
 
