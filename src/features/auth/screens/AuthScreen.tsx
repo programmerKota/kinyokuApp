@@ -257,6 +257,15 @@ const AuthScreen: React.FC = () => {
   const signupMailColor = magicSignupDisabled
     ? colors.gray500
     : screenThemes.auth.accent;
+  // Googleアイコンは無効時のみグレーに（有効時はフルカラー維持）
+  const googleIconTint = googleDisabled ? colors.gray500 : undefined;
+
+  // サインアップ時は同意未チェックでも押下できるようにする（押下時にエラー表示）
+  const buttonDisabled = useMemo(() => {
+    if (!!submitting) return true;
+    const baseValid = !emailErr && !passErr && !!email && !!password;
+    return !baseValid;
+  }, [submitting, emailErr, passErr, email, password]);
 
   const startOAuth = useCallback(
     async (provider: "google" | "twitter" | "amazon" | "line") => {
@@ -590,6 +599,9 @@ const AuthScreen: React.FC = () => {
                       <Text> に同意する</Text>
                     </Text>
                   </View>
+                  {triedSubmit && !agreeTermsTos ? (
+                    <Text style={styles.hintError}>利用規約に同意してください。</Text>
+                  ) : null}
                   <View style={[styles.keepRow, { alignItems: "center" }]}>
                     <TouchableOpacity
                       onPress={() => setAgreeTermsPrivacy((v) => !v)}
@@ -623,6 +635,9 @@ const AuthScreen: React.FC = () => {
                       <Text> に同意する</Text>
                     </Text>
                   </View>
+                  {triedSubmit && !agreeTermsPrivacy ? (
+                    <Text style={styles.hintError}>プライバシーポリシーに同意してください。</Text>
+                  ) : null}
                 </View>
               ) : null}
 
@@ -643,7 +658,7 @@ const AuthScreen: React.FC = () => {
                   } catch {}
                 }}
                 loading={submitting === tab}
-                disabled={!canSubmit || !!submitting}
+                disabled={buttonDisabled}
                 style={{ width: "100%", marginTop: spacing.lg }}
               />
 
@@ -709,7 +724,10 @@ const AuthScreen: React.FC = () => {
                           source={{
                             uri: "https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_48dp.png",
                           }}
-                          style={styles.googleIcon}
+                          style={[
+                            styles.googleIcon,
+                            googleIconTint ? { tintColor: googleIconTint } : null,
+                          ]}
                           resizeMode="contain"
                         />
                         <Text
