@@ -26,7 +26,9 @@
       "channel": "production",
       "env": {
         "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
-        "HUSKY": "0"
+        "HUSKY": "0",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://tssfghfkelsuslpwschl.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzc2ZoZ2ZrZWxzdXNscHdzY2hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MDE2MTgsImV4cCI6MjA3NDk3NzYxOH0.pqDLzEgQJMPkQwQAqgihP4mt_4GiVMUkxmcjw1O_qEU"
       }
     }
   },
