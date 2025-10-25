@@ -1,80 +1,74 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>禁欲チャレンジアプリ - 法的文書</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-            background-color: #f8f9fa;
-        }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-        }
-        .legal-links {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-top: 40px;
-        }
-        .legal-link {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .legal-link:hover {
-            background: #2980b9;
-        }
-        .app-info {
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 30px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>禁欲チャレンジアプリ</h1>
-        
-        <div class="app-info">
-            <h2>法的文書</h2>
-            <p>本アプリの利用に関する重要な文書をご確認いただけます。</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>禁欲チャレンジ | サポート & ポリシー</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <main class="shell">
+        <div class="badges">
+          <span class="badge">Official documents</span>
+          <span class="badge">Support center</span>
+        </div>
+        <h1>禁欲チャレンジ | サポート &amp; ポリシー</h1>
+        <p class="lead">
+          アプリをご利用いただくための各種ポリシーとサポート情報をまとめました。
+          ご不明点があればいつでもご連絡ください。
+        </p>
+
+        <ul class="cta-list">
+          <li>
+            <a class="cta-link" href="support/">
+              サポートガイド<br />
+              <span>お問い合わせ方法・FAQ・不具合報告について</span>
+            </a>
+          </li>
+          <li>
+            <a class="cta-link" href="privacy/">
+              プライバシーポリシー<br />
+              <span>取得する情報と利用目的、保護体制を明記</span>
+            </a>
+          </li>
+          <li>
+            <a class="cta-link" href="terms/">
+              利用規約<br />
+              <span>アプリ利用に関するルール</span>
+            </a>
+          </li>
+        </ul>
+
+        <section>
+          <h2 class="section-title">サポート体制</h2>
+          <div class="grid two">
+            <div class="card">
+              <h3>お問い合わせ窓口</h3>
+              <p>メール: <a href="mailto:kinyoku.app.team@gmail.com">kinyoku.app.team@gmail.com</a></p>
+              <p class="muted">対応時間: 平日 9:00 - 18:00（祝日を除く）</p>
+            </div>
+            <div class="card">
+              <h3>更新履歴</h3>
+              <p>最終更新: 2025年1月25日</p>
+              <p class="muted">最新のドキュメントを GitHub Pages 上で公開しています。</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="notice">
+          本ページは GitHub Pages（docs ディレクトリ）で公開されます。
+          リポジトリ設定の「Pages」で <strong>Branch: main / Folder: /docs</strong>
+          を指定してください。
         </div>
 
-        <div class="legal-links">
-            <a href="legal/terms.html" class="legal-link">
-                <h3>利用規約</h3>
-                <p>アプリの利用に関する規約</p>
-            </a>
-            
-            <a href="legal/privacy.html" class="legal-link">
-                <h3>プライバシーポリシー</h3>
-                <p>個人情報の取扱いについて</p>
-            </a>
+        <div class="footer-nav">
+          <a href="support/">サポート</a>
+          <a href="privacy/">プライバシー</a>
+          <a href="terms/">利用規約</a>
+          <a href="mailto:kinyoku.app.team@gmail.com">お問い合わせ</a>
         </div>
-
-        <div style="margin-top: 40px; color: #7f8c8d; font-size: 0.9em;">
-            <p>お問い合わせ: kinyoku.app.team@gmail.com</p>
-        </div>
+      </main>
     </div>
-</body>
+  </body>
 </html>
