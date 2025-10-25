@@ -135,6 +135,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 const createStyles = (mode: "light" | "dark") => {
   const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
+  const isDarkMode = mode === "dark";
+  const otherBubbleBg = isDarkMode
+    ? "rgba(255,255,255,0.08)"
+    : colors.backgroundSecondary;
+  const ownBubbleBg = isDarkMode ? colors.primary : colors.info;
+  const bubbleShadow = isDarkMode
+    ? {
+        shadowColor: "#000",
+        shadowOpacity: 0.45,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 6,
+      }
+    : shadows.base;
 
   return StyleSheet.create({
     messageContainer: {
@@ -182,9 +196,11 @@ const createStyles = (mode: "light" | "dark") => {
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
       borderRadius: 20,
-      ...shadows.base,
+      ...bubbleShadow,
       flexShrink: 1,
       minWidth: 0,
+      borderWidth: isDarkMode ? 1 : 0,
+      borderColor: isDarkMode ? "rgba(255,255,255,0.12)" : "transparent",
     },
     bubbleOther: {
       alignSelf: "flex-start",
@@ -193,11 +209,11 @@ const createStyles = (mode: "light" | "dark") => {
       alignSelf: "flex-end",
     },
     ownBubble: {
-      backgroundColor: colors.info,
+      backgroundColor: ownBubbleBg,
       borderBottomRightRadius: 4,
     },
     otherBubble: {
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: otherBubbleBg,
       borderBottomLeftRadius: 4,
     },
     authorName: {
