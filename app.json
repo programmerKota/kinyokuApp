@@ -71,6 +71,7 @@
       "EXPO_PUBLIC_PAYMENTS_DEV_MODE": "false",
       "EXPO_PUBLIC_FEEDBACK_EMAIL": "kinyoku.app.team@gmail.com",
       "EXPO_PUBLIC_OAUTH_GOOGLE": "true",
+      "EXPO_PUBLIC_OAUTH_APPLE": "true",
       "EXPO_PUBLIC_RC_PENALTY_OFFERING": "penalty",
       "eas": {
         "projectId": "3f92a554-fe34-4984-921b-a6d807c9730b"

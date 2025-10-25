@@ -156,7 +156,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // OAuth providers (Google / Twitter(X) / Amazon / Facebook)
   const startOAuth = useCallback(
-    async (provider: "google" | "twitter" | "amazon" | "line") => {
+    async (provider: "google" | "twitter" | "amazon" | "line" | "apple") => {
       try {
         setAuthing("oauth");
         await startOAuthFlow(provider).finally(() => setAuthing(null));
@@ -193,6 +193,7 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
     oauthConfig.twitter ||
     oauthConfig.google ||
     oauthConfig.amazon ||
+    oauthConfig.apple ||
     oauthConfig.line;
 
   return (
@@ -397,6 +398,31 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                   >
                     <Ionicons
                       name="logo-google"
+                      size={20}
+                      color={colors.textPrimary}
+                    />
+                  </Pressable>
+                )}
+                {oauthConfig.apple && (
+                  <Pressable
+                    onPress={() => {
+                      setAuthing("oauth");
+                      void startOAuth("apple").finally(() => setAuthing(null));
+                    }}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.7 : 1,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.backgroundSecondary,
+                      borderWidth: 1,
+                      borderColor: colors.borderPrimary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    })}
+                  >
+                    <Ionicons
+                      name="logo-apple"
                       size={20}
                       color={colors.textPrimary}
                     />

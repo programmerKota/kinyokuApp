@@ -143,12 +143,21 @@ const AuthScreen: React.FC = () => {
     return null;
   }, []);
 
+  const emailValidationError = useMemo(
+    () => validateEmail(email),
+    [email, validateEmail],
+  );
+  const passwordValidationError = useMemo(
+    () => validatePass(password),
+    [password, validatePass],
+  );
+
   useEffect(() => {
-    setEmailErr(validateEmail(email));
-  }, [email, validateEmail]);
+    setEmailErr(emailValidationError);
+  }, [emailValidationError]);
   useEffect(() => {
-    setPassErr(validatePass(password));
-  }, [password, validatePass]);
+    setPassErr(passwordValidationError);
+  }, [passwordValidationError]);
 
   const canSubmit = useMemo(() => {
     // メール + パスワードでのログイン/登録を有効化
@@ -244,12 +253,14 @@ const AuthScreen: React.FC = () => {
   const googleDisabled =
     submitting === "oauth" ||
     (tab === "signup" && !(agreeTermsTos && agreeTermsPrivacy));
+  const appleDisabled =
+    submitting === "oauth" ||
+    (tab === "signup" && !(agreeTermsTos && agreeTermsPrivacy));
   // Magic link buttons have their own enable criteria (email-only; signup also requires terms)
-  const magicLoginDisabled = !!submitting || !!emailErr || !email;
+  const magicLoginDisabled = !!submitting || !!emailValidationError;
   const magicSignupDisabled =
     !!submitting ||
-    !!emailErr ||
-    !email ||
+    !!emailValidationError ||
     !(agreeTermsTos && agreeTermsPrivacy);
   const loginMailColor = magicLoginDisabled
     ? colors.gray500
@@ -259,6 +270,7 @@ const AuthScreen: React.FC = () => {
     : screenThemes.auth.accent;
   // Googleアイコンは無効時のみグレーに（有効時はフルカラー維持）
   const googleIconTint = googleDisabled ? colors.gray500 : undefined;
+  const appleIconColor = appleDisabled ? colors.gray500 : colors.textPrimary;
 
   // サインアップ時は同意未チェックでも押下できるようにする（押下時にエラー表示）
   const buttonDisabled = useMemo(() => {
@@ -268,7 +280,7 @@ const AuthScreen: React.FC = () => {
   }, [submitting, emailErr, passErr, email, password]);
 
   const startOAuth = useCallback(
-    async (provider: "google" | "twitter" | "amazon" | "line") => {
+    async (provider: "google" | "twitter" | "amazon" | "line" | "apple") => {
       try {
         setSubmitting("oauth");
         await startOAuthFlow(provider);
@@ -406,6 +418,7 @@ const AuthScreen: React.FC = () => {
     oauthConfig.twitter ||
     oauthConfig.google ||
     oauthConfig.amazon ||
+    oauthConfig.apple ||
     oauthConfig.line;
 
   // debug logs removed per request
@@ -739,6 +752,52 @@ const AuthScreen: React.FC = () => {
                           {tab === "signup"
                             ? "Googleで登録"
                             : "Googleでログイン"}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ) : null}
+                  {oauthConfig.apple ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => {
+                        try {
+                          void startOAuth("apple");
+                        } catch {}
+                      }}
+                      disabled={appleDisabled}
+                      style={({ pressed }) => [
+                        styles.googleBtn,
+                        {
+                          marginTop: oauthConfig.google ? spacing.md : 0,
+                          opacity: pressed ? 0.92 : 1,
+                        },
+                        appleDisabled
+                          ? styles.googleBtnDisabled
+                          : styles.googleBtnEnabled,
+                      ]}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Ionicons
+                          name="logo-apple"
+                          size={18}
+                          color={appleIconColor}
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text
+                          style={[
+                            styles.googleText,
+                            appleDisabled ? styles.googleTextDisabled : null,
+                          ]}
+                        >
+                          {tab === "signup"
+                            ? "Appleで登録"
+                            : "Appleでログイン"}
                         </Text>
                       </View>
                     </Pressable>

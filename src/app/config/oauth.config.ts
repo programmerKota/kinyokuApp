@@ -35,6 +35,13 @@ const amazon = toBool(
       : undefined),
   false,
 );
+const apple = toBool(
+  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_APPLE ??
+    (typeof process !== "undefined"
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_APPLE
+      : undefined),
+  false,
+);
 const line = toBool(
   (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_LINE ??
     (typeof process !== "undefined"
@@ -50,6 +57,7 @@ export const oauthConfig = {
   google: !isExpoGo && google,
   twitter: !isExpoGo && twitter,
   amazon: !isExpoGo && amazon,
+  apple: !isExpoGo && apple,
   line: !isExpoGo && line,
 } as const;
 
