@@ -35,9 +35,8 @@ jobs:
 
       - name: Inject ASC metadata into eas.json
         run: |
-          KEY_JSON='${{ secrets.ASC_API_KEY_JSON }}'
-          KEY_ID=$(jq -r '.keyId' <<<"$KEY_JSON")
-          ISSUER_ID=$(jq -r '.issuerId' <<<"$KEY_JSON")
+          KEY_ID=$(jq -r '.keyId' asc.json)
+          ISSUER_ID=$(jq -r '.issuerId' asc.json)
           TMP_FILE=$(mktemp)
           jq \
             --arg path "./asc.json" \
