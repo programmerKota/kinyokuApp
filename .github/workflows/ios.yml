@@ -40,7 +40,7 @@ jobs:
           echo "EAS_SKIP_AUTO_FINGERPRINT=1" >> $GITHUB_ENV
 
       - name: Local iOS build (macOS runner)
-        run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive
+        run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive --output-dir builds
 
       - name: Submit to App Store Connect
         run: |
