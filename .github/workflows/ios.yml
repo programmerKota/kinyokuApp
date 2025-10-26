@@ -33,6 +33,22 @@ jobs:
         run: echo "${{ secrets.ASC_API_KEY_JSON }}" > asc.json
         shell: bash
 
+      - name: Inject ASC metadata into eas.json
+        run: |
+          KEY_JSON='${{ secrets.ASC_API_KEY_JSON }}'
+          KEY_ID=$(jq -r '.keyId' <<<"$KEY_JSON")
+          ISSUER_ID=$(jq -r '.issuerId' <<<"$KEY_JSON")
+          TMP_FILE=$(mktemp)
+          jq \
+            --arg path "./asc.json" \
+            --arg keyId "$KEY_ID" \
+            --arg issuerId "$ISSUER_ID" \
+            '.submit.production.ios.ascApiKeyPath=$path
+             | .submit.production.ios.ascApiKeyId=$keyId
+             | .submit.production.ios.ascApiKeyIssuerId=$issuerId' \
+            eas.json > "$TMP_FILE"
+          mv "$TMP_FILE" eas.json
+
       - name: Setup environment variables
         run: |
           echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> $GITHUB_ENV
@@ -49,5 +65,5 @@ jobs:
             echo "No IPA artifact found" >&2
             exit 1
           fi
-          eas submit -p ios --path "$IPA_PATH" --non-interactive --asc-api-key-path asc.json
+          eas submit -p ios --path "$IPA_PATH" --non-interactive
         shell: bash
