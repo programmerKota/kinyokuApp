@@ -30,8 +30,12 @@ jobs:
         run: npm ci || npm i
 
       - name: Write App Store Connect API key
-        run: echo "${{ secrets.ASC_API_KEY_JSON }}" > asc.json
         shell: bash
+        env:
+          ASC_API_KEY_JSON: ${{ secrets.ASC_API_KEY_JSON }}
+        run: |
+          printf '%s' "$ASC_API_KEY_JSON" > asc.json
+          jq . asc.json > /dev/null
 
       - name: Inject ASC metadata into eas.json
         run: |
