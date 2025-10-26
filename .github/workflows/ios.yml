@@ -62,6 +62,8 @@ jobs:
         run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive
 
       - name: Submit to App Store Connect
+        env:
+          OPENSSL_CONF: /dev/null
         run: |
           IPA_PATH=$(find . -name "*.ipa" -print -quit)
           if [ -z "$IPA_PATH" ]; then
