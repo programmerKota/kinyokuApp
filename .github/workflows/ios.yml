@@ -40,10 +40,14 @@ jobs:
           echo "EAS_SKIP_AUTO_FINGERPRINT=1" >> $GITHUB_ENV
 
       - name: Local iOS build (macOS runner)
-        run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive --output-dir builds
+        run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive
 
       - name: Submit to App Store Connect
         run: |
-          IPA_PATH=$(ls builds/*.ipa | head -n 1)
+          IPA_PATH=$(find . -name "*.ipa" -print -quit)
+          if [ -z "$IPA_PATH" ]; then
+            echo "No IPA artifact found" >&2
+            exit 1
+          fi
           eas submit -p ios --path "$IPA_PATH" --non-interactive --asc-api-key-path asc.json
         shell: bash
