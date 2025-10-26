@@ -103,7 +103,7 @@ const MainTabs: React.FC = () => {
       <Tab.Screen
         name="Community"
         component={CommunityScreen}
-        options={{ tabBarLabel: "コミュニティ" }}
+        options={{ tabBarLabel: "投稿" }}
       />
       <Tab.Screen
         name="Settings"
