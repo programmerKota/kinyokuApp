@@ -2,10 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { View, Image, TouchableOpacity, StyleSheet, Text } from "react-native";
 
-import Modal from "@shared/components/Modal";
+import useProfileScreen from "@features/profile/hooks/useProfileScreen";
 import Button from "@shared/components/Button";
 import InputField from "@shared/components/InputField";
-import useProfileScreen from "@features/profile/hooks/useProfileScreen";
+import Modal from "@shared/components/Modal";
 import { spacing, typography, useAppTheme } from "@shared/theme";
 
 type Props = {

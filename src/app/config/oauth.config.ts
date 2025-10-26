@@ -4,8 +4,10 @@ import Constants from "expo-constants";
 // - Prefer app.json "extra" (manifestExtra in prod)
 // - Fall back to statically-replaced EXPO_PUBLIC_* envs (must use direct keys)
 const extra: Record<string, unknown> =
-  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
-  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
+  (Constants?.expoConfig as unknown as { extra?: Record<string, unknown> })
+    ?.extra ??
+  (Constants as unknown as { manifestExtra?: Record<string, unknown> })
+    ?.manifestExtra ??
   {};
 
 const toBool = (v: unknown, def = false) => {
@@ -15,43 +17,49 @@ const toBool = (v: unknown, def = false) => {
 };
 
 const google = toBool(
-  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_GOOGLE ??
+  extra?.EXPO_PUBLIC_OAUTH_GOOGLE ??
     (typeof process !== "undefined"
-      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_GOOGLE
+      ? (process as unknown as { env?: Record<string, unknown> })?.env
+          ?.EXPO_PUBLIC_OAUTH_GOOGLE
       : undefined),
   false,
 );
 const twitter = toBool(
-  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_TWITTER ??
+  extra?.EXPO_PUBLIC_OAUTH_TWITTER ??
     (typeof process !== "undefined"
-      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_TWITTER
+      ? (process as unknown as { env?: Record<string, unknown> })?.env
+          ?.EXPO_PUBLIC_OAUTH_TWITTER
       : undefined),
   false,
 );
 const amazon = toBool(
-  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_AMAZON ??
+  extra?.EXPO_PUBLIC_OAUTH_AMAZON ??
     (typeof process !== "undefined"
-      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_AMAZON
+      ? (process as unknown as { env?: Record<string, unknown> })?.env
+          ?.EXPO_PUBLIC_OAUTH_AMAZON
       : undefined),
   false,
 );
 const apple = toBool(
-  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_APPLE ??
+  extra?.EXPO_PUBLIC_OAUTH_APPLE ??
     (typeof process !== "undefined"
-      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_APPLE
+      ? (process as unknown as { env?: Record<string, unknown> })?.env
+          ?.EXPO_PUBLIC_OAUTH_APPLE
       : undefined),
   false,
 );
 const line = toBool(
-  (extra as Record<string, unknown>)?.EXPO_PUBLIC_OAUTH_LINE ??
+  extra?.EXPO_PUBLIC_OAUTH_LINE ??
     (typeof process !== "undefined"
-      ? (process as unknown as { env?: Record<string, unknown> })?.env?.EXPO_PUBLIC_OAUTH_LINE
+      ? (process as unknown as { env?: Record<string, unknown> })?.env
+          ?.EXPO_PUBLIC_OAUTH_LINE
       : undefined),
   false,
 );
 
 // Disable OAuth in Expo Go (only works reliably in EAS Dev Client or production)
-const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
+const isExpoGo =
+  (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
 
 export const oauthConfig = {
   google: !isExpoGo && google,

@@ -18,7 +18,6 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
@@ -42,6 +41,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { toDate } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";

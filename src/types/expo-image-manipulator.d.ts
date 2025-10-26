@@ -1,6 +1,11 @@
 declare module "expo-image-manipulator" {
   export type SaveFormatType = "jpeg" | "png" | "webp" | "heic";
-  export const SaveFormat: { JPEG: SaveFormatType; PNG: SaveFormatType; WEBP: SaveFormatType; HEIC?: SaveFormatType };
+  export const SaveFormat: {
+    JPEG: SaveFormatType;
+    PNG: SaveFormatType;
+    WEBP: SaveFormatType;
+    HEIC?: SaveFormatType;
+  };
   export function manipulateAsync(
     uri: string,
     actions: Array<any>,

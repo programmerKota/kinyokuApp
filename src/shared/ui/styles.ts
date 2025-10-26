@@ -1,7 +1,7 @@
 ﻿import { StyleSheet } from "react-native";
 
-import type { ColorPalette } from "@shared/theme/colors";
 import { spacing, typography, shadows } from "@shared/theme";
+import type { ColorPalette } from "@shared/theme/colors";
 
 // 動的スタイル生成用の関数
 export const createUiStyles = (colors: ColorPalette) =>

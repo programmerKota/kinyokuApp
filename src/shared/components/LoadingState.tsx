@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, ActivityIndicator, type StyleProp, type ViewStyle } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { colors, spacing, typography } from "@shared/theme";
 

@@ -12,13 +12,13 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
 import CreatePostModal from "@features/community/components/CreatePostModal";
 import PostList from "@features/community/components/PostList";
 import useCommunity from "@features/community/hooks/useCommunity";
 import type { CommunityPost } from "@project-types";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import Button from "@shared/components/Button";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import ReplyInputBar from "@shared/components/ReplyInputBar";
@@ -29,10 +29,10 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
-import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
 type Nav = StackNavigationProp<TournamentStackParamList>;
 

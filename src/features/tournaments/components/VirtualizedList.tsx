@@ -12,8 +12,8 @@ import type {
   FlatListProps,
   StyleProp,
   ViewStyle,
+  RefreshControlProps,
 } from "react-native";
-import type { RefreshControlProps } from "react-native";
 
 import { colors, spacing, typography } from "@shared/theme";
 

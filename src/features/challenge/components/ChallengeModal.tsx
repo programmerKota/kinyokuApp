@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -8,12 +9,11 @@ import {
   FlatList,
   Modal as RNModal,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
+import { paymentsConfig } from "@app/config/payments.config";
 import Button from "@shared/components/Button";
 import Modal from "@shared/components/Modal";
 import { spacing, typography, useAppTheme } from "@shared/theme";
-import { paymentsConfig } from "@app/config/payments.config";
 
 interface ChallengeModalProps {
   visible: boolean;
@@ -477,4 +477,3 @@ const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
   });
 
 export default ChallengeModal;
-

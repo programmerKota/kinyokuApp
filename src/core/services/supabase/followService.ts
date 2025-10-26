@@ -4,7 +4,7 @@ import { supabase, supabaseConfig } from "@app/config/supabase.config";
 export class FollowService {
   static async getFollowDocId(targetUserId: string): Promise<string> {
     const { data: s } = await supabase.auth.getSession();
-    const currentUserId = s?.session?.user?.id as string | undefined;
+    const currentUserId = s?.session?.user?.id;
     if (!currentUserId) throw new Error("AUTH_REQUIRED");
     return `${currentUserId}_${targetUserId}`;
   }
@@ -12,7 +12,7 @@ export class FollowService {
   static async isFollowing(targetUserId: string): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
     const { data: s } = await supabase.auth.getSession();
-    const currentUserId = s?.session?.user?.id as string | undefined;
+    const currentUserId = s?.session?.user?.id;
     if (!currentUserId) return false;
     const id = `${currentUserId}_${targetUserId}`;
     const { data, error } = await supabase
@@ -27,7 +27,7 @@ export class FollowService {
   static async follow(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
     const { data: s } = await supabase.auth.getSession();
-    const currentUserId = s?.session?.user?.id as string | undefined;
+    const currentUserId = s?.session?.user?.id;
     if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase
@@ -40,7 +40,7 @@ export class FollowService {
   static async unfollow(targetUserId: string): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
     const { data: s } = await supabase.auth.getSession();
-    const currentUserId = s?.session?.user?.id as string | undefined;
+    const currentUserId = s?.session?.user?.id;
     if (!currentUserId) throw new Error("AUTH_REQUIRED");
     const id = `${currentUserId}_${targetUserId}`;
     const { error } = await supabase.from("follows").delete().eq("id", id);
@@ -94,8 +94,8 @@ export class FollowService {
 
     // count は number | null
     return {
-      following: (followingRes.count ?? 0) as number,
-      followers: (followersRes.count ?? 0) as number,
+      following: followingRes.count ?? 0,
+      followers: followersRes.count ?? 0,
     };
   }
 

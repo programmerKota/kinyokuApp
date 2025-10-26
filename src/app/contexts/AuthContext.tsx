@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
   useContext,
@@ -6,25 +7,24 @@ import React, {
   useCallback,
 } from "react";
 import { Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { featureFlags } from "@app/config/featureFlags.config";
+import { supabase } from "@app/config/supabase.config";
 import {
   FirestoreUserService,
   TournamentService,
+  FollowService,
 } from "@core/services/firestore";
 import { BlockService } from "@core/services/firestore/blockService";
-import { FollowService } from "@core/services/firestore";
-import { CommunityService } from "@core/services/supabase/communityService";
-import { supabase } from "@app/config/supabase.config";
-import UserService from "@core/services/userService";
-import { uploadUserAvatar } from "@core/services/supabase/storageService";
 import { PurchasesService } from "@core/services/payments/purchasesService";
-import { featureFlags } from "@app/config/featureFlags.config";
-import { withRetry } from "@shared/utils/net";
+import { CommunityService } from "@core/services/supabase/communityService";
+import { uploadUserAvatar } from "@core/services/supabase/storageService";
+import UserService from "@core/services/userService";
 import type { User } from "@project-types";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
 import { Logger } from "@shared/utils/logger";
+import { withRetry } from "@shared/utils/net";
 
 interface AuthContextType {
   user: User | null;
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Prefer Supabase auth/session identity when available
       try {
         const { data } = await supabase.auth.getSession();
-        const suid = data?.session?.user?.id as string | undefined;
+        const suid = data?.session?.user?.id;
         if (suid) {
           uid = suid;
           supaSessionUid = suid;
@@ -138,8 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
           // If profile row is missing or effectively empty, mark for profile setup modal
           try {
-            const emptyProfile =
-              !prof || (!prof.displayName && !prof.photoURL);
+            const emptyProfile = !prof || (!prof.displayName && !prof.photoURL);
             if (emptyProfile) {
               await AsyncStorage.setItem("__post_signup_profile", "1");
             }
@@ -257,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Determine current Supabase user ID (required for DB write with RLS)
       const { data } = await supabase.auth.getSession();
-      const suid = (data?.session?.user?.id as string | undefined) || undefined;
+      const suid = data?.session?.user?.id || undefined;
 
       // Normalize avatarUrl: upload local uri to Supabase Storage in production
       let finalAvatar: string | undefined = avatarUrl?.trim() || undefined;

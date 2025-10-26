@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { supabaseConfig } from "@app/config/supabase.config";
 import SupabaseService from "@core/services/supabase/supabaseService";
 
 export type ConnectivityResult = {

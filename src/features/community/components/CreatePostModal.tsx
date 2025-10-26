@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   View,
@@ -7,10 +6,9 @@ import {
   Alert,
   TextInput,
   TouchableOpacity,
-  Platform,
 } from "react-native";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
+import Modal from "@shared/components/Modal";
 import { useModerationGuard } from "@shared/hooks/useModerationGuard";
 import {
   spacing,
@@ -20,7 +18,6 @@ import {
 } from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
-import Modal from "@shared/components/Modal";
 
 interface CreatePostModalProps {
   visible: boolean;

@@ -12,27 +12,20 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
-import { RankingService } from "@core/services/rankingService";
-import type { UserRanking } from "@core/services/rankingService";
-import { UserStatsService } from "@core/services/userStatsService";
-import RankingListItem from "@features/ranking/components/RankingListItem";
-import { navigateToUserDetail } from "@shared/utils/navigation";
-import { useFollowingIds } from "@shared/state/followStore";
-import {
-  useThemedStyles,
-  useAppTheme,
-  spacing,
-  typography,
-  shadows,
-} from "@shared/theme";
 import ProfileCache, {
   type UserProfileLite,
 } from "@core/services/profileCache";
+import { RankingService } from "@core/services/rankingService";
+import type { UserRanking } from "@core/services/rankingService";
+import RankingListItem from "@features/ranking/components/RankingListItem";
+import { useFollowingIds } from "@shared/state/followStore";
+import { useThemedStyles, useAppTheme } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { createUiStyles } from "@shared/ui/styles";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 const RankingScreen: React.FC = () => {
   const { user } = useAuth();

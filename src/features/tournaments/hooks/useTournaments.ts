@@ -7,10 +7,12 @@ import {
   TournamentService,
 } from "@core/services/firestore";
 import type { FirestoreTournament } from "@core/services/firestore/types";
-import ProfileCache, { type UserProfileLite } from "@core/services/profileCache";
+import ProfileCache, {
+  type UserProfileLite,
+} from "@core/services/profileCache";
 import UserService from "@core/services/userService";
-import useErrorHandler from "@shared/hooks/useErrorHandler";
 import type { StrictTournamentParticipant } from "@project-types/strict";
+import useErrorHandler from "@shared/hooks/useErrorHandler";
 
 import useTournamentParticipants from "./useTournamentParticipants";
 
@@ -44,7 +46,10 @@ export interface UseTournamentsActions {
   setFilter: (filter: TournamentFilter) => void;
   setShowCreateModal: (show: boolean) => void;
   refresh: () => Promise<void>;
-  createTournament: (data: { name: string; description: string }) => Promise<void>;
+  createTournament: (data: {
+    name: string;
+    description: string;
+  }) => Promise<void>;
   joinTournament: (tournamentId: string) => Promise<void>;
   toggleRecruitment: (tournamentId: string, open: boolean) => Promise<void>;
   deleteTournament: (tournamentId: string) => Promise<void>;
@@ -120,9 +125,7 @@ export const useTournaments = (): [
 
   const visibleTournaments = useMemo(
     () =>
-      filter === "joined"
-        ? tournaments.filter((t) => t.isJoined)
-        : tournaments,
+      filter === "joined" ? tournaments.filter((t) => t.isJoined) : tournaments,
     [filter, tournaments],
   );
 
@@ -215,7 +218,8 @@ export const useTournaments = (): [
         let ownerName = ownerParticipant?.userName || "ユーザー";
         let ownerAvatar = ownerParticipant?.userAvatar ?? undefined;
         if (!ownerParticipant && currentUserId === tournament.ownerId) {
-          ownerName = user?.displayName || localOwnerProfile?.name || "ユーザー";
+          ownerName =
+            user?.displayName || localOwnerProfile?.name || "ユーザー";
           ownerAvatar =
             user?.avatarUrl || localOwnerProfile?.avatar || undefined;
         }
@@ -402,7 +406,8 @@ export const useTournaments = (): [
           optimisticCopy = { ...t, recruitmentOpen: open };
           return optimisticCopy;
         });
-        if (optimisticCopy) optimisticRef.current.set(tournamentId, optimisticCopy);
+        if (optimisticCopy)
+          optimisticRef.current.set(tournamentId, optimisticCopy);
         return next;
       });
       try {
@@ -437,7 +442,15 @@ export const useTournaments = (): [
       showCreateModal,
       myIds,
     }),
-    [tournaments, visibleTournaments, filter, loading, refreshing, showCreateModal, myIds],
+    [
+      tournaments,
+      visibleTournaments,
+      filter,
+      loading,
+      refreshing,
+      showCreateModal,
+      myIds,
+    ],
   );
 
   const actions = useMemo<UseTournamentsActions>(

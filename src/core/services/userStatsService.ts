@@ -1,5 +1,6 @@
-import { ChallengeService } from "./firestore";
 import { supabase } from "@app/config/supabase.config";
+
+import { ChallengeService } from "./firestore";
 // 仕様更新: ランキング/肩書きは履歴の平均ではなく「現在のチャレンジの記録」から算出する
 
 function toDateSafe(v: unknown): Date | undefined {
@@ -155,7 +156,11 @@ export class UserStatsService {
         { p_user_ids: ids },
       );
       if (!error && Array.isArray(data)) {
-        for (const row of data as Array<{ user_id?: string; userId?: string; days?: number }>) {
+        for (const row of data as Array<{
+          user_id?: string;
+          userId?: string;
+          days?: number;
+        }>) {
           const id = String(row.user_id ?? row.userId ?? "");
           const days = Math.max(0, Number(row.days ?? 0));
           if (id) out.set(id, days);

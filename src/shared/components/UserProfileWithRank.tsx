@@ -27,7 +27,9 @@ interface UserProfileWithRankProps {
   showTitle?: boolean;
   size?: "small" | "medium" | "large";
   style?: import("react-native").StyleProp<import("react-native").ViewStyle>;
-  textStyle?: import("react-native").StyleProp<import("react-native").TextStyle>;
+  textStyle?: import("react-native").StyleProp<
+    import("react-native").TextStyle
+  >;
 }
 
 const UserProfileWithRank: React.FC<UserProfileWithRankProps> = ({

@@ -1,8 +1,10 @@
 import Constants from "expo-constants";
 
 const extra: Record<string, unknown> =
-  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
-  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
+  (Constants?.expoConfig as unknown as { extra?: Record<string, unknown> })
+    ?.extra ??
+  (Constants as unknown as { manifestExtra?: Record<string, unknown> })
+    ?.manifestExtra ??
   {};
 
 const pick = (key: string): string | undefined => {

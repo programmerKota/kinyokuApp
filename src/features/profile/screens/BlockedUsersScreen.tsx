@@ -10,7 +10,6 @@ import {
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
@@ -18,6 +17,7 @@ import { BlockService } from "@core/services/firestore";
 import ProfileCache from "@core/services/profileCache";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { spacing, typography, useAppTheme } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
 export interface SimpleUser {
@@ -55,7 +55,7 @@ const BlockedUsersScreen: React.FC = () => {
         const p = map.get(id);
         return {
           id,
-          displayName: (p?.displayName || "ユーザー") as string,
+          displayName: p?.displayName || "ユーザー",
           photoURL: p?.photoURL,
         };
       });

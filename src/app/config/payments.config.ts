@@ -1,8 +1,10 @@
 import Constants from "expo-constants";
 
 const extra: Record<string, unknown> =
-  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
-  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
+  (Constants?.expoConfig as unknown as { extra?: Record<string, unknown> })
+    ?.extra ??
+  (Constants as unknown as { manifestExtra?: Record<string, unknown> })
+    ?.manifestExtra ??
   {};
 
 const parseNumberCsv = (v: unknown): number[] => {
@@ -16,9 +18,7 @@ const parseNumberCsv = (v: unknown): number[] => {
 export const paymentsConfig = {
   // UI で選べるペナルティ金額（JPY）。env未指定時のデフォルト。
   penaltyOptions: (() => {
-    const fromEnv = parseNumberCsv(
-      (extra as Record<string, unknown>).EXPO_PUBLIC_PENALTY_OPTIONS,
-    );
+    const fromEnv = parseNumberCsv(extra.EXPO_PUBLIC_PENALTY_OPTIONS);
     return fromEnv.length ? fromEnv : [0, 100, 500, 1000, 10000];
   })(),
 } as const;

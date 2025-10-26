@@ -1,10 +1,11 @@
 import React from "react";
 import { View } from "react-native";
+import { RadioButton, List } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
+
 import TimerScreen from "@features/challenge/screens/TimerScreen";
 import { colors, useAppTheme } from "@shared/theme";
-import { RadioButton, List } from "react-native-paper";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 const E2EScreen: React.FC = () => {
   const { mode, setMode } = useAppTheme();

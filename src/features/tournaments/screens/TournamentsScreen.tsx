@@ -12,8 +12,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import AppStatusBar from "@shared/theme/AppStatusBar";
-
 import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
 import CreateTournamentModal from "@features/tournaments/components/CreateTournamentModal";
 import MemoizedTournamentCard from "@features/tournaments/components/MemoizedTournamentCard";
@@ -30,6 +28,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";

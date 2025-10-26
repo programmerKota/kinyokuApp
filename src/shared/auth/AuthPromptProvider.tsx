@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, {
   createContext,
   useCallback,
@@ -6,25 +7,23 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, Text, TextInput, Pressable, Platform } from "react-native";
-import * as Linking from "expo-linking";
-import { Ionicons } from "@expo/vector-icons";
-import Modal from "@shared/components/Modal";
-import { oauthConfig } from "@app/config/oauth.config";
-import DSButton from "@shared/designSystem/components/DSButton";
-import { colors, spacing, typography } from "@shared/theme";
-import { screenThemes } from "@shared/theme/screenThemes";
-import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { View, Text, TextInput, Pressable } from "react-native";
+
 import { featureFlags } from "@app/config/featureFlags.config";
+import { oauthConfig } from "@app/config/oauth.config";
+import { supabase } from "@app/config/supabase.config";
 import {
   signInWithEmailPassword,
   signUpWithEmailPassword,
   sendMagicLink,
   resetPassword,
   initSupabaseAuthDeepLinks,
-  getRedirectTo,
   startOAuthFlow,
 } from "@core/services/supabase/authService";
+import Modal from "@shared/components/Modal";
+import DSButton from "@shared/designSystem/components/DSButton";
+import { colors, spacing, typography } from "@shared/theme";
+import { screenThemes } from "@shared/theme/screenThemes";
 
 type Ctx = {
   requireAuth: () => Promise<boolean>;
@@ -132,7 +131,9 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
       const ok = await waitForSession();
       close(ok);
     } catch {
-      setEmailHint("メールの送信に失敗しました。時間をおいて再度お試しください");
+      setEmailHint(
+        "メールの送信に失敗しました。時間をおいて再度お試しください",
+      );
     } finally {
       setAuthing(null);
     }
@@ -357,7 +358,9 @@ export const AuthPromptProvider: React.FC<{ children: React.ReactNode }> = ({
                   <Pressable
                     onPress={() => {
                       setAuthing("oauth");
-                      void startOAuth("twitter").finally(() => setAuthing(null));
+                      void startOAuth("twitter").finally(() =>
+                        setAuthing(null),
+                      );
                     }}
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.7 : 1,

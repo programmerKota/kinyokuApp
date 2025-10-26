@@ -5,14 +5,14 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React, { useMemo } from "react";
 
 import CommunityScreen from "@features/community/screens/CommunityScreen";
+import E2EScreen from "@features/e2e/screens/E2EScreen";
 import FeedbackScreen from "@features/feedback/screens/FeedbackScreen";
 import HomeScreen from "@features/home/screens/HomeScreen";
 import BlockedUsersScreen from "@features/profile/screens/BlockedUsersScreen";
 import FollowListScreen from "@features/profile/screens/FollowListScreen";
-import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import ProfileScreen from "@features/profile/screens/ProfileScreen";
+import UserDetailScreen from "@features/profile/screens/UserDetailScreen";
 import { useAppTheme } from "@shared/theme";
-import E2EScreen from "@features/e2e/screens/E2EScreen";
 
 import DiaryStackNavigator from "./DiaryStackNavigator";
 import HistoryStackNavigator from "./HistoryStackNavigator";
@@ -119,10 +119,11 @@ const RootNavigator: React.FC = () => {
     try {
       if (__DEV__) return true;
       // Allow enabling E2E route explicitly via env in preview builds
-      const env = (typeof process !== "undefined"
-        ? ((process as unknown) as { env?: Record<string, string | undefined> })
-            .env
-        : undefined) as Record<string, string | undefined> | undefined;
+      const env =
+        typeof process !== "undefined"
+          ? (process as unknown as { env?: Record<string, string | undefined> })
+              .env
+          : undefined;
       return env?.EXPO_PUBLIC_ENABLE_E2E === "true";
     } catch {
       return false;
@@ -155,9 +156,7 @@ const RootNavigator: React.FC = () => {
         {DevCrudTestScreen && (
           <RootStack.Screen name="DevCrud" component={DevCrudTestScreen} />
         )}
-        {enableE2E && (
-          <RootStack.Screen name="E2E" component={E2EScreen} />
-        )}
+        {enableE2E && <RootStack.Screen name="E2E" component={E2EScreen} />}
       </RootStack.Navigator>
     </NavigationContainer>
   );

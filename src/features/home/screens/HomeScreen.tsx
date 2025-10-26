@@ -1,8 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useCallback, useState, useMemo, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
@@ -10,9 +10,9 @@ import TimerScreen from "@features/challenge/screens/TimerScreen";
 import DiaryButton from "@features/diary/components/DiaryButton";
 import HistoryButton from "@features/home/components/HistoryButton";
 import RankingButton from "@features/home/components/RankingButton";
-import { spacing, useAppTheme } from "@shared/theme";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import ProfileEditModal from "@features/profile/components/ProfileEditModal";
+import { spacing, useAppTheme } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 // プロフィール初期設定モーダルの自動表示は廃止
 

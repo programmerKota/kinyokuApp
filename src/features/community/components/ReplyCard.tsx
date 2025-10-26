@@ -3,9 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import type { CommunityComment } from "@project-types";
 import AvatarImage from "@shared/components/AvatarImage";
-import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import RelativeTime from "@shared/components/RelativeTime";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 

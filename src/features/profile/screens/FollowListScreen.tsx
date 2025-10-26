@@ -2,7 +2,6 @@
 import type { RouteProp } from "@react-navigation/native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -12,19 +11,20 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
+import { useAuth } from "@app/contexts/AuthContext";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import { FollowService } from "@core/services/firestore";
 import ProfileCache from "@core/services/profileCache";
-import AvatarImage from "@shared/components/AvatarImage";
-import { spacing, typography, useAppTheme } from "@shared/theme";
-import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import { navigateToUserDetail } from "@shared/utils/navigation";
 import { getRankDisplayByDays } from "@core/services/rankService";
 import { UserStatsService } from "@core/services/userStatsService";
-import { useAuth } from "@app/contexts/AuthContext";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
+import AvatarImage from "@shared/components/AvatarImage";
 import { FollowStore, useFollowingIds } from "@shared/state/followStore";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 type ParamList = {
   FollowList: {
@@ -50,7 +50,10 @@ const FollowListScreen: React.FC = () => {
   const title = mode === "following" ? "フォロー" : "フォロワー";
   const [ids, setIds] = useState<string[]>([]);
   const [profiles, setProfiles] = useState<
-    Map<string, import("@core/services/profileCache").UserProfileLite | undefined>
+    Map<
+      string,
+      import("@core/services/profileCache").UserProfileLite | undefined
+    >
   >(new Map());
 
   useEffect(() => {
@@ -134,7 +137,7 @@ const FollowListScreen: React.FC = () => {
         renderItem={({ item: id }) => {
           const p = profiles.get(id);
           const name = p?.displayName ?? "ユーザー";
-          const avatar = p?.photoURL as string | undefined;
+          const avatar = p?.photoURL;
           const isMe = user?.uid === id;
           const isFollowing = followingSet.has(id);
           return (
@@ -142,7 +145,9 @@ const FollowListScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.itemMain}
-                onPress={() => navigateToUserDetail(navigation, id, name, avatar)}
+                onPress={() =>
+                  navigateToUserDetail(navigation, id, name, avatar)
+                }
               >
                 <AvatarImage uri={avatar} size={44} style={styles.itemAvatar} />
                 <View style={{ flex: 1, minWidth: 0 }}>

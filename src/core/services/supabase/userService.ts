@@ -10,7 +10,7 @@ export class FirestoreUserService {
   static async getCurrentUserId(): Promise<string> {
     try {
       const { data } = await supabase.auth.getSession();
-      const suid = data?.session?.user?.id as string | undefined;
+      const suid = data?.session?.user?.id;
       if (suid) return suid;
     } catch {}
     const UserService = (await import("../userService")).default;
@@ -65,7 +65,8 @@ export class FirestoreUserService {
         }
       };
       return {
-        displayName: (data as { displayName?: string }).displayName ?? "ユーザー",
+        displayName:
+          (data as { displayName?: string }).displayName ?? "ユーザー",
         photoURL: await resolveSigned(
           (data as { photoURL?: string | null }).photoURL ?? undefined,
         ),

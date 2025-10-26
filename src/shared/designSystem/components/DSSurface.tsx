@@ -1,5 +1,7 @@
 ﻿import React from "react";
-import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
+import { View, StyleSheet } from "react-native";
+
 import { colors, shadows } from "@shared/theme";
 
 type Props = {

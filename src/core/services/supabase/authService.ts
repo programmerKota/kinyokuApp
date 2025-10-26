@@ -1,9 +1,9 @@
-import * as Linking from "expo-linking";
-import { makeRedirectUri } from "expo-auth-session";
-import { Platform } from "react-native";
-import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { makeRedirectUri } from "expo-auth-session";
+import Constants from "expo-constants";
+import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 
 import { supabase } from "@app/config/supabase.config";
 
@@ -18,7 +18,8 @@ export const getRedirectTo = () => {
     if (
       Platform.OS === "web" &&
       typeof window !== "undefined" &&
-      (window as unknown as { location?: { origin?: string } })?.location?.origin
+      (window as unknown as { location?: { origin?: string } })?.location
+        ?.origin
     ) {
       const url = `${(window as unknown as { location: { origin: string } }).location.origin}/auth/callback`;
       if (__DEV__) {
@@ -30,7 +31,9 @@ export const getRedirectTo = () => {
     }
 
     // Check if running in Expo Go
-    const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
+    const isExpoGo =
+      (Constants as unknown as { appOwnership?: string })?.appOwnership ===
+      "expo";
 
     if (isExpoGo) {
       // In Expo Go, use expo-auth-session proxy.
@@ -48,8 +51,8 @@ export const getRedirectTo = () => {
 
     // In EAS Dev Client or standalone build, use custom scheme
     const scheme =
-      ((Constants?.expoConfig as unknown) as { scheme?: string })?.scheme ||
-      ((Constants as unknown) as { manifest?: { scheme?: string } })?.manifest
+      (Constants?.expoConfig as unknown as { scheme?: string })?.scheme ||
+      (Constants as unknown as { manifest?: { scheme?: string } })?.manifest
         ?.scheme ||
       "abstinence";
 
@@ -108,7 +111,7 @@ export async function initSupabaseAuthDeepLinks() {
       })() as Record<string, string>;
 
       // OAuth PKCE flow: code parameter
-      const code = (qp?.code as string) || (hp?.code as string) || "";
+      const code = (qp?.code as string) || hp?.code || "";
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
         if (__DEV__) {
@@ -121,9 +124,9 @@ export async function initSupabaseAuthDeepLinks() {
 
       // Implicit flow: access_token + refresh_token
       const access_token =
-        (qp?.access_token as string) || (hp?.access_token as string) || "";
+        (qp?.access_token as string) || hp?.access_token || "";
       const refresh_token =
-        (qp?.refresh_token as string) || (hp?.refresh_token as string) || "";
+        (qp?.refresh_token as string) || hp?.refresh_token || "";
       if (access_token && refresh_token) {
         await supabase.auth.setSession({ access_token, refresh_token });
         if (__DEV__) {
@@ -135,9 +138,8 @@ export async function initSupabaseAuthDeepLinks() {
       }
 
       // Magic link / Email verification: token_hash + type
-      const token_hash =
-        (qp?.token_hash as string) || (hp?.token_hash as string) || "";
-      const type = ((qp?.type as string) || (hp?.type as string) || "") as
+      const token_hash = (qp?.token_hash as string) || hp?.token_hash || "";
+      const type = ((qp?.type as string) || hp?.type || "") as
         | "recovery"
         | "signup"
         | "invite"
@@ -151,13 +153,12 @@ export async function initSupabaseAuthDeepLinks() {
         } catch {}
       }
       if (token_hash && type) {
-        const email =
-          (qp?.email as string) || (hp?.email as string) || "" || undefined;
-        await supabase.auth.verifyOtp(
-          { type, token_hash, email } as unknown as Parameters<
-            typeof supabase.auth.verifyOtp
-          >[0],
-        );
+        const email = (qp?.email as string) || hp?.email || "" || undefined;
+        await supabase.auth.verifyOtp({
+          type,
+          token_hash,
+          email,
+        } as unknown as Parameters<typeof supabase.auth.verifyOtp>[0]);
         if (__DEV__) {
           try {
             console.log("[auth] verifyOtp via token_hash ok");

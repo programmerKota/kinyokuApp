@@ -1,16 +1,19 @@
 import Constants from "expo-constants";
 
 const extra: Record<string, unknown> =
-  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
-  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
+  (Constants?.expoConfig as unknown as { extra?: Record<string, unknown> })
+    ?.extra ??
+  (Constants as unknown as { manifestExtra?: Record<string, unknown> })
+    ?.manifestExtra ??
   {};
 
 const readBool = (key: string, def = false) => {
   const v =
-    (extra?.[key] ??
-      (typeof process !== "undefined"
-        ? (process as unknown as { env?: Record<string, unknown> })?.env?.[key]
-        : undefined)) ?? undefined;
+    extra?.[key] ??
+    (typeof process !== "undefined"
+      ? (process as unknown as { env?: Record<string, unknown> })?.env?.[key]
+      : undefined) ??
+    undefined;
   if (v === true || v === "true" || v === "1") return true;
   if (v === false || v === "false" || v === "0") return false;
   return def;

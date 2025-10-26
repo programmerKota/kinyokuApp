@@ -1,5 +1,4 @@
 ﻿import React, { useMemo } from "react";
-import type { GestureResponderEvent } from "react-native";
 import {
   Modal as RNModal,
   View,
@@ -12,9 +11,9 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ModalProps {
   visible: boolean;

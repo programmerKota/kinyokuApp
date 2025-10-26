@@ -1,15 +1,18 @@
-import { Platform } from "react-native";
 import Constants from "expo-constants";
-import { supabase } from "@app/config/supabase.config";
+import { Platform } from "react-native";
+
 import { revenuecatConfig } from "@app/config/revenuecat.config";
+import { supabase } from "@app/config/supabase.config";
 
 let configured = false;
 const DEV_MODE = process.env.EXPO_PUBLIC_PAYMENTS_DEV_MODE === "true";
 let MOCK_MODE = false; // true when no RC key is provided (graceful fallback)
 
 const extra: Record<string, unknown> =
-  ((Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> })?.extra ??
-  ((Constants as unknown) as { manifestExtra?: Record<string, unknown> })?.manifestExtra ??
+  (Constants?.expoConfig as unknown as { extra?: Record<string, unknown> })
+    ?.extra ??
+  (Constants as unknown as { manifestExtra?: Record<string, unknown> })
+    ?.manifestExtra ??
   {};
 const parseCsv = (v: unknown): string[] => {
   if (typeof v !== "string") return [];
@@ -25,7 +28,9 @@ const FALLBACK_PRODUCT_IDS = parseCsv(
 async function ensureConfigured() {
   if (configured) return;
   // Avoid RevenueCat in Expo Go (SDK switches to Web Billing mode and requires a different key)
-  const isExpoGo = (Constants as unknown as { appOwnership?: string })?.appOwnership === "expo";
+  const isExpoGo =
+    (Constants as unknown as { appOwnership?: string })?.appOwnership ===
+    "expo";
   if (Platform.OS === "web" || DEV_MODE || isExpoGo) {
     MOCK_MODE = true;
     configured = true;
@@ -47,13 +52,17 @@ async function ensureConfigured() {
   Purchases.configure({ apiKey });
   try {
     const { data } = await supabase.auth.getSession();
-    const uid = data?.session?.user?.id as string | undefined;
+    const uid = data?.session?.user?.id;
     if (uid) await Purchases.logIn(uid);
   } catch {}
   configured = true;
 }
 
-export type PenaltyPackage = { identifier: string; price: number; raw: unknown };
+export type PenaltyPackage = {
+  identifier: string;
+  price: number;
+  raw: unknown;
+};
 
 export const PurchasesService = {
   async registerUser(params: {
@@ -106,9 +115,14 @@ export const PurchasesService = {
     let list: Array<{ identifier: string; product?: { price: number } }> = [];
     try {
       const offerings = await Purchases.getOfferings();
-      const all = (offerings?.all ?? {}) as Record<string, { availablePackages?: unknown[] }>;
+      const all = (offerings?.all ?? {}) as Record<
+        string,
+        { availablePackages?: unknown[] }
+      >;
       const off =
-        all?.[revenuecatConfig.penaltyOfferingKey] ?? offerings?.current ?? null;
+        all?.[revenuecatConfig.penaltyOfferingKey] ??
+        offerings?.current ??
+        null;
       list = (off?.availablePackages ?? []) as Array<{
         identifier: string;
         product: { price: number };
@@ -132,7 +146,11 @@ export const PurchasesService = {
           } as PenaltyPackage;
         }
         const candidates = products
-          .map((prod) => ({ id: prod.identifier, price: Number(prod.price) || 0, raw: prod }))
+          .map((prod) => ({
+            id: prod.identifier,
+            price: Number(prod.price) || 0,
+            raw: prod,
+          }))
           .sort((a, b) => a.price - b.price);
         const pick =
           candidates.find((c) => c.price >= targetJPY) ??
@@ -151,9 +169,13 @@ export const PurchasesService = {
       }
     }
     type Candidate = { id: string; price: number; raw: unknown };
-    const candidates: Candidate[] = (list as Array<{ identifier: string; product?: { price: number } }>).map(
-      (pkg) => ({ id: pkg.identifier, price: Number(pkg.product?.price) || 0, raw: pkg }),
-    );
+    const candidates: Candidate[] = (
+      list as Array<{ identifier: string; product?: { price: number } }>
+    ).map((pkg) => ({
+      id: pkg.identifier,
+      price: Number(pkg.product?.price) || 0,
+      raw: pkg,
+    }));
     const sorted = candidates.sort(
       (a: Candidate, b: Candidate) => a.price - b.price,
     );
@@ -191,7 +213,11 @@ export const PurchasesService = {
           productIdentifier: p.identifier,
         };
       }
-      if (p?.raw && typeof p.raw === "object" && "product" in (p.raw as Record<string, unknown>)) {
+      if (
+        p?.raw &&
+        typeof p.raw === "object" &&
+        "product" in (p.raw as Record<string, unknown>)
+      ) {
         // RevenueCat Package
         const pkg = p.raw as import("react-native-purchases").PurchasesPackage;
         result = await Purchases.purchasePackage(pkg);
@@ -203,7 +229,8 @@ export const PurchasesService = {
       // Distinguish user-cancel vs other errors when possible
       const cancelled = !!(
         (e as { userCancelled?: boolean })?.userCancelled ||
-        (e as { code?: string | number })?.code === "PURCHASE_CANCELLED_ERROR" ||
+        (e as { code?: string | number })?.code ===
+          "PURCHASE_CANCELLED_ERROR" ||
         (e as { code?: string | number })?.code === 1
       );
       return {
@@ -215,7 +242,8 @@ export const PurchasesService = {
       };
     }
     const productIdentifier: string | undefined =
-      (result as { productIdentifier?: string })?.productIdentifier ?? p.identifier;
+      (result as { productIdentifier?: string })?.productIdentifier ??
+      p.identifier;
     // RevenueCat SDK does not expose a platform transaction id in all cases; store product id as reference
     const success = !!(result as { customerInfo?: unknown })?.customerInfo;
     return { success, transactionId: productIdentifier, productIdentifier };

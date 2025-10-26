@@ -10,7 +10,6 @@ import {
   View,
   Text,
   StyleSheet,
-  StatusBar,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -25,18 +24,24 @@ import {
   BlockService,
 } from "@core/services/firestore";
 import type { FirestoreCommunityPost } from "@core/services/firestore";
+import { getRankDisplayByDays } from "@core/services/rankService";
 import { UserStatsService } from "@core/services/userStatsService";
 import PostList from "@features/community/components/PostList";
-import ReplyInputBar from "@shared/components/ReplyInputBar";
-import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import AvatarImage from "@shared/components/AvatarImage";
-import { getRankDisplayByDays } from "@core/services/rankService";
+import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
+import ReplyInputBar from "@shared/components/ReplyInputBar";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { BlockStore } from "@shared/state/blockStore";
 import { FollowStore } from "@shared/state/followStore";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
-import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import AppStatusBar from "@shared/theme/AppStatusBar";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import {
   buildReplyCountMapFromPosts,
@@ -44,7 +49,6 @@ import {
   incrementCountMap,
 } from "@shared/utils/community";
 import { navigateToUserDetail } from "@shared/utils/navigation";
-import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 
 type RootStackParamList = {
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
@@ -54,7 +58,12 @@ type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 
 const UserDetailScreen: React.FC = () => {
   const route = useRoute<UserDetailRouteProp>();
-  const navigation = useNavigation<import("@react-navigation/stack").StackNavigationProp<import("@app/navigation/RootNavigator").RootStackParamList>>();
+  const navigation =
+    useNavigation<
+      import("@react-navigation/stack").StackNavigationProp<
+        import("@app/navigation/RootNavigator").RootStackParamList
+      >
+    >();
   const { userId, userName, userAvatar } = route.params;
   const { user } = useAuth();
   const { mode } = useAppTheme();
@@ -236,12 +245,10 @@ const UserDetailScreen: React.FC = () => {
         const { LikeStore } = require("@shared/state/likeStore");
         prevState = LikeStore.get(postId) || undefined;
         // 楽観的にUIを先に反映（Community画面と同様）
-        const cur =
-          prevState ||
-          ({
-            isLiked: likedPosts.has(postId),
-            likes: postsData.find((p) => p.id === postId)?.likes || 0,
-          });
+        const cur = prevState || {
+          isLiked: likedPosts.has(postId),
+          likes: postsData.find((p) => p.id === postId)?.likes || 0,
+        };
         const nextIsLiked = !cur.isLiked;
         const nextLikes = Math.max(
           0,
@@ -424,7 +431,10 @@ const UserDetailScreen: React.FC = () => {
                     if (user) {
                       try {
                         const ids = normalized.map((p) => p.id);
-                        const set = await CommunityService.getLikedPostIds(user.uid, ids);
+                        const set = await CommunityService.getLikedPostIds(
+                          user.uid,
+                          ids,
+                        );
                         setLikedPosts(set);
                       } catch {}
                     }
@@ -541,7 +551,9 @@ const UserDetailScreen: React.FC = () => {
           }}
           onComment={handleComment}
           onReply={handleReply}
-          onUserPress={(uid, uname) => navigateToUserDetail(navigation, uid, uname)}
+          onUserPress={(uid, uname) =>
+            navigateToUserDetail(navigation, uid, uname)
+          }
           listStyle={{ flex: 1 }}
           contentContainerStyle={uiStyles.listContainer}
           onEndReached={() => {

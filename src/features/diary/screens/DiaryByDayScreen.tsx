@@ -8,7 +8,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  ScrollView,
   RefreshControl,
   TextInput,
   Alert,
@@ -16,24 +15,29 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useAuth } from "@app/contexts/AuthContext";
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
+import { useAuth } from "@app/contexts/AuthContext";
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import { ChallengeService, DiaryService } from "@core/services/firestore";
 import type { UserProfileLite } from "@core/services/profileCache";
 import ProfileCache from "@core/services/profileCache";
 import { UserStatsService } from "@core/services/userStatsService";
 import DayCard from "@features/diary/components/DayCard";
-import Modal from "@shared/components/Modal";
 import DiaryCard from "@features/diary/components/DiaryCard";
-import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
-import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import { formatDateTimeJP, toDate, type DateLike } from "@shared/utils/date";
-import type { RootStackParamList } from "@app/navigation/RootNavigator";
+import Modal from "@shared/components/Modal";
+import { useBlockedIds } from "@shared/state/blockStore";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import AppStatusBar from "@shared/theme/AppStatusBar";
-import { navigateToUserDetail } from "@shared/utils/navigation";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import { toDate, type DateLike } from "@shared/utils/date";
 import { Logger } from "@shared/utils/logger";
+import { navigateToUserDetail } from "@shared/utils/navigation";
 
 interface DayDiaryItem {
   id: string;
@@ -204,19 +208,21 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as {
-            id: string;
-            userId: string;
-            content: string;
-            createdAt: unknown;
-          } | undefined;
+          const row = (payload.new || payload.old) as
+            | {
+                id: string;
+                userId: string;
+                content: string;
+                createdAt: unknown;
+              }
+            | undefined;
           if (!row) return;
           // 受信データを画面の型に合わせる
           const mapped = {
-            id: row.id as string,
-            userId: row.userId as string,
-            content: row.content as string,
-            createdAt: toDate(row.createdAt as unknown as DateLike),
+            id: row.id,
+            userId: row.userId,
+            content: row.content,
+            createdAt: toDate(row.createdAt as DateLike),
           } as DayDiaryItem;
 
           setItems((prev) => {
@@ -273,18 +279,20 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as {
-            id: string;
-            userId: string;
-            content: string;
-            createdAt: unknown;
-          } | undefined;
+          const row = (payload.new || payload.old) as
+            | {
+                id: string;
+                userId: string;
+                content: string;
+                createdAt: unknown;
+              }
+            | undefined;
           if (!row) return;
           const mapped = {
-            id: row.id as string,
-            userId: row.userId as string,
-            content: row.content as string,
-            createdAt: toDate(row.createdAt as unknown as DateLike),
+            id: row.id,
+            userId: row.userId,
+            content: row.content,
+            createdAt: toDate(row.createdAt as DateLike),
           } as DayDiaryItem;
           setItems((prev) => {
             let next = prev;
@@ -320,9 +328,11 @@ const DiaryByDayScreen: React.FC = () => {
           filter: `day=eq.${day}`,
         },
         (payload) => {
-          const row = (payload.new || payload.old) as { id: string } | undefined;
+          const row = (payload.new || payload.old) as
+            | { id: string }
+            | undefined;
           if (!row) return;
-          const id = row.id as string;
+          const id = row.id;
           setItems((prev) => prev.filter((it) => it.id !== id));
         },
       );

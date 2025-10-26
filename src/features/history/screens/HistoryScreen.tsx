@@ -1,17 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   RefreshControl,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import {
@@ -21,10 +19,16 @@ import {
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import { toDate, type DateLike } from "@shared/utils/date";
 import { createScreenThemes } from "@shared/theme/screenThemes";
+import { toDate, type DateLike } from "@shared/utils/date";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
@@ -127,16 +131,16 @@ const HistoryScreen: React.FC = () => {
 
       try {
         const list = await PaymentFirestoreService.getUserPayments(user.uid);
-          const mapped: Payment[] = list.map((p) => ({
-            id: p.id,
-            userId: p.userId,
-            amount: p.amount,
-            type: p.type as Payment["type"],
-            status: p.status as Payment["status"],
-            transactionId: p.transactionId ?? undefined,
-            createdAt: toDate(p.createdAt as unknown as DateLike),
-            updatedAt: toDate(p.updatedAt as unknown as DateLike),
-          }));
+        const mapped: Payment[] = list.map((p) => ({
+          id: p.id,
+          userId: p.userId,
+          amount: p.amount,
+          type: p.type as Payment["type"],
+          status: p.status as Payment["status"],
+          transactionId: p.transactionId ?? undefined,
+          createdAt: toDate(p.createdAt as unknown as DateLike),
+          updatedAt: toDate(p.updatedAt as unknown as DateLike),
+        }));
         setPayments(mapped);
       } catch {
         setPayments([]);

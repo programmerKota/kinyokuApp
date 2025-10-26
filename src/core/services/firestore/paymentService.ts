@@ -24,11 +24,11 @@ export class PaymentFirestoreService {
 
   static async getUserPayments(userId: string): Promise<FirestorePayment[]> {
     const uid =
-      ((
+      (
         await (
           await import("@app/config/supabase.config")
         ).supabase.auth.getSession()
-      ).data?.session?.user?.id as string | undefined) || userId;
+      ).data?.session?.user?.id || userId;
     const { data, error } = await (
       await import("@app/config/supabase.config")
     ).supabase
@@ -40,10 +40,14 @@ export class PaymentFirestoreService {
     const list = (data || []).map((d) => ({
       ...(d as Record<string, unknown>),
       createdAt: (d as { createdAt?: string | Date }).createdAt
-        ? new Date((d as { createdAt?: string | Date }).createdAt as string | Date)
+        ? new Date(
+            (d as { createdAt?: string | Date }).createdAt as string | Date,
+          )
         : undefined,
       updatedAt: (d as { updatedAt?: string | Date }).updatedAt
-        ? new Date((d as { updatedAt?: string | Date }).updatedAt as string | Date)
+        ? new Date(
+            (d as { updatedAt?: string | Date }).updatedAt as string | Date,
+          )
         : undefined,
     })) as FirestorePayment[];
     return list;

@@ -41,8 +41,7 @@ export class ChallengeService {
       throw new Error("Supabase未設定です。環境変数を設定してください。");
     // conflict check: active exists?
     const { data: s } = await supabase.auth.getSession();
-    const uid =
-      (s?.session?.user?.id as string | undefined) || challengeData.userId;
+    const uid = s?.session?.user?.id || challengeData.userId;
     const { data: active } = await supabase
       .from("challenges")
       .select("id")
@@ -63,21 +62,21 @@ export class ChallengeService {
       startedAt:
         challengeData.startedAt instanceof Date
           ? challengeData.startedAt.toISOString()
-          : (typeof challengeData.startedAt === "string"
-              ? challengeData.startedAt
-              : null),
+          : typeof challengeData.startedAt === "string"
+            ? challengeData.startedAt
+            : null,
       completedAt:
         challengeData.completedAt instanceof Date
           ? challengeData.completedAt.toISOString()
-          : (typeof challengeData.completedAt === "string"
-              ? challengeData.completedAt
-              : null),
+          : typeof challengeData.completedAt === "string"
+            ? challengeData.completedAt
+            : null,
       failedAt:
         challengeData.failedAt instanceof Date
           ? challengeData.failedAt.toISOString()
-          : (typeof challengeData.failedAt === "string"
-              ? challengeData.failedAt
-              : null),
+          : typeof challengeData.failedAt === "string"
+            ? challengeData.failedAt
+            : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -99,9 +98,7 @@ export class ChallengeService {
       .select("*")
       .eq(
         "userId",
-        ((await supabase.auth.getSession()).data?.session?.user?.id as
-          | string
-          | undefined) || userId,
+        (await supabase.auth.getSession()).data?.session?.user?.id || userId,
       )
       .order("createdAt", { ascending: false });
     if (error) throw error;
@@ -139,7 +136,7 @@ export class ChallengeService {
     if (!supabaseConfig?.isConfigured)
       throw new Error("Supabase未設定です。環境変数を設定してください。");
     const { data: s2 } = await supabase.auth.getSession();
-    const uid2 = (s2?.session?.user?.id as string | undefined) || userId;
+    const uid2 = s2?.session?.user?.id || userId;
     const { data: active } = await supabase
       .from("challenges")
       .select("id")
@@ -160,7 +157,7 @@ export class ChallengeService {
   ): Promise<FirestoreChallenge | null> {
     if (!supabaseConfig?.isConfigured) return null;
     const { data: s3 } = await supabase.auth.getSession();
-    const uid3 = (s3?.session?.user?.id as string | undefined) || userId;
+    const uid3 = s3?.session?.user?.id || userId;
     const { data, error } = await supabase
       .from("challenges")
       .select("*")

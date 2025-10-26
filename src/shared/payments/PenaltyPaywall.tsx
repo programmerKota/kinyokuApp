@@ -6,13 +6,12 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
+
+import { PaymentFirestoreService } from "@core/services/firestore";
+import type { PenaltyPackage } from "@core/services/payments/purchasesService";
+import { PurchasesService } from "@core/services/payments/purchasesService";
 import DSButton from "@shared/designSystem/components/DSButton";
 import { colors, spacing, typography } from "@shared/theme";
-import {
-  PurchasesService,
-  PenaltyPackage,
-} from "@core/services/payments/purchasesService";
-import { PaymentFirestoreService } from "@core/services/firestore";
 
 export const PenaltyPaywall: React.FC<{
   amountJPY: number;

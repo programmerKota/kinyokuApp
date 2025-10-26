@@ -6,7 +6,7 @@ export class DiaryService {
   static async getUserDiaries(userId: string): Promise<FirestoreDiary[]> {
     if (!supabaseConfig?.isConfigured) return [];
     const { data: s } = await supabase.auth.getSession();
-    const uid = (s?.session?.user?.id as string | undefined) || userId;
+    const uid = s?.session?.user?.id || userId;
     const { data, error } = await supabase
       .from("diaries")
       .select("*")
@@ -19,7 +19,7 @@ export class DiaryService {
   static async addDiary(userId: string, content: string): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
     const { data: s } = await supabase.auth.getSession();
-    const uid = (s?.session?.user?.id as string | undefined) || userId;
+    const uid = s?.session?.user?.id || userId;
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("diaries")
@@ -37,7 +37,7 @@ export class DiaryService {
   ): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
     const { data: s } = await supabase.auth.getSession();
-    const uid = (s?.session?.user?.id as string | undefined) || userId;
+    const uid = s?.session?.user?.id || userId;
     // 既存のChallengeServiceを利用（移行中のため）
     const ChallengeService = (await import("../firestore/challengeService"))
       .ChallengeService;
@@ -121,7 +121,7 @@ export class DiaryService {
   ): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
     const { data: s } = await supabase.auth.getSession();
-    const uid = (s?.session?.user?.id as string | undefined) || userId;
+    const uid = s?.session?.user?.id || userId;
     const ChallengeService = (await import("../firestore/challengeService"))
       .ChallengeService;
     const active = await ChallengeService.getActiveChallenge(uid).catch(

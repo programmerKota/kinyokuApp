@@ -1,8 +1,8 @@
 import React from "react";
 import { StatusBar } from "react-native";
 
-import { useAppTheme } from "./ThemeProvider";
 import { colors } from "./colors";
+import { useAppTheme } from "./ThemeProvider";
 
 type Props = {
   backgroundColor?: string;

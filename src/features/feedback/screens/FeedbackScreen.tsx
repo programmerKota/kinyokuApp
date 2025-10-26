@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import * as MailComposer from "expo-mail-composer";
 import React, { useMemo, useState, useCallback } from "react";
 import {
   StyleSheet,
@@ -12,13 +13,12 @@ import {
   Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
 
 import { feedbackConfig } from "@app/config/feedback.config";
 import { useAuth } from "@app/contexts/AuthContext";
 import Button from "@shared/components/Button";
 import { spacing, typography, useAppTheme } from "@shared/theme";
-import * as MailComposer from "expo-mail-composer";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 
 const FeedbackScreen: React.FC = () => {
   const { user } = useAuth();

@@ -6,8 +6,8 @@ import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import type { DateLike } from "@shared/utils/date";
 import { createUiStyles } from "@shared/ui/styles";
+import type { DateLike } from "@shared/utils/date";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
 
 type Props = {

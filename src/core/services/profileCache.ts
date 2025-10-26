@@ -59,7 +59,8 @@ export class ProfileCache {
           ): Promise<string | undefined> => this.resolveSignedCached(url);
           const next = data
             ? {
-                displayName: (data as { displayName?: string }).displayName ?? undefined,
+                displayName:
+                  (data as { displayName?: string }).displayName ?? undefined,
                 photoURL: await resolveSigned(
                   (data as { photoURL?: string | null }).photoURL ?? undefined,
                 ),
@@ -92,8 +93,7 @@ export class ProfileCache {
                 entry.listeners.forEach((l) => l(entry.data));
                 return;
               }
-              const row = (payload.new ||
-                payload.old) as
+              const row = (payload.new || payload.old) as
                 | { displayName?: string; photoURL?: string }
                 | undefined;
               if (!row) return;
@@ -102,9 +102,7 @@ export class ProfileCache {
                   url?: string,
                 ): Promise<string | undefined> => this.resolveSignedCached(url);
                 const next = {
-                  displayName: (row.displayName ?? entry.data?.displayName) as
-                    | string
-                    | undefined,
+                  displayName: row.displayName ?? entry.data?.displayName,
                   photoURL: await resolveSigned(
                     row.photoURL ?? entry.data?.photoURL,
                   ),
@@ -189,7 +187,13 @@ export class ProfileCache {
 
           const foundIds = new Set<string>();
           const resolvedProfiles = await Promise.all(
-            (data as Array<{ id: string; displayName?: string; photoURL?: string | null }>).map(async (row) => {
+            (
+              data as Array<{
+                id: string;
+                displayName?: string;
+                photoURL?: string | null;
+              }>
+            ).map(async (row) => {
               const id = String(row.id);
               foundIds.add(id);
               const photoURL = await resolveSigned(row.photoURL ?? undefined);

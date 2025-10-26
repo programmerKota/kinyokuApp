@@ -9,19 +9,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppStatusBar from "@shared/theme/AppStatusBar";
-import { Switch } from "react-native";
 
-import { useAuth } from "@app/contexts/AuthContext";
 import { supabase } from "@app/config/supabase.config";
+import { useAuth } from "@app/contexts/AuthContext";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import useProfileScreen from "@features/profile/hooks/useProfileScreen";
 import Button from "@shared/components/Button";
+import ConfirmDialog from "@shared/components/ConfirmDialog";
 import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
-import ConfirmDialog from "@shared/components/ConfirmDialog";
 import {
   spacing,
   typography,
@@ -29,6 +28,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 // 購入の復元機能は削除
@@ -325,7 +325,9 @@ const ProfileScreen: React.FC = () => {
 const createStyles = (colors: ColorPalette) => {
   const screenThemes = createScreenThemes(colors);
   const isLightMode = colors.backgroundPrimary === "#FFFFFF";
-  const subtleBorder = isLightMode ? colors.borderPrimary : "rgba(255,255,255,0.12)";
+  const subtleBorder = isLightMode
+    ? colors.borderPrimary
+    : "rgba(255,255,255,0.12)";
 
   return StyleSheet.create({
     container: {
@@ -617,4 +619,3 @@ const createStyles = (colors: ColorPalette) => {
 };
 
 export default ProfileScreen;
-

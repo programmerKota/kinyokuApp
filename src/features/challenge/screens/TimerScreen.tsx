@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 
+import { useAuth } from "@app/contexts/AuthContext";
+import { PaymentFirestoreService } from "@core/services/firestore";
 import ChallengeModal from "@features/challenge/components/ChallengeModal";
 import StopModal from "@features/challenge/components/StopModal";
 import TimerDisplay from "@features/challenge/components/TimerDisplay";
 import useTimer from "@features/challenge/hooks/useTimer";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import LoadingState from "@shared/components/LoadingState";
 import useErrorHandler from "@shared/hooks/useErrorHandler";
-import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import PenaltyPaywall from "@shared/payments/PenaltyPaywall";
-import { useAuth } from "@app/contexts/AuthContext";
-import { PaymentFirestoreService } from "@core/services/firestore";
 
 interface TimerScreenProps {
   onChallengeStarted?: () => void;

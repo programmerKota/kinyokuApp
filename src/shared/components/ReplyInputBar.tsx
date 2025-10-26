@@ -8,8 +8,8 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
-import { spacing, typography, useAppTheme } from "@shared/theme";
 import { ReplyUiStore } from "@shared/state/replyUiStore";
+import { spacing, typography, useAppTheme } from "@shared/theme";
 
 interface ReplyInputBarProps {
   value: string;

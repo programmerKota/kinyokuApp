@@ -100,13 +100,11 @@ export const useProfileScreen = (): [UseProfileState, UseProfileActions] => {
         base64: true,
       });
       if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0] as ImagePicker.ImagePickerAsset;
+        const asset = result.assets[0];
         // Always convert to JPEG to avoid HEIC/WEBP decode issues on some platforms
         try {
           // eslint-disable-next-line import/no-unresolved
-          const manip = (await import(
-            "expo-image-manipulator"
-          )) as typeof import("expo-image-manipulator");
+          const manip = await import("expo-image-manipulator");
           const { manipulateAsync, SaveFormat } = manip;
           const out = await manipulateAsync(asset.uri, [], {
             compress: 0.9,

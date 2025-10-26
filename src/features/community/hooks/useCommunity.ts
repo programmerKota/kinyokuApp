@@ -1,20 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@app/contexts/AuthContext";
-import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { CommunityService } from "@core/services/firestore";
-import { UserStatsService } from "@core/services/userStatsService";
 import ProfileCache, {
   type UserProfileLite,
 } from "@core/services/profileCache";
+import { UserStatsService } from "@core/services/userStatsService";
 import type { CommunityPost } from "@project-types";
+import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useFollowingIds } from "@shared/state/followStore";
 import { LikeStore } from "@shared/state/likeStore";
 import {
   buildReplyCountMapFromPosts,
   normalizeCommunityPosts,
-  incrementCountMap,
 } from "@shared/utils/community";
 
 export type CommunityTab = "all" | "my" | "following";
@@ -134,13 +133,16 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
       if (missing.length === 0) return;
       try {
-        const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+        const map =
+          await UserStatsService.getManyUsersCurrentDaysForRank(missing);
         map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
       } catch {
         const results = await Promise.all(
           missing.map(async (uid) => ({
             uid,
-            days: await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0),
+            days: await UserStatsService.getUserCurrentDaysForRank(uid).catch(
+              () => 0,
+            ),
           })),
         );
         results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
@@ -148,7 +150,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       setUserAverageDays(next);
     },
     [userAverageDays],
-  );;
+  );
 
   const normalizePosts = useCallback(
     async (list: CommunityPost[]) => {
@@ -344,7 +346,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     try {
       const { items, nextCursor } = await CommunityService.getRecentPostsPage(
         100,
-        cursor as unknown as { id?: string; createdAt?: string },
+        cursor as { id?: string; createdAt?: string },
       );
       if (items.length === 0) {
         setHasMore(false);
@@ -563,7 +565,11 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
         const prevState = (() => {
           try {
             const mod = require("@shared/state/likeStore") as {
-              LikeStore: { get: (id: string) => { isLiked: boolean; likes: number } | undefined };
+              LikeStore: {
+                get: (
+                  id: string,
+                ) => { isLiked: boolean; likes: number } | undefined;
+              };
             };
             return mod.LikeStore.get(postId);
           } catch {

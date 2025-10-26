@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@app/config/supabase.config";
+
 import { featureFlags } from "@app/config/featureFlags.config";
+import { supabase } from "@app/config/supabase.config";
 import AuthScreen from "@features/auth/screens/AuthScreen";
 
 type Props = { children: React.ReactNode };
@@ -15,8 +16,10 @@ export const AuthGate: React.FC<Props> = ({ children }) => {
         if (window.localStorage?.getItem("__e2e_auth_bypass") === "1")
           return true;
         try {
-        if ((window.navigator as unknown as { webdriver?: boolean })?.webdriver)
-          return true;
+          if (
+            (window.navigator as unknown as { webdriver?: boolean })?.webdriver
+          )
+            return true;
         } catch {}
       }
     } catch {}

@@ -1,13 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, memo, useRef, useMemo } from "react";
-import {
-  Dimensions,
-  InteractionManager,
-  Keyboard,
-  type KeyboardEvent,
-  Platform,
+import type {
+  RefreshControlProps,
+  StyleProp,
+  ViewStyle,
+  KeyboardEvent,
 } from "react-native";
-import ReplyUiStore from "@shared/state/replyUiStore";
 import {
   FlatList,
   View,
@@ -15,18 +13,26 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Dimensions,
+  Keyboard,
+  Platform,
 } from "react-native";
-import type { RefreshControlProps, StyleProp, ViewStyle } from "react-native";
 
 import PostCard from "@features/community/components/PostCard";
 import RepliesList from "@features/community/components/RepliesList";
 import type { CommunityPost } from "@project-types";
 import ListFooterSpinner from "@shared/components/ListFooterSpinner";
+import ReplyUiStore from "@shared/state/replyUiStore";
 import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
-import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 import { Logger } from "@shared/utils/logger";
+import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
 interface PostListProps {
   posts: CommunityPost[];
@@ -160,20 +166,26 @@ const PostList: React.FC<PostListProps> = ({
       if (unsubHeight) extra.push(unsubHeight);
 
       // Keyboard events to capture top coordinate
-      const did = Keyboard.addListener("keyboardDidShow", (e: KeyboardEvent) => {
-        const sy = e?.endCoordinates?.screenY as number | undefined;
-        if (typeof sy === "number") kbTop = sy;
-        tryScroll();
-      });
+      const did = Keyboard.addListener(
+        "keyboardDidShow",
+        (e: KeyboardEvent) => {
+          const sy = e?.endCoordinates?.screenY as number | undefined;
+          if (typeof sy === "number") kbTop = sy;
+          tryScroll();
+        },
+      );
       subs.push(did);
 
       if (Platform.OS === "ios") {
-        const will = Keyboard.addListener("keyboardWillShow", (e: KeyboardEvent) => {
-          const sy = e?.endCoordinates?.screenY as number | undefined;
-          if (typeof sy === "number") kbTop = sy;
-          // Don't scroll yet if height not ready; tryScroll will guard
-          tryScroll();
-        });
+        const will = Keyboard.addListener(
+          "keyboardWillShow",
+          (e: KeyboardEvent) => {
+            const sy = e?.endCoordinates?.screenY as number | undefined;
+            if (typeof sy === "number") kbTop = sy;
+            // Don't scroll yet if height not ready; tryScroll will guard
+            tryScroll();
+          },
+        );
         subs.push(will);
       }
 
@@ -253,7 +265,7 @@ const PostList: React.FC<PostListProps> = ({
       keyExtractor={(item) => item.id}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={
-        headerComponent ? (() => <>{headerComponent}</>) : undefined
+        headerComponent ? () => <>{headerComponent}</> : undefined
       }
       onEndReachedThreshold={onEndReached ? onEndReachedThreshold : undefined}
       onEndReached={() => {

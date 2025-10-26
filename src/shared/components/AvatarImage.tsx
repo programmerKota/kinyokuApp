@@ -1,7 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import type { ViewStyle } from "react-native";
 import { Image, View, StyleSheet, Platform } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 interface AvatarImageProps {
   uri?: string;

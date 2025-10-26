@@ -1,4 +1,6 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,14 +14,8 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import Modal from "@shared/components/Modal";
-import LegalContent from "@features/legal/components/LegalContent";
 
-import DSButton from "@shared/designSystem/components/DSButton";
-import { spacing, typography, useAppTheme } from "@shared/theme";
-import { createScreenThemes } from "@shared/theme/screenThemes";
-import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import { oauthConfig } from "@app/config/oauth.config";
 import { supabase } from "@app/config/supabase.config";
 import {
   signInWithEmailPassword,
@@ -29,8 +25,12 @@ import {
   startOAuthFlow,
   updatePassword,
 } from "@core/services/supabase/authService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { oauthConfig } from "@app/config/oauth.config";
+import LegalContent from "@features/legal/components/LegalContent";
+import Modal from "@shared/components/Modal";
+import DSButton from "@shared/designSystem/components/DSButton";
+import { spacing, typography, useAppTheme } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
+import { createScreenThemes } from "@shared/theme/screenThemes";
 
 const KNOWN_USER_KEY = "auth_known_user_v1";
 const LAST_MAGIC_EMAIL_KEY = "auth_last_magic_email_v1";
@@ -274,7 +274,7 @@ const AuthScreen: React.FC = () => {
 
   // サインアップ時は同意未チェックでも押下できるようにする（押下時にエラー表示）
   const buttonDisabled = useMemo(() => {
-    if (!!submitting) return true;
+    if (submitting) return true;
     const baseValid = !emailErr && !passErr && !!email && !!password;
     return !baseValid;
   }, [submitting, emailErr, passErr, email, password]);
@@ -307,7 +307,8 @@ const AuthScreen: React.FC = () => {
         "パスワード再設定メールを送信しました。メールをご確認ください。",
       );
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "パスワード再設定に失敗しました";
+      const msg =
+        e instanceof Error ? e.message : "パスワード再設定に失敗しました";
       if (/email rate limit|too many requests/i.test(msg)) {
         setErrorMsg("しばらくしてから再度お試しください。");
       } else if (/user not found|no user/i.test(msg)) {
@@ -613,7 +614,9 @@ const AuthScreen: React.FC = () => {
                     </Text>
                   </View>
                   {triedSubmit && !agreeTermsTos ? (
-                    <Text style={styles.hintError}>利用規約に同意してください。</Text>
+                    <Text style={styles.hintError}>
+                      利用規約に同意してください。
+                    </Text>
                   ) : null}
                   <View style={[styles.keepRow, { alignItems: "center" }]}>
                     <TouchableOpacity
@@ -649,7 +652,9 @@ const AuthScreen: React.FC = () => {
                     </Text>
                   </View>
                   {triedSubmit && !agreeTermsPrivacy ? (
-                    <Text style={styles.hintError}>プライバシーポリシーに同意してください。</Text>
+                    <Text style={styles.hintError}>
+                      プライバシーポリシーに同意してください。
+                    </Text>
                   ) : null}
                 </View>
               ) : null}
@@ -739,7 +744,9 @@ const AuthScreen: React.FC = () => {
                           }}
                           style={[
                             styles.googleIcon,
-                            googleIconTint ? { tintColor: googleIconTint } : null,
+                            googleIconTint
+                              ? { tintColor: googleIconTint }
+                              : null,
                           ]}
                           resizeMode="contain"
                         />
@@ -795,9 +802,7 @@ const AuthScreen: React.FC = () => {
                             appleDisabled ? styles.googleTextDisabled : null,
                           ]}
                         >
-                          {tab === "signup"
-                            ? "Appleで登録"
-                            : "Appleでログイン"}
+                          {tab === "signup" ? "Appleで登録" : "Appleでログイン"}
                         </Text>
                       </View>
                     </Pressable>

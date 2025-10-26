@@ -14,7 +14,7 @@ export const isString = (value: unknown): value is string => {
 };
 
 export const isNumber = (value: unknown): value is number => {
-  return typeof value === "number" && Number.isFinite(value as number);
+  return typeof value === "number" && Number.isFinite(value);
 };
 
 export const isBoolean = (value: unknown): value is boolean => {

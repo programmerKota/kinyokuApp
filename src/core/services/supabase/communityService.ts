@@ -1,11 +1,11 @@
 type Unsubscribe = () => void;
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
 import type { CommunityComment } from "@project-types";
+import { Logger } from "@shared/utils/logger";
+import { withRetry } from "@shared/utils/net";
 
 import type { FirestoreCommunityPost } from "../firestore/types";
 import ProfileCache from "../profileCache";
-import { withRetry } from "@shared/utils/net";
-import { Logger } from "@shared/utils/logger";
 
 const isHttpUrl = (v?: string | null) =>
   typeof v === "string" && /^https?:\/\//i.test(v);
@@ -43,12 +43,12 @@ const toFirestoreCommunityPost = (row: SupaPostRow): FirestoreCommunityPost => {
 // Fast timestamp getter for mixed string/Date types
 const __ts = (x: unknown): number => {
   if (x instanceof Date) return x.getTime();
-  if (typeof x === 'string') {
+  if (typeof x === "string") {
     const n = Date.parse(x);
     return Number.isNaN(n) ? 0 : n;
   }
   try {
-    const s = String(x ?? '');
+    const s = String(x ?? "");
     const n = Date.parse(s);
     return Number.isNaN(n) ? 0 : n;
   } catch {
@@ -70,7 +70,9 @@ export class CommunityService {
       .in("postId", unique);
     if (error) throw error;
     const set = new Set<string>();
-    (data || []).forEach((row: { postId: string }) => set.add(String(row.postId)));
+    (data || []).forEach((row: { postId: string }) =>
+      set.add(String(row.postId)),
+    );
     return set;
   }
   static async reflectUserProfile(
@@ -117,7 +119,7 @@ export class CommunityService {
       retries: 2,
       delayMs: 400,
     })) as { data: unknown[]; error: unknown };
-    if (result.error) throw (result.error as Error);
+    if (result.error) throw result.error as Error;
     const rows = (result.data || []) as SupaPostRow[];
     const items = rows.map(toFirestoreCommunityPost);
     const nextCursor =
@@ -141,16 +143,14 @@ export class CommunityService {
           .order("createdAt", { ascending: false }),
       { retries: 2, delayMs: 400 },
     )) as { data: unknown[]; error: unknown };
-    if (result.error) throw (result.error as Error);
-    return ((result.data || []) as SupaPostRow[]).map(
-      toFirestoreCommunityPost,
-    );
+    if (result.error) throw result.error as Error;
+    return ((result.data || []) as SupaPostRow[]).map(toFirestoreCommunityPost);
   }
 
   static async addPost(data: { content: string }): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
     const { data: s } = await supabase.auth.getSession();
-    const authorId = s?.session?.user?.id as string | undefined;
+    const authorId = s?.session?.user?.id;
     if (!authorId) throw new Error("AUTH_REQUIRED");
     const authorName = null;
     const authorAvatar = null;
@@ -182,7 +182,7 @@ export class CommunityService {
   ): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
     const { data: s } = await supabase.auth.getSession();
-    const authorId = s?.session?.user?.id as string | undefined;
+    const authorId = s?.session?.user?.id;
     if (!authorId) throw new Error("AUTH_REQUIRED");
     let authorName: string | null = null;
     let authorAvatar: string | null = null;
@@ -307,7 +307,7 @@ export class CommunityService {
       if (!row) return;
       if (type === "INSERT") {
         if ((row as { postId?: string }).postId !== postId) return;
-        current = [...current, (row as unknown as CommunityComment)].sort(
+        current = [...current, row as unknown as CommunityComment].sort(
           (a, b) => __ts(a.createdAt) - __ts(b.createdAt),
         );
       } else if (type === "UPDATE") {
@@ -317,7 +317,7 @@ export class CommunityService {
           copy[idx] = { ...copy[idx], ...(row as unknown as CommunityComment) };
           current = copy;
         } else if ((row as { postId?: string }).postId === postId) {
-          current = [...current, (row as unknown as CommunityComment)].sort(
+          current = [...current, row as unknown as CommunityComment].sort(
             (a, b) => __ts(a.createdAt) - __ts(b.createdAt),
           );
         }
@@ -560,9 +560,7 @@ export class CommunityService {
         if (idx >= 0) {
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
-          current = copy.sort(
-            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
-          );
+          current = copy.sort((a, b) => __ts(b.createdAt) - __ts(a.createdAt));
         } else {
           current = [post, ...current].sort(
             (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
@@ -596,11 +594,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-           (payload: { new?: unknown }) => {
-             const row = payload.new || undefined;
-             if (!row) return;
-             applyChange("INSERT", row as Record<string, unknown>);
-           },
+          (payload: { new?: unknown }) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("INSERT", row as Record<string, unknown>);
+          },
         )
         .on(
           "postgres_changes",
@@ -610,11 +608,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-           (payload: { new?: unknown }) => {
-             const row = payload.new || undefined;
-             if (!row) return;
-             applyChange("UPDATE", row as Record<string, unknown>);
-           },
+          (payload: { new?: unknown }) => {
+            const row = payload.new || undefined;
+            if (!row) return;
+            applyChange("UPDATE", row as Record<string, unknown>);
+          },
         )
         .on(
           "postgres_changes",
@@ -624,11 +622,11 @@ export class CommunityService {
             table: "community_posts",
             filter: `authorId=eq.${userId}`,
           },
-           (payload: { old?: unknown }) => {
-             const row = payload.old || undefined;
-             if (!row) return;
-             applyChange("DELETE", row as Record<string, unknown>);
-           },
+          (payload: { old?: unknown }) => {
+            const row = payload.old || undefined;
+            if (!row) return;
+            applyChange("DELETE", row as Record<string, unknown>);
+          },
         )
         .subscribe();
     };
@@ -674,7 +672,10 @@ export class CommunityService {
     };
 
     const inFollowings = (row: Record<string, any>) =>
-      userIds && userIds.length > 0 && typeof row.authorId === "string" && userIds.includes(row.authorId as string);
+      userIds &&
+      userIds.length > 0 &&
+      typeof row.authorId === "string" &&
+      userIds.includes(row.authorId);
 
     const applyChange = (
       type: "INSERT" | "UPDATE" | "DELETE",
@@ -702,9 +703,7 @@ export class CommunityService {
           const idx = current.findIndex((p) => p.id === row.id);
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
-          current = copy.sort(
-            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
-          );
+          current = copy.sort((a, b) => __ts(b.createdAt) - __ts(a.createdAt));
         }
       } else if (type === "DELETE") {
         current = current.filter((p) => p.id !== row.id);
@@ -765,7 +764,7 @@ export class CommunityService {
   static async toggleLike(postId: string): Promise<boolean> {
     if (!supabaseConfig?.isConfigured) return false;
     const { data: s } = await supabase.auth.getSession();
-    const userId = s?.session?.user?.id as string | undefined;
+    const userId = s?.session?.user?.id;
     if (!userId) throw new Error("AUTH_REQUIRED");
     const likeId = `${userId}_${postId}`;
 

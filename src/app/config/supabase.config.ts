@@ -1,7 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 // Robust env accessor: prefer EXPO_PUBLIC_* from process.env, then from app.json extra.
 type EnvLike = { [key: string]: string | undefined };
@@ -26,14 +26,14 @@ const getEnv = (key: string): string | undefined => {
   // 2) from expo constants (dev/prod)
   try {
     const extra1 = (
-      (Constants?.expoConfig as unknown) as { extra?: Record<string, unknown> }
+      Constants?.expoConfig as unknown as { extra?: Record<string, unknown> }
     )?.extra;
     const fromExtra1 = sanitize(extra1?.[key]);
     if (fromExtra1) return fromExtra1;
   } catch {}
   try {
     const extra2 = (
-      (Constants as unknown) as { manifestExtra?: Record<string, unknown> }
+      Constants as unknown as { manifestExtra?: Record<string, unknown> }
     )?.manifestExtra;
     const fromExtra2 = sanitize(extra2?.[key]);
     if (fromExtra2) return fromExtra2;
@@ -120,5 +120,6 @@ export default supabase;
 
 // Expose for E2E/browser automation when running on Web (no effect in native)
 try {
-  (globalThis as unknown as { __supabase?: typeof supabase }).__supabase = supabase;
+  (globalThis as unknown as { __supabase?: typeof supabase }).__supabase =
+    supabase;
 } catch {}

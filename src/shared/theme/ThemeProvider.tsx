@@ -1,3 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+  type Theme as NavigationTheme,
+} from "@react-navigation/native";
 import React, {
   createContext,
   useContext,
@@ -5,27 +11,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import {
-  Appearance,
-  Platform,
-  Text,
-  View,
-  ScrollView,
-  TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform, Text, View, ScrollView, TextInput } from "react-native";
 import {
   Provider as PaperProvider,
   MD3DarkTheme,
   MD3LightTheme,
   type MD3Theme,
 } from "react-native-paper";
-import {
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationDefaultTheme,
-  type Theme as NavigationTheme,
-} from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { applyColorScheme, colorSchemes, type ColorSchemeName } from "./colors";
 
@@ -108,7 +101,9 @@ export const ThemeProvider: React.FC<React.PropsWithChildren> = ({
       };
       clearBg(View);
       clearBg(ScrollView);
-      clearBg(SafeAreaView as unknown as { defaultProps?: { style?: unknown } });
+      clearBg(
+        SafeAreaView as unknown as { defaultProps?: { style?: unknown } },
+      );
     } catch {}
   }, [mode, hydrated]);
 

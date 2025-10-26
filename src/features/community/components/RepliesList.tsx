@@ -1,19 +1,18 @@
 ﻿import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList } from "react-native";
 
 import { CommunityService } from "@core/services/firestore/communityService";
-import { UserStatsService } from "@core/services/userStatsService";
-import ReplyCard from "@features/community/components/ReplyCard";
-import type { CommunityComment } from "@project-types";
-import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
-import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
-import { ReplyEventBus } from "@shared/state/replyEventBus";
-import { useBlockedIds } from "@shared/state/blockStore";
-import { ReplyCountStore } from "@shared/state/replyStore";
-import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 import ProfileCache, {
   type UserProfileLite,
 } from "@core/services/profileCache";
+import { UserStatsService } from "@core/services/userStatsService";
+import ReplyCard from "@features/community/components/ReplyCard";
+import type { CommunityComment } from "@project-types";
+import { useBlockedIds } from "@shared/state/blockStore";
+import { ReplyEventBus } from "@shared/state/replyEventBus";
+import { ReplyCountStore } from "@shared/state/replyStore";
+import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 
 interface RepliesListProps {
   postId: string;

@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-import Modal from "@shared/components/Modal";
 import Button from "@shared/components/Button";
+import Modal from "@shared/components/Modal";
 import { spacing, typography, useAppTheme } from "@shared/theme";
 import type { ColorPalette } from "@shared/theme/colors";
 

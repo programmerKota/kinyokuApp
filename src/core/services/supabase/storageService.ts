@@ -63,7 +63,7 @@ export async function uploadUserAvatar(
   const getUid = async () => {
     if (userId) return userId;
     const { data } = await supabase.auth.getSession();
-    const uid = data?.session?.user?.id as string | undefined;
+    const uid = data?.session?.user?.id;
     if (!uid) throw new Error("AUTH_REQUIRED");
     return uid;
   };
@@ -131,7 +131,7 @@ export async function uploadUserAvatar(
       });
     upErr = error ?? null;
   } catch (e) {
-    upErr = e as unknown;
+    upErr = e;
   }
 
   if (upErr) {
@@ -145,9 +145,9 @@ export async function uploadUserAvatar(
       });
     if (updErr) {
       // surface better diagnostics (型安全に文字列化)
-      const upErrMsg =
-        upErr instanceof Error ? upErr.message : String(upErr);
-      const updErrMsg = updErr instanceof Error ? updErr.message : String(updErr);
+      const upErrMsg = upErr instanceof Error ? upErr.message : String(upErr);
+      const updErrMsg =
+        updErr instanceof Error ? updErr.message : String(updErr);
       const msg = `UPLOAD_FAILED: ${upErrMsg} / UPDATE_FAILED: ${updErrMsg}`;
       throw new Error(msg);
     }
