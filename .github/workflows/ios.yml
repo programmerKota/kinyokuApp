@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: 'EAS profile'
+        description: "EAS profile"
         required: false
-        default: 'production'
+        default: "production"
 
 jobs:
   build:
@@ -44,6 +44,6 @@ jobs:
 
       - name: Submit to App Store Connect
         run: |
-          IPA_PATH=$(ls dist/*.ipa | head -n 1)
+          IPA_PATH=$(ls builds/*.ipa | head -n 1)
           eas submit -p ios --path "$IPA_PATH" --non-interactive --asc-api-key-path asc.json
         shell: bash
