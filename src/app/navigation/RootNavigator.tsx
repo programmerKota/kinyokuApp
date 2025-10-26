@@ -98,7 +98,7 @@ const MainTabs: React.FC = () => {
       <Tab.Screen
         name="Tournaments"
         component={TournamentStackNavigator}
-        options={{ tabBarLabel: "トーナメント" }}
+        options={{ tabBarLabel: "大会" }}
       />
       <Tab.Screen
         name="Community"
