@@ -61,6 +61,13 @@ jobs:
       - name: Local iOS build (macOS runner)
         run: eas build --platform ios --profile $EAS_PROFILE --local --non-interactive
 
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: "**/*.ipa"
+
       - name: Submit to App Store Connect
         env:
           OPENSSL_CONF: /dev/null
