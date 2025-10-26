@@ -10,15 +10,15 @@ create table if not exists public.profiles (
   displayName text not null default '',
   photoURL text,
   email text,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.profiles add column if not exists displayName text not null default '';
 alter table public.profiles add column if not exists photoURL text;
 alter table public.profiles add column if not exists email text;
-alter table public.profiles add column if not exists createdAt timestamptz not null default now();
-alter table public.profiles add column if not exists updatedAt timestamptz not null default now();
-create index if not exists idx_profiles_updatedAt on public.profiles("updatedAt");
+alter table public.profiles add column if not exists createdat timestamptz not null default now();
+alter table public.profiles add column if not exists updatedat timestamptz not null default now();
+create index if not exists idx_profiles_updatedat on public.profiles("updatedat");
 
 -- diaries
 create table if not exists public.diaries (
@@ -27,25 +27,25 @@ create table if not exists public.diaries (
   content text not null,
   challengeId uuid,
   day integer,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.diaries add column if not exists challengeId uuid;
 alter table public.diaries add column if not exists day integer;
-alter table public.diaries add column if not exists createdAt timestamptz not null default now();
-alter table public.diaries add column if not exists updatedAt timestamptz not null default now();
-create index if not exists idx_diaries_userId_createdAt on public.diaries("userId","createdAt");
+alter table public.diaries add column if not exists createdat timestamptz not null default now();
+alter table public.diaries add column if not exists updatedat timestamptz not null default now();
+create index if not exists idx_diaries_userId_createdat on public.diaries("userId","createdat");
 
 -- blocks
 create table if not exists public.blocks (
   id text primary key,
   blockerId text not null,
   blockedId text not null,
-  createdAt timestamptz not null default now()
+  createdat timestamptz not null default now()
 );
 alter table public.blocks add column if not exists blockerId text not null;
 alter table public.blocks add column if not exists blockedId text not null;
-alter table public.blocks add column if not exists createdAt timestamptz not null default now();
+alter table public.blocks add column if not exists createdat timestamptz not null default now();
 create index if not exists idx_blocks_blocker on public.blocks("blockerId");
 create index if not exists idx_blocks_blocked on public.blocks("blockedId");
 
@@ -54,11 +54,11 @@ create table if not exists public.follows (
   id text primary key,
   followerId text not null,
   followeeId text not null,
-  createdAt timestamptz not null default now()
+  createdat timestamptz not null default now()
 );
 alter table public.follows add column if not exists followerId text not null;
 alter table public.follows add column if not exists followeeId text not null;
-alter table public.follows add column if not exists createdAt timestamptz not null default now();
+alter table public.follows add column if not exists createdat timestamptz not null default now();
 create index if not exists idx_follows_follower on public.follows("followerId");
 create index if not exists idx_follows_followee on public.follows("followeeId");
 
@@ -73,8 +73,8 @@ create table if not exists public.challenges (
   completedAt timestamptz,
   failedAt timestamptz,
   totalPenaltyPaid integer not null default 0,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.challenges add column if not exists goalDays integer not null default 1;
 alter table public.challenges add column if not exists penaltyAmount integer not null default 0;
@@ -83,10 +83,10 @@ alter table public.challenges add column if not exists startedAt timestamptz;
 alter table public.challenges add column if not exists completedAt timestamptz;
 alter table public.challenges add column if not exists failedAt timestamptz;
 alter table public.challenges add column if not exists totalPenaltyPaid integer not null default 0;
-alter table public.challenges add column if not exists createdAt timestamptz not null default now();
-alter table public.challenges add column if not exists updatedAt timestamptz not null default now();
+alter table public.challenges add column if not exists createdat timestamptz not null default now();
+alter table public.challenges add column if not exists updatedat timestamptz not null default now();
 create index if not exists idx_challenges_user_status on public.challenges("userId","status");
-create index if not exists idx_challenges_createdAt on public.challenges("createdAt");
+create index if not exists idx_challenges_createdat on public.challenges("createdat");
 
 -- community_posts
 create table if not exists public.community_posts (
@@ -99,8 +99,8 @@ create table if not exists public.community_posts (
   imageUrl text,
   likes integer not null default 0,
   comments integer not null default 0,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.community_posts add column if not exists authorName text;
 alter table public.community_posts add column if not exists authorAvatar text;
@@ -109,9 +109,9 @@ alter table public.community_posts add column if not exists content text;
 alter table public.community_posts add column if not exists imageUrl text;
 alter table public.community_posts add column if not exists likes integer not null default 0;
 alter table public.community_posts add column if not exists comments integer not null default 0;
-alter table public.community_posts add column if not exists createdAt timestamptz not null default now();
-alter table public.community_posts add column if not exists updatedAt timestamptz not null default now();
-create index if not exists idx_posts_author_created on public.community_posts("authorId","createdAt");
+alter table public.community_posts add column if not exists createdat timestamptz not null default now();
+alter table public.community_posts add column if not exists updatedat timestamptz not null default now();
+create index if not exists idx_posts_author_created on public.community_posts("authorId","createdat");
 
 -- community_comments
 create table if not exists public.community_comments (
@@ -121,25 +121,25 @@ create table if not exists public.community_comments (
   authorName text,
   authorAvatar text,
   content text not null,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.community_comments add column if not exists postId uuid;
 alter table public.community_comments add column if not exists authorName text;
 alter table public.community_comments add column if not exists authorAvatar text;
 alter table public.community_comments add column if not exists content text;
-alter table public.community_comments add column if not exists createdAt timestamptz not null default now();
-alter table public.community_comments add column if not exists updatedAt timestamptz not null default now();
-create index if not exists idx_comments_post_created on public.community_comments("postId","createdAt");
+alter table public.community_comments add column if not exists createdat timestamptz not null default now();
+alter table public.community_comments add column if not exists updatedat timestamptz not null default now();
+create index if not exists idx_comments_post_created on public.community_comments("postId","createdat");
 
 -- community_likes
 create table if not exists public.community_likes (
   id text primary key,
   userId text not null,
   postId uuid not null,
-  createdAt timestamptz not null default now()
+  createdat timestamptz not null default now()
 );
-alter table public.community_likes add column if not exists createdAt timestamptz not null default now();
+alter table public.community_likes add column if not exists createdat timestamptz not null default now();
 create index if not exists idx_likes_post on public.community_likes("postId");
 create index if not exists idx_likes_user on public.community_likes("userId");
 
@@ -156,8 +156,8 @@ create table if not exists public.tournaments (
   recruitmentOpen boolean not null default false,
   startDate timestamptz,
   endDate timestamptz,
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.tournaments add column if not exists description text;
 alter table public.tournaments add column if not exists maxParticipants integer not null default 100;
@@ -166,8 +166,8 @@ alter table public.tournaments add column if not exists prizePool integer not nu
 alter table public.tournaments add column if not exists recruitmentOpen boolean not null default false;
 alter table public.tournaments add column if not exists startDate timestamptz;
 alter table public.tournaments add column if not exists endDate timestamptz;
-alter table public.tournaments add column if not exists createdAt timestamptz not null default now();
-alter table public.tournaments add column if not exists updatedAt timestamptz not null default now();
+alter table public.tournaments add column if not exists createdat timestamptz not null default now();
+alter table public.tournaments add column if not exists updatedat timestamptz not null default now();
 create index if not exists idx_tournaments_owner on public.tournaments("ownerId");
 create index if not exists idx_tournaments_status on public.tournaments("status");
 
@@ -179,13 +179,13 @@ create table if not exists public.tournament_join_requests (
   userName text not null,
   userAvatar text,
   status text not null default 'pending',
-  createdAt timestamptz not null default now(),
-  updatedAt timestamptz not null default now()
+  createdat timestamptz not null default now(),
+  updatedat timestamptz not null default now()
 );
 alter table public.tournament_join_requests add column if not exists userAvatar text;
 alter table public.tournament_join_requests add column if not exists status text not null default 'pending';
-alter table public.tournament_join_requests add column if not exists createdAt timestamptz not null default now();
-alter table public.tournament_join_requests add column if not exists updatedAt timestamptz not null default now();
+alter table public.tournament_join_requests add column if not exists createdat timestamptz not null default now();
+alter table public.tournament_join_requests add column if not exists updatedat timestamptz not null default now();
 create index if not exists idx_join_requests_tournament on public.tournament_join_requests("tournamentId");
 create index if not exists idx_join_requests_user on public.tournament_join_requests("userId");
 
@@ -221,13 +221,13 @@ create table if not exists public.tournament_messages (
   authorAvatar text,
   text text not null,
   type text not null default 'text',
-  createdAt timestamptz not null default now()
+  createdat timestamptz not null default now()
 );
 alter table public.tournament_messages add column if not exists authorName text;
 alter table public.tournament_messages add column if not exists authorAvatar text;
 alter table public.tournament_messages add column if not exists type text not null default 'text';
-alter table public.tournament_messages add column if not exists createdAt timestamptz not null default now();
-create index if not exists idx_messages_tournament_created on public.tournament_messages("tournamentId","createdAt");
+alter table public.tournament_messages add column if not exists createdat timestamptz not null default now();
+create index if not exists idx_messages_tournament_created on public.tournament_messages("tournamentId","createdat");
 
 -- test_items (for connection tests)
 create table if not exists public.test_items (
@@ -246,7 +246,7 @@ set search_path = public
 as $$
   update public.community_posts
      set likes = greatest(0, coalesce(likes,0) + p_delta),
-         "updatedAt" = now()
+         "updatedat" = now()
    where id::text = p_post_id::text;
 $$;
 
@@ -259,7 +259,7 @@ set search_path = public
 as $$
   update public.community_posts
      set comments = greatest(0, coalesce(comments,0) + p_delta),
-         "updatedAt" = now()
+         "updatedat" = now()
    where id::text = p_post_id::text;
 $$;
 
@@ -267,20 +267,20 @@ $$;
 -- Constraints, Foreign Keys, Unique Indexes, and Triggers (idempotent)
 -- ---------------------------------------------------------------------------
 
--- Helper: auto update updatedAt
+-- Helper: auto update updatedat
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
 as $$
 begin
-  new."updatedAt" = now();
+  new."updatedat" = now();
   return new;
 end;
 $$;
 
--- Attach updatedAt trigger where column exists
+-- Attach updatedat trigger where column exists
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_profiles_updated_at') then
       create trigger tr_profiles_updated_at before update on public.profiles
       for each row execute function public.set_updated_at();
@@ -289,7 +289,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='diaries' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='diaries' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_diaries_updated_at') then
       create trigger tr_diaries_updated_at before update on public.diaries
       for each row execute function public.set_updated_at();
@@ -298,7 +298,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='challenges' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='challenges' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_challenges_updated_at') then
       create trigger tr_challenges_updated_at before update on public.challenges
       for each row execute function public.set_updated_at();
@@ -307,7 +307,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='community_posts' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='community_posts' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_community_posts_updated_at') then
       create trigger tr_community_posts_updated_at before update on public.community_posts
       for each row execute function public.set_updated_at();
@@ -316,7 +316,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='community_comments' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='community_comments' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_community_comments_updated_at') then
       create trigger tr_community_comments_updated_at before update on public.community_comments
       for each row execute function public.set_updated_at();
@@ -325,7 +325,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='tournaments' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='tournaments' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_tournaments_updated_at') then
       create trigger tr_tournaments_updated_at before update on public.tournaments
       for each row execute function public.set_updated_at();
@@ -334,7 +334,7 @@ do $$ begin
 end $$;
 
 do $$ begin
-  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='tournament_join_requests' and column_name='updatedAt') then
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='tournament_join_requests' and column_name='updatedat') then
     if not exists (select 1 from pg_trigger where tgname='tr_tournament_join_requests_updated_at') then
       create trigger tr_tournament_join_requests_updated_at before update on public.tournament_join_requests
       for each row execute function public.set_updated_at();

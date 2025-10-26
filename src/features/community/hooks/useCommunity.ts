@@ -133,16 +133,22 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       const uniqueIds = new Set(list.map((p) => p.authorId));
       const missing = Array.from(uniqueIds).filter((uid) => !next.has(uid));
       if (missing.length === 0) return;
-      for (const uid of missing) {
-        const days = await UserStatsService.getUserCurrentDaysForRank(
-          uid,
-        ).catch(() => 0);
-        next.set(uid, Math.max(0, days));
+      try {
+        const map = await UserStatsService.getManyUsersCurrentDaysForRank(missing);
+        map.forEach((days, uid) => next.set(uid, Math.max(0, days)));
+      } catch {
+        const results = await Promise.all(
+          missing.map(async (uid) => ({
+            uid,
+            days: await UserStatsService.getUserCurrentDaysForRank(uid).catch(() => 0),
+          })),
+        );
+        results.forEach(({ uid, days }) => next.set(uid, Math.max(0, days)));
       }
       setUserAverageDays(next);
     },
     [userAverageDays],
-  );
+  );;
 
   const normalizePosts = useCallback(
     async (list: CommunityPost[]) => {

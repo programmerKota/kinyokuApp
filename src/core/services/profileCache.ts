@@ -161,8 +161,20 @@ export class ProfileCache {
     const map = new Map<string, UserProfileLite | undefined>();
     const unsubs: Unsubscribe[] = [];
 
-    const emit = () => onUpdate(new Map(map));
-    // Batch prime: fetch all profiles in one round-trip to reduce N+1 queries
+    let priming = true;
+    let emitScheduled = false;
+    const emitNow = () => onUpdate(new Map(map));
+    const emitDebounced = () => {
+      if (emitScheduled) return;
+      emitScheduled = true;
+      // microtaskでまとめて1回だけ反映
+      setTimeout(() => {
+        emitScheduled = false;
+        emitNow();
+      }, 0);
+    };
+
+    // 初期バッチ: 1回の往復でプロフィールをまとめて取得
     (async () => {
       try {
         if (ids.length === 0) return;
@@ -175,8 +187,6 @@ export class ProfileCache {
             url?: string,
           ): Promise<string | undefined> => this.resolveSignedCached(url);
 
-          // ✅ 並列処理：全てのSignedURL生成を同時実行
-          // 100人のプロフィール: 10秒 → 0.5秒に短縮
           const foundIds = new Set<string>();
           const resolvedProfiles = await Promise.all(
             (data as Array<{ id: string; displayName?: string; photoURL?: string | null }>).map(async (row) => {
@@ -193,35 +203,32 @@ export class ProfileCache {
             }),
           );
 
-          // 結果を適用
           for (const { id, profileData } of resolvedProfiles) {
             const entry = this.ensureEntry(id);
             entry.data = profileData;
             map.set(id, profileData);
-            // notify existing listeners so components using useProfile() update immediately
-            try {
-              entry.listeners.forEach((l) => l(entry.data));
-            } catch {}
+            // 他リスナーへの即時通知は抑制（多重描画防止）
+            // entry.listeners.forEach((l) => l(entry.data));
           }
 
-          // プロフィールが見つからなかったIDをundefinedに設定
+          // 見つからないIDは undefined 扱い
           ids.forEach((id) => {
-            if (!foundIds.has(id)) {
-              map.set(id, undefined);
-            }
+            if (!foundIds.has(id)) map.set(id, undefined);
           });
-
-          emit();
         }
       } catch (e) {
         Logger.warn("ProfileCache.batchPrime", e);
+      } finally {
+        priming = false;
+        emitNow(); // 初回だけは即時1回反映
       }
     })();
 
+    // 以降の変化は購読してまとめて反映
     ids.forEach((id) => {
       const u = this.subscribe(id, (p) => {
         map.set(id, p);
-        emit();
+        if (!priming) emitDebounced(); // 初期バッチ中は抑制し、完了後にまとめて反映
       });
       unsubs.push(u);
     });

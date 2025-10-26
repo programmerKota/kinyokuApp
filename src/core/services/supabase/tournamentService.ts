@@ -297,7 +297,11 @@ export class TournamentService {
     const sortDesc = (
       a: import("../firestore/types").FirestoreTournamentJoinRequest,
       b: import("../firestore/types").FirestoreTournamentJoinRequest,
-    ) => String(b.createdAt).localeCompare(String(a.createdAt));
+    ) => {
+      const at = a.createdAt instanceof Date ? a.createdAt.getTime() : Date.parse(String(a.createdAt ?? '')) || 0;
+      const bt = b.createdAt instanceof Date ? b.createdAt.getTime() : Date.parse(String(b.createdAt ?? '')) || 0;
+      return bt - at;
+    };
 
     const applyChange = (
       type: "INSERT" | "UPDATE" | "DELETE",
@@ -567,7 +571,11 @@ export class TournamentService {
     const sortDesc = (
       a: import("../firestore/types").FirestoreTournament,
       b: import("../firestore/types").FirestoreTournament,
-    ) => String(b.createdAt).localeCompare(String(a.createdAt));
+    ) => {
+      const at = a.createdAt instanceof Date ? a.createdAt.getTime() : Date.parse(String(a.createdAt ?? '')) || 0;
+      const bt = b.createdAt instanceof Date ? b.createdAt.getTime() : Date.parse(String(b.createdAt ?? '')) || 0;
+      return bt - at;
+    };
 
     const applyChange = (
       type: "INSERT" | "UPDATE" | "DELETE",
@@ -704,8 +712,11 @@ export class TournamentService {
     let channel: ReturnType<typeof supabase.channel> | undefined;
 
     const emit = () => callback([...current]);
-    const sortAsc = (a: FirestoreTournamentParticipant, b: FirestoreTournamentParticipant) =>
-      String(a.joinedAt as Date).localeCompare(String(b.joinedAt as Date));
+    const sortAsc = (a: FirestoreTournamentParticipant, b: FirestoreTournamentParticipant) => {
+      const at = a.joinedAt instanceof Date ? a.joinedAt.getTime() : Date.parse(String(a.joinedAt ?? '')) || 0;
+      const bt = b.joinedAt instanceof Date ? b.joinedAt.getTime() : Date.parse(String(b.joinedAt ?? '')) || 0;
+      return at - bt;
+    };
 
     const applyChange = (
       type: "INSERT" | "UPDATE" | "DELETE",

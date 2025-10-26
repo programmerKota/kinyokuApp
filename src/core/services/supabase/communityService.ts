@@ -40,6 +40,22 @@ const toFirestoreCommunityPost = (row: SupaPostRow): FirestoreCommunityPost => {
   } as FirestoreCommunityPost;
 };
 
+// Fast timestamp getter for mixed string/Date types
+const __ts = (x: unknown): number => {
+  if (x instanceof Date) return x.getTime();
+  if (typeof x === 'string') {
+    const n = Date.parse(x);
+    return Number.isNaN(n) ? 0 : n;
+  }
+  try {
+    const s = String(x ?? '');
+    const n = Date.parse(s);
+    return Number.isNaN(n) ? 0 : n;
+  } catch {
+    return 0;
+  }
+};
+
 export class CommunityService {
   static async getLikedPostIds(
     userId: string,
@@ -291,8 +307,8 @@ export class CommunityService {
       if (!row) return;
       if (type === "INSERT") {
         if ((row as { postId?: string }).postId !== postId) return;
-        current = [...current, (row as unknown as CommunityComment)].sort((a, b) =>
-          String(a.createdAt).localeCompare(String(b.createdAt)),
+        current = [...current, (row as unknown as CommunityComment)].sort(
+          (a, b) => __ts(a.createdAt) - __ts(b.createdAt),
         );
       } else if (type === "UPDATE") {
         const idx = current.findIndex((r) => r.id === row.id);
@@ -301,8 +317,8 @@ export class CommunityService {
           copy[idx] = { ...copy[idx], ...(row as unknown as CommunityComment) };
           current = copy;
         } else if ((row as { postId?: string }).postId === postId) {
-          current = [...current, (row as unknown as CommunityComment)].sort((a, b) =>
-            String(a.createdAt).localeCompare(String(b.createdAt)),
+          current = [...current, (row as unknown as CommunityComment)].sort(
+            (a, b) => __ts(a.createdAt) - __ts(b.createdAt),
           );
         }
       } else if (type === "DELETE") {
@@ -418,9 +434,7 @@ export class CommunityService {
       if (type === "INSERT") {
         const post = toFirestoreCommunityPost(row as SupaPostRow);
         current = [post, ...current]
-          .sort((a, b) =>
-            String(b.createdAt).localeCompare(String(a.createdAt)),
-          )
+          .sort((a, b) => __ts(b.createdAt) - __ts(a.createdAt))
           .slice(0, max);
       } else if (type === "UPDATE") {
         const idx = current.findIndex((p) => p.id === row.id);
@@ -429,15 +443,11 @@ export class CommunityService {
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...nextPost } as FirestoreCommunityPost;
           current = copy
-            .sort((a, b) =>
-              String(b.createdAt).localeCompare(String(a.createdAt)),
-            )
+            .sort((a, b) => __ts(b.createdAt) - __ts(a.createdAt))
             .slice(0, max);
         } else {
           current = [nextPost, ...current]
-            .sort((a, b) =>
-              String(b.createdAt).localeCompare(String(a.createdAt)),
-            )
+            .sort((a, b) => __ts(b.createdAt) - __ts(a.createdAt))
             .slice(0, max);
         }
       } else if (type === "DELETE") {
@@ -542,20 +552,20 @@ export class CommunityService {
 
       const post = toFirestoreCommunityPost(row as SupaPostRow);
       if (type === "INSERT") {
-        current = [post, ...current].sort((a, b) =>
-          String(b.createdAt).localeCompare(String(a.createdAt)),
+        current = [post, ...current].sort(
+          (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
         );
       } else if (type === "UPDATE") {
         const idx = current.findIndex((p) => p.id === row.id);
         if (idx >= 0) {
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
-          current = copy.sort((a, b) =>
-            String(b.createdAt).localeCompare(String(a.createdAt)),
+          current = copy.sort(
+            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
           );
         } else {
-          current = [post, ...current].sort((a, b) =>
-            String(b.createdAt).localeCompare(String(a.createdAt)),
+          current = [post, ...current].sort(
+            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
           );
         }
       } else if (type === "DELETE") {
@@ -674,16 +684,16 @@ export class CommunityService {
       if (type === "INSERT") {
         if (!inFollowings(row)) return;
         const post = toFirestoreCommunityPost(row as SupaPostRow);
-        current = [post, ...current].sort((a, b) =>
-          String(b.createdAt).localeCompare(String(a.createdAt)),
+        current = [post, ...current].sort(
+          (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
         );
       } else if (type === "UPDATE") {
         const exists = current.some((p) => p.id === row.id);
         const shouldHave = inFollowings(row);
         if (!exists && shouldHave) {
           const post = toFirestoreCommunityPost(row as SupaPostRow);
-          current = [post, ...current].sort((a, b) =>
-            String(b.createdAt).localeCompare(String(a.createdAt)),
+          current = [post, ...current].sort(
+            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
           );
         } else if (exists && !shouldHave) {
           current = current.filter((p) => p.id !== row.id);
@@ -692,8 +702,8 @@ export class CommunityService {
           const idx = current.findIndex((p) => p.id === row.id);
           const copy = [...current];
           copy[idx] = { ...copy[idx], ...post } as FirestoreCommunityPost;
-          current = copy.sort((a, b) =>
-            String(b.createdAt).localeCompare(String(a.createdAt)),
+          current = copy.sort(
+            (a, b) => __ts(b.createdAt) - __ts(a.createdAt),
           );
         }
       } else if (type === "DELETE") {

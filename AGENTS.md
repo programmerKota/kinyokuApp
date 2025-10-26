@@ -61,4 +61,3 @@ Thoughtの部分もだよ
 
 ## 5)config.tomlは以下をさんこうにすること
 C:\Users\kotaA\.codex\config.toml
-※ただし、あなたはこのファイルを編集禁止
