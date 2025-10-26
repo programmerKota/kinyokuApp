@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import React, { useMemo } from "react";
@@ -22,7 +22,13 @@ import Button from "@shared/components/Button";
 import InputField from "@shared/components/InputField";
 import Modal from "@shared/components/Modal";
 import ConfirmDialog from "@shared/components/ConfirmDialog";
-import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 // 購入の復元機能は削除
@@ -86,8 +92,11 @@ const ProfileScreen: React.FC = () => {
   const { isEditing, editName, editAvatar, loading, showAvatarModal } = state;
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const { isDark, toggle, mode } = useAppTheme();
-  const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const colors = useMemo(
+    () => colorSchemes[mode] ?? colorSchemes.light,
+    [mode],
+  );
+  const styles = useThemedStyles(createStyles);
   const {
     setShowAvatarModal,
     handleStartEdit,
@@ -313,10 +322,10 @@ const ProfileScreen: React.FC = () => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
+const createStyles = (colors: ColorPalette) => {
   const screenThemes = createScreenThemes(colors);
+  const isLightMode = colors.backgroundPrimary === "#FFFFFF";
+  const subtleBorder = isLightMode ? colors.borderPrimary : "rgba(255,255,255,0.12)";
 
   return StyleSheet.create({
     container: {
@@ -341,7 +350,7 @@ const createStyles = (mode: "light" | "dark") => {
       color: colors.textSecondary,
     },
     profileCard: {
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: screenThemes.profile.cardBg,
       marginHorizontal: spacing.xl,
       marginTop: spacing.xl,
       marginBottom: spacing.xl,
@@ -351,7 +360,11 @@ const createStyles = (mode: "light" | "dark") => {
       paddingBottom: 28,
       alignItems: "center",
       minHeight: 320,
+      borderWidth: 1,
+      borderColor: subtleBorder,
       ...shadows.lg,
+      shadowColor: isLightMode ? colors.shadowDark : colors.black,
+      shadowOpacity: isLightMode ? 0.1 : 0.35,
     },
     actionGrid: {
       width: "100%",
@@ -375,13 +388,15 @@ const createStyles = (mode: "light" | "dark") => {
     actionCard: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: screenThemes.profile.cardBg,
       borderWidth: 1,
-      borderColor: colors.borderPrimary,
+      borderColor: subtleBorder,
       borderRadius: 14,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.lg,
       ...shadows.base,
+      shadowColor: isLightMode ? colors.shadowMedium : colors.black,
+      shadowOpacity: isLightMode ? 0.08 : 0.3,
     },
     actionIconWrap: {
       width: 36,
@@ -602,3 +617,4 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default ProfileScreen;
+
