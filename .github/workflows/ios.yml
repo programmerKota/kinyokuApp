@@ -13,6 +13,7 @@ jobs:
     runs-on: macos-latest
     env:
       EAS_PROFILE: ${{ github.event.inputs.profile || 'production' }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
