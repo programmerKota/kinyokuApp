@@ -5,7 +5,7 @@ import RelativeTime from "@shared/components/RelativeTime";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
-import { colorSchemes } from "@shared/theme/colors";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import type { DateLike } from "@shared/utils/date";
 import { createUiStyles } from "@shared/ui/styles";
 import { getContentStyle, getBlockLeftMargin } from "@shared/utils/nameUtils";
@@ -32,7 +32,7 @@ const DiaryCard: React.FC<Props> = ({
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
   const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
 
   const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
     authorId,
@@ -72,11 +72,8 @@ const DiaryCard: React.FC<Props> = ({
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
-  return StyleSheet.create({
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
     container: { backgroundColor: colors.backgroundSecondary, marginBottom: 0 },
     inner: { padding: spacing.lg },
     header: {
@@ -96,7 +93,6 @@ const createStyles = (mode: "light" | "dark") => {
     content: { marginBottom: spacing.xs },
     text: {},
   });
-};
 
 export default React.memo(
   DiaryCard,

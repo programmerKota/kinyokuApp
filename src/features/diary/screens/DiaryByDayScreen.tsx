@@ -27,7 +27,8 @@ import Modal from "@shared/components/Modal";
 import DiaryCard from "@features/diary/components/DiaryCard";
 import { useBlockedIds } from "@shared/state/blockStore";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
-import { spacing, typography, useAppTheme } from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { formatDateTimeJP, toDate, type DateLike } from "@shared/utils/date";
 import type { RootStackParamList } from "@app/navigation/RootNavigator";
 import AppStatusBar from "@shared/theme/AppStatusBar";
@@ -80,9 +81,8 @@ const DiaryByDayScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
 
   const [day, setDay] = useState<number>(1);
   const [items, setItems] = useState<DayDiaryItem[]>([]);
@@ -641,11 +641,8 @@ const DiaryByDayScreen: React.FC = () => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
-  return StyleSheet.create({
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.backgroundTertiary },
     list: {
       backgroundColor: colors.backgroundTertiary,
@@ -728,6 +725,5 @@ const createStyles = (mode: "light" | "dark") => {
       paddingBottom: spacing.md,
     },
   });
-};
 
 export default DiaryByDayScreen;

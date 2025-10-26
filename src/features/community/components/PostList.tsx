@@ -23,7 +23,7 @@ import RepliesList from "@features/community/components/RepliesList";
 import type { CommunityPost } from "@project-types";
 import ListFooterSpinner from "@shared/components/ListFooterSpinner";
 import { useReplyVisibility } from "@shared/state/replyVisibilityStore";
-import { spacing, typography, useAppTheme } from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 import { Logger } from "@shared/utils/logger";
@@ -72,7 +72,6 @@ const PostList: React.FC<PostListProps> = ({
   ListEmptyComponent: emptyComponent,
 }) => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
 
   const listRef = useRef<FlatList<CommunityPost>>(null);
@@ -325,9 +324,8 @@ const PostListRow: React.FC<{
     const replyBtnRef = React.useRef<any>(null);
     const visible = useReplyVisibility(item.id, false);
     const { mode } = useAppTheme();
-    const { colorSchemes } = require("@shared/theme/colors");
     const colors = useMemo(() => colorSchemes[mode], [mode]);
-    const rowStyles = useMemo(() => createRowStyles(colors), [colors]);
+    const rowStyles = useThemedStyles(createRowStyles);
 
     const avgDays =
       typeof authorAverageDays === "number"

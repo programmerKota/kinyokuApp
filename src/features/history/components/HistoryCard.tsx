@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
@@ -11,6 +11,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { formatDateTimeJP } from "@shared/utils/date";
 
@@ -23,9 +24,11 @@ interface HistoryCardProps {
 const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
-  const styles = useMemo(() => createStyles(mode), [mode]);
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const styles = useThemedStyles(createStyles);
+  const colors = useMemo(
+    () => colorSchemes[mode] ?? colorSchemes.light,
+    [mode],
+  );
 
   const calculateDuration = (challenge: Challenge) => {
     const startTime = challenge.startedAt.getTime();
@@ -220,10 +223,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, type, onPress }) => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
+const createStyles = (colors: ColorPalette) => {
   return StyleSheet.create({
     container: {
       backgroundColor: colors.backgroundSecondary,

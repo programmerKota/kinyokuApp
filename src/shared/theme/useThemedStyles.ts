@@ -14,5 +14,5 @@ export function useThemedStyles<T extends NamedStyles<T>>(
 }
 
 function getPalette(mode: keyof typeof colorSchemes) {
-  return colorSchemes[mode];
+  return colorSchemes[mode] ?? colorSchemes.light;
 }

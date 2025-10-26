@@ -18,6 +18,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import Modal from "@shared/components/Modal";
 
@@ -34,9 +35,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 }) => {
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = React.useMemo(() => colorSchemes[mode], [mode]);
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const styles = useThemedStyles(createStyles);
 
   const [content, setContent] = useState("");
   const guard = useModerationGuard(content);
@@ -113,7 +113,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   );
 };
 
-const createStyles = (colors: import("@shared/theme/colors").ColorPalette) =>
+const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,

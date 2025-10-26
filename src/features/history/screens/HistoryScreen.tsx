@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
@@ -21,7 +21,8 @@ import {
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
 import type { Challenge, Payment } from "@project-types";
-import { spacing, typography, useAppTheme } from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { toDate, type DateLike } from "@shared/utils/date";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 
@@ -29,10 +30,12 @@ const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = useMemo(() => colorSchemes[mode], [mode]);
+  const colors = useMemo(
+    () => colorSchemes[mode] ?? colorSchemes.light,
+    [mode],
+  );
   const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
 
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -309,9 +312,7 @@ const HistoryScreen: React.FC = () => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
+const createStyles = (colors: ColorPalette) => {
   const screenThemes = createScreenThemes(colors);
 
   return StyleSheet.create({

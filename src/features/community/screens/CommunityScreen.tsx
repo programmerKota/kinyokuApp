@@ -29,6 +29,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
@@ -40,10 +41,9 @@ const CommunityScreen: React.FC = () => {
   const [state, actions] = useCommunity();
   const { requireAuth } = useAuthPrompt();
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const uiStyles = useThemedStyles(createUiStyles);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
   const {
     posts,
     likedPosts,
@@ -236,11 +236,8 @@ const CommunityScreen: React.FC = () => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
-  return StyleSheet.create({
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.backgroundTertiary,
@@ -377,6 +374,5 @@ const createStyles = (mode: "light" | "dark") => {
       color: colors.gray500,
     },
   });
-};
 
 export default CommunityScreen;

@@ -1,7 +1,8 @@
-﻿import React, { useMemo } from "react";
+import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { spacing, typography, shadows, useThemedStyles } from "@shared/theme";
+import type { ColorPalette } from "@shared/theme/colors";
 
 interface DayCardProps {
   day: number;
@@ -16,8 +17,8 @@ const DayCard: React.FC<DayCardProps> = ({
   posted = false,
   onPress,
 }) => {
-  const { mode } = useAppTheme();
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -32,11 +33,8 @@ const DayCard: React.FC<DayCardProps> = ({
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
-  return StyleSheet.create({
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
     card: {
       backgroundColor: colors.backgroundSecondary,
       borderRadius: 12,
@@ -73,6 +71,5 @@ const createStyles = (mode: "light" | "dark") => {
       overflow: "hidden",
     },
   });
-};
 
 export default DayCard;

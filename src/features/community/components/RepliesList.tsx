@@ -5,7 +5,7 @@ import { CommunityService } from "@core/services/firestore/communityService";
 import { UserStatsService } from "@core/services/userStatsService";
 import ReplyCard from "@features/community/components/ReplyCard";
 import type { CommunityComment } from "@project-types";
-import { spacing, useAppTheme } from "@shared/theme";
+import { spacing, useAppTheme, useThemedStyles } from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { ReplyEventBus } from "@shared/state/replyEventBus";
 import { useBlockedIds } from "@shared/state/blockStore";
@@ -42,7 +42,7 @@ const RepliesList: React.FC<RepliesListProps> = ({
 }) => {
   const { mode } = useAppTheme();
   const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useThemedStyles(createStyles);
 
   const [replies, setReplies] = useState<CommunityComment[]>([]);
   const blockedSet = useBlockedIds();

@@ -5,7 +5,7 @@ import type { CommunityComment } from "@project-types";
 import AvatarImage from "@shared/components/AvatarImage";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
 import RelativeTime from "@shared/components/RelativeTime";
-import { spacing, typography, useAppTheme } from "@shared/theme";
+import { spacing, typography, useAppTheme, useThemedStyles } from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { CONTENT_LEFT_MARGIN } from "@shared/utils/nameUtils";
 
@@ -18,7 +18,7 @@ interface ReplyCardProps {
 const ReplyCard: React.FC<ReplyCardProps> = ({ reply, onPress }) => {
   const { mode } = useAppTheme();
   const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useThemedStyles(createStyles);
 
   const Container = onPress ? TouchableOpacity : View;
   const { name, avatar } = useDisplayProfile(

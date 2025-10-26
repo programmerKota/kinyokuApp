@@ -3,6 +3,7 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 
 import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import { colorSchemes } from "@shared/theme/colors";
 
 interface DiaryButtonProps {
   onPress: () => void;
@@ -17,7 +18,6 @@ const DiaryButton: React.FC<DiaryButtonProps> = ({
   textColor,
 }) => {
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = colorSchemes[mode];
 
   const bgColor =

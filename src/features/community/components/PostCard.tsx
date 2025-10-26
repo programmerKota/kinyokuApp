@@ -38,7 +38,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
   const colors = React.useMemo(() => colorSchemes[mode], [mode]);
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const styles = useThemedStyles(createStyles);
 
   // Prefer live profile when available; fallback to post snapshot
   const { name: displayName, avatar: displayAvatar } = useDisplayProfile(
