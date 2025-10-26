@@ -35,7 +35,13 @@ import ConfirmDialog from "@shared/components/ConfirmDialog";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
 import UserProfileWithRank from "@shared/components/UserProfileWithRank";
 import { useDisplayProfile } from "@shared/hooks/useDisplayProfile";
-import { spacing, typography, shadows, useAppTheme } from "@shared/theme";
+import {
+  spacing,
+  typography,
+  shadows,
+  useAppTheme,
+  useThemedStyles,
+} from "@shared/theme";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { toDate } from "@shared/utils/date";
 import { navigateToUserDetail } from "@shared/utils/navigation";
@@ -130,9 +136,8 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
 }) => {
   const navigation = useNavigation<TournamentRoomScreenNavigationProp>();
   const { mode } = useAppTheme();
-  const { colorSchemes } = require("@shared/theme/colors");
   const colors = useMemo(() => colorSchemes[mode], [mode]);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
 
   const { tournamentId } = route.params;
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat");
@@ -699,10 +704,7 @@ const TournamentRoomScreen: React.FC<TournamentRoomScreenProps> = ({
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
+const createStyles = (colors: ColorPalette) => {
   return StyleSheet.create({
     container: {
       flex: 1,

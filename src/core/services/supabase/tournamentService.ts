@@ -699,6 +699,54 @@ export class TournamentService {
     })) as StrictTournamentParticipant[];
   }
 
+  static async getParticipantsForTournaments(
+    tournamentIds: string[],
+  ): Promise<Record<string, StrictTournamentParticipant[]>> {
+    if (!supabaseConfig?.isConfigured || tournamentIds.length === 0) return {};
+    const uniqueIds = Array.from(
+      new Set(tournamentIds.filter((id): id is string => !!id)),
+    );
+    if (uniqueIds.length === 0) return {};
+
+    const chunkSize = 50;
+    const batches: string[][] = [];
+    for (let i = 0; i < uniqueIds.length; i += chunkSize) {
+      batches.push(uniqueIds.slice(i, i + chunkSize));
+    }
+
+    const result: Record<string, StrictTournamentParticipant[]> = {};
+    for (const chunk of batches) {
+      const { data, error } = await supabase
+        .from("tournament_participants")
+        .select("*")
+        .in("tournamentId", chunk)
+        .order("tournamentId", { ascending: true })
+        .order("joinedAt", { ascending: true });
+      if (error) throw error;
+      (data || []).forEach((row) => {
+        const tid = String((row as { tournamentId: string }).tournamentId);
+        if (!result[tid]) result[tid] = [];
+        result[tid].push({
+          id: (row as { id: string }).id,
+          tournamentId: tid,
+          userId: (row as { userId: string }).userId,
+          userName: (row as { userName: string }).userName,
+          userAvatar:
+            (row as { userAvatar?: string | null }).userAvatar ?? undefined,
+          status: (row as { status: StrictTournamentParticipant["status"] })
+            .status,
+          joinedAt: new Date((row as { joinedAt: string }).joinedAt),
+          leftAt: (row as { leftAt?: string | null }).leftAt
+            ? new Date((row as { leftAt?: string | null }).leftAt as string)
+            : null,
+          progressPercent: (row as { progressPercent?: number }).progressPercent,
+          currentDay: (row as { currentDay?: number }).currentDay,
+        });
+      });
+    }
+    return result;
+  }
+
   static subscribeToParticipants(
     tournamentId: string,
     callback: (participants: FirestoreTournamentParticipant[]) => void,

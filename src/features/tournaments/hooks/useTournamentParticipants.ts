@@ -25,40 +25,20 @@ export const useTournamentParticipants = (): [
   const [error, setError] = useState<string | null>(null);
 
   const refreshParticipants = useCallback(async (tournamentIds: string[]) => {
-    if (tournamentIds.length === 0) return;
+    const uniqueIds = Array.from(
+      new Set(tournamentIds.filter((id): id is string => !!id)),
+    );
+    if (uniqueIds.length === 0) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // 並列で参加者情報を取得
-      const participantPromises = tournamentIds.map(async (tournamentId) => {
-        try {
-          const tournamentParticipants =
-            await TournamentService.getTournamentParticipants(tournamentId);
-          return { tournamentId, participants: tournamentParticipants };
-        } catch (err) {
-          console.warn(
-            `Failed to fetch participants for tournament ${tournamentId}:`,
-            err,
-          );
-          return { tournamentId, participants: [] };
-        }
-      });
-
-      const results = await Promise.allSettled(participantPromises);
-
-      const newParticipants: Record<string, StrictTournamentParticipant[]> = {};
-
-      results.forEach((result) => {
-        if (result.status === "fulfilled") {
-          newParticipants[result.value.tournamentId] =
-            result.value.participants;
-        }
-      });
-
-      setParticipants((prev) => ({ ...prev, ...newParticipants }));
+      const grouped =
+        await TournamentService.getParticipantsForTournaments(uniqueIds);
+      setParticipants((prev) => ({ ...prev, ...grouped }));
     } catch (err) {
+      console.warn("[useTournamentParticipants] bulk fetch failed", err);
       setError(
         err instanceof Error ? err.message : "参加者情報の取得に失敗しました",
       );

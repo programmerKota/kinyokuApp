@@ -30,6 +30,7 @@ import {
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
+import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
@@ -43,7 +44,8 @@ const TournamentsScreen: React.FC = () => {
   const { handleError } = useErrorHandler();
   const { mode } = useAppTheme();
   const uiStyles = useThemedStyles(createUiStyles);
-  const styles = useMemo(() => createStyles(mode), [mode]);
+  const styles = useThemedStyles(createStyles);
+  const colors = useMemo(() => colorSchemes[mode], [mode]);
 
   const [
     {
@@ -230,7 +232,7 @@ const TournamentsScreen: React.FC = () => {
       <FilterTabs
         active={filter}
         onChange={setFilter}
-        mode={mode}
+        colors={colors}
         uiStyles={uiStyles}
       />
       <VirtualizedList
@@ -288,10 +290,7 @@ const TournamentsScreen: React.FC = () => {
   );
 };
 
-const createStyles = (mode: "light" | "dark") => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
+const createStyles = (colors: ColorPalette) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -333,12 +332,9 @@ const createStyles = (mode: "light" | "dark") => {
 const FilterTabs: React.FC<{
   active: "all" | "joined";
   onChange: (v: "all" | "joined") => void;
-  mode: "light" | "dark";
+  colors: ColorPalette;
   uiStyles: ReturnType<typeof createUiStyles>;
-}> = ({ active, onChange, mode, uiStyles }) => {
-  const { colorSchemes } = require("@shared/theme/colors");
-  const colors = colorSchemes[mode];
-
+}> = ({ active, onChange, colors, uiStyles }) => {
   return (
     <View style={{ backgroundColor: colors.backgroundTertiary }}>
       <View style={uiStyles.tabBar}>
