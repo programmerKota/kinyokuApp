@@ -117,4 +117,4 @@ jobs:
           fi
           gem install --user-install fastlane --no-document
           export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
-          fastlane pilot upload -u "$FASTLANE_USER" --ipa "$IPA_PATH" --skip_waiting_for_build_processing true --verbose
+          fastlane pilot upload -u "$FASTLANE_USER" -p "$FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD" --ipa "$IPA_PATH" --skip_waiting_for_build_processing true --verbose
