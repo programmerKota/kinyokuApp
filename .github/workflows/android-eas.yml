@@ -8,6 +8,12 @@ on:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    env:
+      # Optional: provide these secrets to use Local credentials in CI
+      EXPO_ANDROID_KEYSTORE_BASE64: ${{ secrets.EXPO_ANDROID_KEYSTORE_BASE64 }}
+      EXPO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.EXPO_ANDROID_KEYSTORE_PASSWORD }}
+      EXPO_ANDROID_KEY_ALIAS: ${{ secrets.EXPO_ANDROID_KEY_ALIAS }}
+      EXPO_ANDROID_KEY_PASSWORD: ${{ secrets.EXPO_ANDROID_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,6 +23,24 @@ jobs:
         run: npm i -g eas-cli expo
       - name: Install deps
         run: npm ci
+      - name: Setup Android keystore from secrets (optional)
+        if: ${{ env.EXPO_ANDROID_KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "$EXPO_ANDROID_KEYSTORE_BASE64" | base64 -d > android-keystore.jks
+          cat > credentials.json <<EOF
+          {
+            "android": {
+              "keystore": {
+                "keystorePath": "android-keystore.jks",
+                "keystorePassword": "$EXPO_ANDROID_KEYSTORE_PASSWORD",
+                "keyAlias": "$EXPO_ANDROID_KEY_ALIAS",
+                "keyPassword": "$EXPO_ANDROID_KEY_PASSWORD"
+              }
+            }
+          }
+          EOF
+          tmpfile=$(mktemp)
+          jq '.build.production.android.credentialsSource="local"' eas.json > "$tmpfile" && mv "$tmpfile" eas.json
       - name: Type check
         run: npm run typecheck
       - name: Web E2E smoke (mocked)
