@@ -83,6 +83,7 @@ jobs:
 
       - name: Submit to App Store Connect (Fastlane direct)
         if: always()
+        continue-on-error: true
         env:
           OPENSSL_CONF: /dev/null
         shell: bash
