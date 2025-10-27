@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install EAS CLI and Expo
+        run: npm i -g eas-cli expo
       - name: Install deps
         run: npm ci
       - name: Type check
@@ -25,4 +27,4 @@ jobs:
         env:
           EAS_BUILD_AUTOCOMMIT: 1
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas build -p android --profile production --non-interactive
+        run: eas build -p android --profile production --non-interactive
