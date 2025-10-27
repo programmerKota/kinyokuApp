@@ -68,11 +68,16 @@ jobs:
           name: ios-ipa
           path: "**/*.ipa"
 
-      - name: Select installed Xcode for Transporter
+      - name: Detect installed Xcode
         if: always()
         run: |
-          sudo xcode-select -s "/Applications/Xcode.app"
-          xcode-select -p
+          XCODE_PATH=$(xcode-select -p)
+          if [ -z "$XCODE_PATH" ]; then
+            echo "Unable to detect Xcode path" >&2
+            exit 1
+          fi
+          echo "Using Xcode at $XCODE_PATH"
+          echo "DEVELOPER_DIR=$XCODE_PATH" >> $GITHUB_ENV
           xcrun iTMSTransporter -version
 
       - name: Submit to App Store Connect (EAS)
@@ -116,7 +121,7 @@ jobs:
           FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           FASTLANE_ITC_TEAM_ID: 6XM8A7FF9K
           FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT: 1
-          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+          DEVELOPER_DIR: ${{ env.DEVELOPER_DIR }}
         shell: bash
         run: |
           set -euo pipefail
