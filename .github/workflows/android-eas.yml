@@ -1,12 +1,17 @@
-name: Android EAS Build
+name: Android EAS Build (manual only)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+    inputs:
+      profile:
+        description: "EAS profile"
+        required: false
+        default: "production"
 
 jobs:
   build-android:
+    # iOSリリース集中のため手動実行のみ
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     env:
       # Optional: provide these secrets to use Local credentials in CI
@@ -51,4 +56,4 @@ jobs:
         env:
           EAS_BUILD_AUTOCOMMIT: 1
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build -p android --profile production --non-interactive
+        run: eas build -p android --profile ${{ inputs.profile || 'production' }} --non-interactive
