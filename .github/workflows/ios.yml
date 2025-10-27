@@ -68,7 +68,8 @@ jobs:
           name: ios-ipa
           path: "**/*.ipa"
 
-      - name: Submit to App Store Connect
+      - name: Submit to App Store Connect (EAS)
+        continue-on-error: true
         env:
           OPENSSL_CONF: /dev/null
         run: |
@@ -79,3 +80,21 @@ jobs:
           fi
           eas submit -p ios --path "$IPA_PATH" --non-interactive
         shell: bash
+
+      - name: Submit to App Store Connect (Fastlane direct)
+        if: always()
+        env:
+          OPENSSL_CONF: /dev/null
+        shell: bash
+        run: |
+          set -euo pipefail
+          IPA_PATH=$(find . -name "*.ipa" -print -quit)
+          if [ -z "$IPA_PATH" ]; then
+            echo "No IPA artifact found" >&2
+            exit 1
+          fi
+          gem install --user-install fastlane --no-document
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          # Convert asc.json to fastlane expected format
+          jq '{key_id:.keyId, issuer_id:.issuerId, key:.key}' asc.json > asc_fastlane.json
+          fastlane pilot upload --api_key_path asc_fastlane.json --ipa "$IPA_PATH" --skip_waiting_for_build_processing true --verbose
