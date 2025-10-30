@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -51,6 +52,7 @@ const RankingScreen: React.FC = () => {
   const [profilesMap, setProfilesMap] = useState<
     Map<string, UserProfileLite | undefined>
   >(new Map());
+  const [isTierScrollActive, setTierScrollActive] = useState(false);
 
   useEffect(() => {
     void refreshRankings();
@@ -60,6 +62,12 @@ const RankingScreen: React.FC = () => {
       void refreshRankings();
     }
   }, [followingIds, user?.uid, activeTab]);
+
+  useEffect(() => {
+    if (!showTiers) {
+      setTierScrollActive(false);
+    }
+  }, [showTiers]);
 
   const PAGE_SIZE = 50;
 
@@ -317,6 +325,7 @@ const RankingScreen: React.FC = () => {
             }}
             colors={["#2563EB"]}
             tintColor={"#2563EB"}
+            enabled={!isTierScrollActive}
           />
         }
         ListFooterComponent={
@@ -352,6 +361,13 @@ const RankingScreen: React.FC = () => {
                 <ScrollView
                   style={styles.tierScrollView}
                   showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={Platform.OS === "android"}
+                  onTouchStart={() => setTierScrollActive(true)}
+                  onTouchEnd={() => setTierScrollActive(false)}
+                  onTouchCancel={() => setTierScrollActive(false)}
+                  onScrollBeginDrag={() => setTierScrollActive(true)}
+                  onScrollEndDrag={() => setTierScrollActive(false)}
+                  onMomentumScrollEnd={() => setTierScrollActive(false)}
                 >
                   <View style={styles.tierItem}>
                     <Text style={styles.tierBadge}>訓練兵 🔰</Text>

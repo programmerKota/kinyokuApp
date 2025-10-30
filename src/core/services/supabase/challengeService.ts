@@ -1,7 +1,7 @@
 type Unsubscribe = () => void;
+import type { FailureReflection } from "@project-types";
 import { supabase, supabaseConfig } from "@app/config/supabase.config";
 import { Logger } from "@shared/utils/logger";
-
 import type { FirestoreChallenge } from "../firestore/types";
 
 type SupaChallengeRow = {
@@ -14,11 +14,25 @@ type SupaChallengeRow = {
   completedAt: string | null;
   failedAt: string | null;
   totalPenaltyPaid: number | null;
+  reflectionNote: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
 
 export class ChallengeService {
+  private static parseReflection(raw: string | null): FailureReflection | null {
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as FailureReflection;
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
   private static toFirestore(row: SupaChallengeRow): FirestoreChallenge {
     return {
       id: row.id,
@@ -30,6 +44,8 @@ export class ChallengeService {
       completedAt: row.completedAt ? new Date(row.completedAt) : null,
       failedAt: row.failedAt ? new Date(row.failedAt) : null,
       totalPenaltyPaid: row.totalPenaltyPaid ?? 0,
+      reflectionNote: row.reflectionNote ?? null,
+      reflection: ChallengeService.parseReflection(row.reflectionNote),
       createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
       updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
     };
@@ -77,6 +93,10 @@ export class ChallengeService {
           : typeof challengeData.failedAt === "string"
             ? challengeData.failedAt
             : null,
+      reflectionNote:
+        typeof challengeData.reflectionNote === "string"
+          ? challengeData.reflectionNote
+          : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -113,14 +133,29 @@ export class ChallengeService {
   ): Promise<void> {
     if (!supabaseConfig?.isConfigured) return;
     const update: Record<string, unknown> = {
-      ...challengeData,
       updatedAt: new Date().toISOString(),
     };
+    for (const [key, value] of Object.entries(challengeData)) {
+      if (
+        key === "completedAt" ||
+        key === "failedAt" ||
+        key === "reflectionNote"
+      ) {
+        continue;
+      }
+      if (key === "reflection") continue;
+      update[key] = value;
+    }
     if (challengeData.completedAt instanceof Date) {
       update.completedAt = challengeData.completedAt.toISOString();
     }
     if (challengeData.failedAt instanceof Date) {
       update.failedAt = challengeData.failedAt.toISOString();
+    }
+    if (Object.prototype.hasOwnProperty.call(challengeData, "reflectionNote")) {
+      const raw = challengeData.reflectionNote;
+      update.reflectionNote =
+        typeof raw === "string" && raw.length > 0 ? raw : null;
     }
     const { error } = await supabase
       .from("challenges")
@@ -251,7 +286,9 @@ export class ChallengeService {
 
     void init();
     return () => {
-      if (channel) channel.unsubscribe();
+      if (channel) {
+        void channel.unsubscribe();
+      }
     };
   }
 }

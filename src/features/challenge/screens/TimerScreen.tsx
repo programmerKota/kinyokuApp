@@ -1,27 +1,43 @@
-import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { Alert, View, StyleSheet } from "react-native";
 
 import { useAuth } from "@app/contexts/AuthContext";
 import { PaymentFirestoreService } from "@core/services/firestore";
 import ChallengeModal from "@features/challenge/components/ChallengeModal";
-import StopModal from "@features/challenge/components/StopModal";
+import { FAILURE_OTHER_OPTION_KEY } from "@features/challenge/constants/failureReflectionOptions";
+import StopModal, {
+  type FailureReflectionFormState,
+} from "@features/challenge/components/StopModal";
 import TimerDisplay from "@features/challenge/components/TimerDisplay";
-import useTimer from "@features/challenge/hooks/useTimer";
+import useTimerHook from "@features/challenge/hooks/useTimer";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import LoadingState from "@shared/components/LoadingState";
-import useErrorHandler from "@shared/hooks/useErrorHandler";
-import PenaltyPaywall from "@shared/payments/PenaltyPaywall";
+import useErrorHandlerHook from "@shared/hooks/useErrorHandler";
+import PenaltyPaywallSheet from "@shared/payments/PenaltyPaywall";
+import type { FailureReflection } from "@project-types";
 
 interface TimerScreenProps {
   onChallengeStarted?: () => void;
 }
 
+const createInitialReflectionForm = (): FailureReflectionFormState => ({
+  timeSlot: { option: null, customValue: "" },
+  device: { option: null, customValue: "" },
+  place: { option: null, customValue: "" },
+  feelings: { selected: [], otherValue: "" },
+  otherNote: "",
+});
+
 const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
-  const [state, actions] = useTimer();
-  const { handleError } = useErrorHandler();
+  const [state, actions] = useTimerHook();
+  const { handleError } = useErrorHandlerHook();
   const { requireAuth } = useAuthPrompt();
   const { user } = useAuth();
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const [reflectionForm, setReflectionForm] =
+    useState<FailureReflectionFormState>(() => createInitialReflectionForm());
+  const [pendingReflection, setPendingReflection] =
+    useState<FailureReflection | null>(null);
   const {
     goalDays,
     penaltyAmount,
@@ -39,11 +55,26 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
     setPenaltyAmount,
     showChallengeModal,
     hideChallengeModal,
-    showStopModal,
-    hideStopModal,
+    showStopModal: showStopModalAction,
+    hideStopModal: hideStopModalAction,
     startChallenge,
     stopChallenge,
   } = actions;
+
+  const resetReflectionForm = useCallback(() => {
+    setReflectionForm(createInitialReflectionForm());
+    setPendingReflection(null);
+  }, []);
+
+  const showStopModal = useCallback(() => {
+    resetReflectionForm();
+    showStopModalAction();
+  }, [resetReflectionForm, showStopModalAction]);
+
+  const handleCancelStopModal = useCallback(() => {
+    resetReflectionForm();
+    hideStopModalAction();
+  }, [hideStopModalAction, resetReflectionForm]);
 
   const handleStart = async () => {
     try {
@@ -60,27 +91,117 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
     }
   };
 
+  const isSingleSelectionValid = useCallback(
+    (selection: FailureReflectionFormState["timeSlot"]) => {
+      if (!selection.option) return false;
+      if (
+        selection.option === FAILURE_OTHER_OPTION_KEY &&
+        !(selection.customValue && selection.customValue.trim().length > 0)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    [],
+  );
+
+  const isFeelingsValid = useCallback(
+    (feelings: FailureReflectionFormState["feelings"]) => {
+      if (feelings.selected.length === 0) return false;
+      if (
+        feelings.selected.includes(FAILURE_OTHER_OPTION_KEY) &&
+        feelings.otherValue.trim().length === 0
+      ) {
+        return false;
+      }
+      return true;
+    },
+    [],
+  );
+
+  const reflectionReady = useMemo(() => {
+    if (isGoalAchieved) return true;
+    return (
+      isSingleSelectionValid(reflectionForm.timeSlot) &&
+      isSingleSelectionValid(reflectionForm.device) &&
+      isSingleSelectionValid(reflectionForm.place) &&
+      isFeelingsValid(reflectionForm.feelings)
+    );
+  }, [isGoalAchieved, isSingleSelectionValid, isFeelingsValid, reflectionForm]);
+
+  const buildReflectionPayload = useCallback((): FailureReflection | null => {
+    if (isGoalAchieved) return null;
+    const errors: string[] = [];
+    if (!isSingleSelectionValid(reflectionForm.timeSlot)) {
+      errors.push("時間帯を選択してください。");
+    }
+    if (!isSingleSelectionValid(reflectionForm.device)) {
+      errors.push("デバイスを選択してください。");
+    }
+    if (!isSingleSelectionValid(reflectionForm.place)) {
+      errors.push("場所を選択してください。");
+    }
+    if (!isFeelingsValid(reflectionForm.feelings)) {
+      errors.push("感情・状態を少なくとも1つ選択してください。");
+    }
+    if (errors.length > 0) {
+      Alert.alert("入力不足", errors.join("\n"));
+      return null;
+    }
+    const mapSelection = (
+      selection: FailureReflectionFormState["timeSlot"],
+    ) => ({
+      option: selection.option!,
+      customValue:
+        selection.option === FAILURE_OTHER_OPTION_KEY
+          ? selection.customValue?.trim() || null
+          : null,
+    });
+    const timeSlotSelection = mapSelection(reflectionForm.timeSlot);
+    const deviceSelection = mapSelection(reflectionForm.device);
+    const placeSelection = mapSelection(reflectionForm.place);
+    const feelings = reflectionForm.feelings.selected.map((key) => ({
+      option: key,
+      customValue:
+        key === FAILURE_OTHER_OPTION_KEY
+          ? reflectionForm.feelings.otherValue.trim() || null
+          : null,
+    })) as FailureReflection["feelings"];
+    return {
+      timeSlot: timeSlotSelection as FailureReflection["timeSlot"],
+      device: deviceSelection as FailureReflection["device"],
+      place: placeSelection as FailureReflection["place"],
+      feelings,
+      otherNote: reflectionForm.otherNote.trim()
+        ? reflectionForm.otherNote.trim()
+        : null,
+    };
+  }, [isGoalAchieved, isSingleSelectionValid, isFeelingsValid, reflectionForm]);
+
   const handleConfirmStop = async () => {
     const ok = await requireAuth();
     if (!ok) return;
     if (!currentSession) return;
     const completed = isGoalAchieved;
     try {
-      hideStopModal();
       if (!completed) {
+        const reflectionPayload = buildReflectionPayload();
+        if (!reflectionPayload) return;
+        hideStopModalAction();
         const penalty = currentSession?.penaltyAmount ?? 0;
         if (penalty > 0) {
-          // 罰金あり: 支払いモーダルを表示
+          setPendingReflection(reflectionPayload);
           setPaywallVisible(true);
           return;
         }
-        // 罰金0円: そのまま失敗として確定（支払い不要）
-        await stopChallenge(false);
+        await stopChallenge(false, reflectionPayload);
+        resetReflectionForm();
         return;
       }
-      // 目標達成時
-      await stopChallenge(true);
-      if (completed && __DEV__) {
+      hideStopModalAction();
+      await stopChallenge(true, null);
+      resetReflectionForm();
+      if (__DEV__) {
         try {
           console.log("Challenge completed");
         } catch {}
@@ -134,15 +255,18 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
 
       <StopModal
         visible={stopModalVisible}
-        onClose={hideStopModal}
+        onClose={handleCancelStopModal}
         currentSession={currentSession}
         actualDuration={actualDuration}
         isGoalAchieved={isGoalAchieved}
         onConfirm={handleConfirmStop}
+        confirmDisabled={!reflectionReady}
+        reflection={reflectionForm}
+        onChangeReflection={setReflectionForm}
       />
 
       {/* Penalty payment block */}
-      <PenaltyPaywall
+      <PenaltyPaywallSheet
         amountJPY={currentSession?.penaltyAmount || 0}
         visible={paywallVisible}
         onPaid={async (info) => {
@@ -161,7 +285,13 @@ const TimerScreen: React.FC<TimerScreenProps> = ({ onChallengeStarted }) => {
                 });
               }
             } catch {}
-            await stopChallenge(false);
+            const reflectionPayload =
+              pendingReflection ?? buildReflectionPayload();
+            if (!reflectionPayload) {
+              throw new Error("REFLECTION_REQUIRED");
+            }
+            await stopChallenge(false, reflectionPayload);
+            resetReflectionForm();
           } catch (e) {
             handleError(
               e,

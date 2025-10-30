@@ -27,8 +27,6 @@ export interface UseCommunityState {
   activeTab: CommunityTab;
   refreshing: boolean;
   showCreateModal: boolean;
-  replyingTo: string | null;
-  replyText: string;
   showReplyButtons: Set<string>;
   loadingMore: boolean;
   hasMore: boolean;
@@ -41,10 +39,7 @@ export interface UseCommunityActions {
   handleLike: (postId: string) => Promise<void>;
   handleComment: (postId: string) => void;
   handleReply: (postId: string) => void;
-  handleReplySubmit: () => Promise<void>;
-  handleReplyCancel: () => void;
   handleTabPress: (tab: CommunityTab) => void;
-  setReplyText: (v: string) => void;
   loadMore: () => Promise<void>;
 }
 
@@ -58,8 +53,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<CommunityTab>("all");
   const followingUsers = useFollowingIds();
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState("");
   const [showReplyButtons, setShowReplyButtons] = useState<Set<string>>(
     new Set(),
   );
@@ -621,27 +614,12 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
   }, []);
 
   const handleReply = useCallback((postId: string) => {
-    setReplyingTo(postId);
-    setReplyText("");
-  }, []);
-
-  const handleReplySubmit = useCallback(async () => {
-    if (!replyingTo || !replyText.trim()) return;
-    const ok = await requireAuth();
-    if (!ok) return;
-    await CommunityService.addReply(replyingTo, { content: replyText.trim() });
-    // Update only the counter for this post (bubble)
     try {
-      const { ReplyCountStore } = await import("@shared/state/replyStore");
-      ReplyCountStore.increment(replyingTo, 1);
+      const {
+        ReplyVisibilityStore,
+      } = require("@shared/state/replyVisibilityStore");
+      ReplyVisibilityStore.set(postId, true);
     } catch {}
-    setReplyingTo(null);
-    setReplyText("");
-  }, [replyText, replyingTo]);
-
-  const handleReplyCancel = useCallback(() => {
-    setReplyingTo(null);
-    setReplyText("");
   }, []);
 
   const handleTabPress = useCallback((tab: CommunityTab) => {
@@ -678,8 +656,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       activeTab,
       refreshing,
       showCreateModal,
-      replyingTo,
-      replyText,
       showReplyButtons,
       loadingMore,
       hasMore,
@@ -693,8 +669,6 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
       activeTab,
       refreshing,
       showCreateModal,
-      replyingTo,
-      replyText,
       showReplyButtons,
       loadingMore,
       hasMore,
@@ -708,10 +682,7 @@ export const useCommunity = (): [UseCommunityState, UseCommunityActions] => {
     handleLike,
     handleComment,
     handleReply,
-    handleReplySubmit,
-    handleReplyCancel,
     handleTabPress,
-    setReplyText,
     loadMore,
   };
 

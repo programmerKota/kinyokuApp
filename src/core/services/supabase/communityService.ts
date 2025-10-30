@@ -178,30 +178,61 @@ export class CommunityService {
 
   static async addReply(
     postId: string,
-    data: { content: string },
+    data: {
+      content: string;
+      authorId?: string;
+      authorName?: string | null;
+      authorAvatar?: string | null;
+    },
   ): Promise<string> {
     if (!supabaseConfig?.isConfigured) return "dev-placeholder-id";
-    const { data: s } = await supabase.auth.getSession();
-    const authorId = s?.session?.user?.id;
-    if (!authorId) throw new Error("AUTH_REQUIRED");
-    let authorName: string | null = null;
-    let authorAvatar: string | null = null;
-    try {
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("displayName, photoURL")
-        .eq("id", authorId)
-        .maybeSingle();
-      if (prof) {
-        const raw = prof?.displayName as string | undefined;
-        // Never persist an email-like value as authorName; let view fall back to profiles or 'ユーザー'
-        authorName =
-          raw && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : (raw ?? null);
-        authorAvatar = prof?.photoURL ?? null;
-      }
-    } catch (e) {
-      Logger.warn("CommunityService.addReply.profile", e, { authorId });
+    const {
+      content,
+      authorId: providedAuthorId,
+      authorName: providedAuthorName,
+      authorAvatar: providedAuthorAvatar,
+    } = data;
+    const sanitizeAuthorName = (raw?: string | null) => {
+      if (!raw) return null;
+      return /[^@\s]+@[^@\s]+\.[^@\s]+/.test(raw) ? null : raw;
+    };
+    let authorId = providedAuthorId;
+    if (!authorId) {
+      const { data: s } = await supabase.auth.getSession();
+      authorId = s?.session?.user?.id ?? undefined;
     }
+    if (!authorId) throw new Error("AUTH_REQUIRED");
+
+    let authorName: string | null | undefined =
+      providedAuthorName === undefined
+        ? undefined
+        : sanitizeAuthorName(providedAuthorName);
+    let authorAvatar: string | null | undefined =
+      providedAuthorAvatar === undefined ? undefined : providedAuthorAvatar ?? null;
+
+    const shouldFetchProfile =
+      authorName === undefined && authorAvatar === undefined;
+
+    if (shouldFetchProfile) {
+      try {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("displayName, photoURL")
+          .eq("id", authorId)
+          .maybeSingle();
+        if (prof) {
+          const raw = prof?.displayName as string | undefined;
+          // Never persist an email-like value as authorName; let view fall back to profiles or 'ユーザー'
+          authorName = sanitizeAuthorName(raw);
+          authorAvatar = prof?.photoURL ?? null;
+        }
+      } catch (e) {
+        Logger.warn("CommunityService.addReply.profile", e, { authorId });
+      }
+    }
+
+    if (authorName === undefined) authorName = null;
+    if (authorAvatar === undefined) authorAvatar = null;
     const now = new Date().toISOString();
 
     const { data: inserted, error } = await supabase
@@ -211,7 +242,7 @@ export class CommunityService {
         authorId,
         authorName,
         authorAvatar,
-        content: data.content,
+        content,
         createdAt: now,
         updatedAt: now,
       })

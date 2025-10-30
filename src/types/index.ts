@@ -1,3 +1,25 @@
+import type {
+  FailureDeviceKey,
+  FailureFeelingKey,
+  FailureOtherKey,
+  FailurePlaceKey,
+  FailureTimeSlotKey,
+} from "@features/challenge/constants/failureReflectionOptions";
+
+export type FailureSingleOptionSelection<T extends string> = {
+  option: T | FailureOtherKey | null;
+  customValue?: string | null;
+};
+
+export interface FailureReflection {
+  timeSlot: FailureSingleOptionSelection<FailureTimeSlotKey>;
+  device: FailureSingleOptionSelection<FailureDeviceKey>;
+  feelings: Array<FailureSingleOptionSelection<FailureFeelingKey>>;
+  place: FailureSingleOptionSelection<FailurePlaceKey>;
+  otherNote?: string | null;
+  recordedAt?: string;
+}
+
 // ユーザー関連の型定義
 export interface User {
   uid: string;
@@ -19,6 +41,8 @@ export interface Challenge {
   completedAt?: Date;
   failedAt?: Date;
   totalPenaltyPaid: number;
+  reflectionNote?: string | null;
+  reflection?: FailureReflection | null;
   createdAt: Date;
   updatedAt: Date;
 }

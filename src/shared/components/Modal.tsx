@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Modal as RNModal,
   View,
@@ -46,6 +46,38 @@ const Modal: React.FC<ModalProps> = ({
   const styles = useMemo(() => createStyles(mode), [mode]);
   const insets = useSafeAreaInsets();
   const contentBottomPad = spacing["2xl"] + Math.max(insets.bottom, 12);
+  const keyboardVerticalOffset = Platform.OS === "ios" ? insets.top : 0;
+  const [keyboardShift, setKeyboardShift] = useState(0);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const handleShow = (event: any) => {
+      try {
+        const height = Math.max(event.endCoordinates?.height ?? 0, 0);
+        setKeyboardShift(Math.max(height - insets.bottom, 0));
+      } catch {
+        setKeyboardShift(0);
+      }
+    };
+
+    const handleHide = () => setKeyboardShift(0);
+
+    const showSub = Keyboard.addListener(showEvent, handleShow);
+    const hideSub = Keyboard.addListener(hideEvent, handleHide);
+
+    return () => {
+      try {
+        showSub.remove();
+      } catch {}
+      try {
+        hideSub.remove();
+      } catch {}
+    };
+  }, [insets.bottom]);
 
   const handleBackdropPress = () => {
     Keyboard.dismiss();
@@ -69,10 +101,19 @@ const Modal: React.FC<ModalProps> = ({
         />
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={keyboardVerticalOffset}
           style={styles.keyboardAvoidingView}
         >
-          <View style={[styles.modalContainer, maxWidth ? { maxWidth } : null]}>
+          <View
+            style={[
+              styles.modalContainer,
+              maxWidth ? { maxWidth } : null,
+              Platform.OS === "android" && keyboardShift > 0
+                ? { marginBottom: keyboardShift }
+                : null,
+            ]}
+          >
             {!hideHeader && (
               <View style={styles.header}>
                 <Text style={styles.title}>{title}</Text>
@@ -198,3 +239,4 @@ const createStyles = (mode: "light" | "dark") => {
 };
 
 export default Modal;
+

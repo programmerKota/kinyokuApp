@@ -15,6 +15,7 @@ type Props = {
   authorName?: string;
   authorAvatar?: string;
   averageDays?: number;
+  day?: number;
   content: string;
   createdAt: DateLike;
   onAuthorPress?: (uid: string, userName?: string) => void;
@@ -25,6 +26,7 @@ const DiaryCard: React.FC<Props> = ({
   authorName,
   authorAvatar,
   averageDays = 0,
+  day,
   content,
   createdAt,
   onAuthorPress,
@@ -39,11 +41,18 @@ const DiaryCard: React.FC<Props> = ({
     authorName,
     authorAvatar,
   );
+  const dayLabel = useMemo(() => {
+    if (typeof day !== "number") return null;
+    if (Number.isNaN(day)) return null;
+    const normalizedDay = Math.trunc(day);
+    if (normalizedDay <= 0) return null;
+    return `${normalizedDay}日目の日記`;
+  }, [day]);
 
   return (
     <View style={styles.container}>
       <View style={styles.inner}>
-        <View style={[uiStyles.rowStart, styles.header]}>
+        <View style={styles.header}>
           <UserProfileWithRank
             userName={displayName || "ユーザー"}
             userAvatar={displayAvatar}
@@ -54,7 +63,10 @@ const DiaryCard: React.FC<Props> = ({
             showTitle={true}
             style={styles.userProfileContainer}
           />
-          <RelativeTime value={createdAt} style={styles.timestampRight} />
+          <View style={styles.metaContainer}>
+            {dayLabel && <Text style={styles.dayBadge}>{dayLabel}</Text>}
+            <RelativeTime value={createdAt} style={styles.timestampRight} />
+          </View>
         </View>
 
         <View
@@ -81,13 +93,26 @@ const createStyles = (colors: ColorPalette) =>
       alignItems: "flex-start",
       marginBottom: spacing.sm,
       width: "100%",
-      justifyContent: "space-between",
     },
     timestampRight: {
-      marginLeft: spacing.md,
+      marginTop: spacing.xs,
       color: colors.textSecondary,
       fontSize: 14,
       flexShrink: 0,
+    },
+    metaContainer: {
+      alignItems: "flex-end",
+      marginLeft: spacing.md,
+    },
+    dayBadge: {
+      backgroundColor: colors.infoLight,
+      color: colors.info,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: "600",
+      marginBottom: spacing.xs,
     },
     userProfileContainer: { flex: 1 },
     content: { marginBottom: spacing.xs },
@@ -100,5 +125,6 @@ export default React.memo(
     a.authorId === b.authorId &&
     a.content === b.content &&
     String(a.createdAt) === String(b.createdAt) &&
-    a.averageDays === b.averageDays,
+    a.averageDays === b.averageDays &&
+    a.day === b.day,
 );

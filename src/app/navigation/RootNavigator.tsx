@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React, { useMemo } from "react";
 
 import CommunityScreen from "@features/community/screens/CommunityScreen";
+import ReplyComposerScreen from "@features/community/screens/ReplyComposerScreen";
 import E2EScreen from "@features/e2e/screens/E2EScreen";
 import FeedbackScreen from "@features/feedback/screens/FeedbackScreen";
 import HomeScreen from "@features/home/screens/HomeScreen";
@@ -26,11 +27,18 @@ const DevCrudTestScreen: React.ComponentType<any> | null = __DEV__
   : null;
 
 const Tab = createBottomTabNavigator();
+// 投稿タブを再開するときは true に切り替える
+const ENABLE_COMMUNITY_TAB = false;
 export type RootStackParamList = {
   MainTabs: undefined;
   History: undefined;
   Diary: undefined;
   Ranking: undefined;
+  CommunityReplyComposer: {
+    postId: string;
+    postAuthorName?: string;
+    postContentPreview?: string;
+  };
   UserDetail: { userId: string; userName?: string; userAvatar?: string };
   FollowList: {
     userId: string;
@@ -100,11 +108,13 @@ const MainTabs: React.FC = () => {
         component={TournamentStackNavigator}
         options={{ tabBarLabel: "大会" }}
       />
-      <Tab.Screen
-        name="Community"
-        component={CommunityScreen}
-        options={{ tabBarLabel: "投稿" }}
-      />
+      {ENABLE_COMMUNITY_TAB ? (
+        <Tab.Screen
+          name="Community"
+          component={CommunityScreen}
+          options={{ tabBarLabel: "投稿" }}
+        />
+      ) : null}
       <Tab.Screen
         name="Settings"
         component={ProfileScreen}
@@ -149,6 +159,10 @@ const RootNavigator: React.FC = () => {
         <RootStack.Screen name="History" component={HistoryStackNavigator} />
         <RootStack.Screen name="Diary" component={DiaryStackNavigator} />
         <RootStack.Screen name="Ranking" component={RankingStackNavigator} />
+        <RootStack.Screen
+          name="CommunityReplyComposer"
+          component={ReplyComposerScreen}
+        />
         <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
         <RootStack.Screen name="FollowList" component={FollowListScreen} />
         <RootStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />

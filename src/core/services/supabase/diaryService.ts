@@ -6,11 +6,12 @@ export class DiaryService {
   static async getUserDiaries(userId: string): Promise<FirestoreDiary[]> {
     if (!supabaseConfig?.isConfigured) return [];
     const { data: s } = await supabase.auth.getSession();
-    const uid = s?.session?.user?.id || userId;
+    const targetUserId = userId || s?.session?.user?.id;
+    if (!targetUserId) return [];
     const { data, error } = await supabase
       .from("diaries")
       .select("*")
-      .eq("userId", uid)
+      .eq("userId", targetUserId)
       .order("createdAt", { ascending: false });
     if (error) throw error;
     return (data || []) as unknown as FirestoreDiary[];

@@ -51,3 +51,4 @@ UNION ALL
 SELECT 'blocks', COUNT(*) FROM public.blocks
 UNION ALL
 SELECT 'payments', COUNT(*) FROM public.payments;
+

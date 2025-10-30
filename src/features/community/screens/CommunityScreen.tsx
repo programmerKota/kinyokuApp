@@ -1,6 +1,6 @@
 ﻿import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import type { StackNavigationProp } from "@react-navigation/stack";
+import type { NavigationProp } from "@react-navigation/native";
 import React, { useCallback, useMemo } from "react";
 import {
   View,
@@ -8,12 +8,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import type { TournamentStackParamList } from "@app/navigation/TournamentStackNavigator";
 import CreatePostModal from "@features/community/components/CreatePostModal";
 import PostList from "@features/community/components/PostList";
 import useCommunity from "@features/community/hooks/useCommunity";
@@ -21,7 +18,6 @@ import type { CommunityPost } from "@project-types";
 import { useAuthPrompt } from "@shared/auth/AuthPromptProvider";
 import Button from "@shared/components/Button";
 import KeyboardAwareScrollView from "@shared/components/KeyboardAwareScrollView";
-import ReplyInputBar from "@shared/components/ReplyInputBar";
 import {
   spacing,
   typography,
@@ -34,10 +30,10 @@ import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
 
-type Nav = StackNavigationProp<TournamentStackParamList>;
+import type { RootStackParamList } from "@app/navigation/RootNavigator";
 
 const CommunityScreen: React.FC = () => {
-  const navigation = useNavigation<Nav>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [state, actions] = useCommunity();
   const { requireAuth } = useAuthPrompt();
   const { mode } = useAppTheme();
@@ -48,8 +44,6 @@ const CommunityScreen: React.FC = () => {
     posts,
     likedPosts,
     activeTab,
-    replyingTo,
-    replyText,
     showReplyButtons,
     replyCounts,
     userAverageDays,
@@ -65,10 +59,7 @@ const CommunityScreen: React.FC = () => {
     handleLike,
     handleComment,
     handleReply,
-    handleReplySubmit,
-    handleReplyCancel,
     handleTabPress,
-    setReplyText,
     loadMore,
   } = actions;
   // 相対時間は各セル内の RelativeTime コンポーネントで個別に更新する
@@ -83,6 +74,26 @@ const CommunityScreen: React.FC = () => {
       );
     },
     [navigation],
+  );
+
+  const handleReplyPress = useCallback(
+    async (postId: string) => {
+      const ok = await requireAuth();
+      if (!ok) return;
+      handleReply(postId);
+      const post = posts.find((p) => p.id === postId);
+      const previewRaw = post?.content?.trim();
+      const preview =
+        previewRaw && previewRaw.length > 160
+          ? `${previewRaw.slice(0, 160).trim()}…`
+          : previewRaw ?? undefined;
+      navigation.navigate("CommunityReplyComposer", {
+        postId,
+        postAuthorName: post?.authorName,
+        postContentPreview: preview,
+      });
+    },
+    [handleReply, navigation, posts, requireAuth],
   );
 
   // PostList が各種描画を担当
@@ -149,7 +160,7 @@ const CommunityScreen: React.FC = () => {
             void handleLike(id);
           }}
           onComment={handleComment}
-          onReply={handleReply}
+          onReply={handleReplyPress}
           onUserPress={(uid, uname) =>
             handlePostPress({
               authorId: uid,
@@ -197,23 +208,6 @@ const CommunityScreen: React.FC = () => {
           }
         />
       </KeyboardAwareScrollView>
-
-      {replyingTo && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "padding"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 16}
-        >
-          <ReplyInputBar
-            value={replyText}
-            onChangeText={setReplyText}
-            onCancel={handleReplyCancel}
-            onSubmit={() => {
-              void handleReplySubmit();
-            }}
-            autoFocus
-          />
-        </KeyboardAvoidingView>
-      )}
 
       <TouchableOpacity
         style={styles.fab}

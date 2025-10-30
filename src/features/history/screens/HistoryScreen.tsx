@@ -1,13 +1,16 @@
+import type { HistoryStackParamList } from "@app/navigation/HistoryStackNavigator";
+import type { Challenge, Payment } from "@project-types";
+import type { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,27 +21,26 @@ import {
 } from "@core/services/firestore";
 import { StatsService } from "@core/services/statsService";
 import HistoryCard from "@features/history/components/HistoryCard";
-import type { Challenge, Payment } from "@project-types";
 import {
   spacing,
   typography,
   useAppTheme,
   useThemedStyles,
 } from "@shared/theme";
-import AppStatusBar from "@shared/theme/AppStatusBar";
+import AppStatusBarComponent from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 import { toDate, type DateLike } from "@shared/utils/date";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<HistoryStackParamList, "HistoryMain">>();
   const { mode } = useAppTheme();
   const colors = useMemo(
     () => colorSchemes[mode] ?? colorSchemes.light,
     [mode],
   );
-  const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
   const styles = useThemedStyles(createStyles);
 
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -70,6 +72,8 @@ const HistoryScreen: React.FC = () => {
             ? toDate(challenge.failedAt as unknown as DateLike)
             : undefined,
           totalPenaltyPaid: challenge.totalPenaltyPaid,
+          reflectionNote: challenge.reflectionNote ?? null,
+          reflection: challenge.reflection ?? null,
           createdAt: toDate(challenge.createdAt as unknown as DateLike),
           updatedAt: toDate(challenge.updatedAt as unknown as DateLike),
         }));
@@ -124,6 +128,8 @@ const HistoryScreen: React.FC = () => {
           ? toDate(challenge.failedAt as unknown as DateLike)
           : undefined,
         totalPenaltyPaid: challenge.totalPenaltyPaid,
+        reflection: challenge.reflection ?? null,
+        reflectionNote: challenge.reflectionNote ?? null,
         createdAt: toDate(challenge.createdAt as unknown as DateLike),
         updatedAt: toDate(challenge.updatedAt as unknown as DateLike),
       }));
@@ -152,11 +158,15 @@ const HistoryScreen: React.FC = () => {
     }
   };
 
+  const handleNavigateToSummary = useCallback(() => {
+    navigation.navigate("FailureSummary");
+  }, [navigation]);
+
   const challengeStats = StatsService.calculateStats(challenges);
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppStatusBar />
+      <AppStatusBarComponent />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -166,7 +176,14 @@ const HistoryScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>履歴</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          style={styles.summaryButton}
+          activeOpacity={0.8}
+          onPress={handleNavigateToSummary}
+        >
+          <Ionicons name="analytics-outline" size={18} color={colors.primary} />
+          <Text style={styles.summaryButtonText}>原因サマリー</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -344,8 +361,23 @@ const createStyles = (colors: ColorPalette) => {
       textAlign: "center",
       flex: 1,
     },
-    placeholder: {
-      width: 40,
+    summaryButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      backgroundColor: colors.backgroundSecondary,
+      minWidth: 120,
+      justifyContent: "center",
+    },
+    summaryButtonText: {
+      marginLeft: spacing.xs,
+      color: colors.primary,
+      fontSize: typography.fontSize.sm,
+      fontWeight: typography.fontWeight.semibold,
     },
     content: {
       flex: 1,

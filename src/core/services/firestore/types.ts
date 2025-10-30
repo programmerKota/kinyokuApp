@@ -1,3 +1,5 @@
+import type { FailureReflection } from "@project-types";
+
 export interface FirestoreUser {
   id: string;
   email: string;
@@ -17,6 +19,8 @@ export interface FirestoreChallenge {
   completedAt?: Date | null;
   failedAt?: Date | null;
   totalPenaltyPaid: number;
+  reflectionNote?: string | null;
+  reflection?: FailureReflection | null;
   createdAt: Date;
   updatedAt: Date;
 }

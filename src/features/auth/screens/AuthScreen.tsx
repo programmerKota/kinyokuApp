@@ -12,8 +12,13 @@ import {
   Platform,
   Image,
   KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+  type EdgeInsets,
+} from "react-native-safe-area-context";
 
 import { oauthConfig } from "@app/config/oauth.config";
 import { supabase } from "@app/config/supabase.config";
@@ -39,9 +44,18 @@ const PRIVACY_URL = "https://example.com/privacy";
 
 const AuthScreen: React.FC = () => {
   const { mode } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const colors = useMemo(() => colorSchemes[mode], [mode]);
   const screenThemes = useMemo(() => createScreenThemes(colors), [colors]);
-  const styles = useMemo(() => createAuthStyles(colors), [colors]);
+  const styles = useMemo(
+    () => createAuthStyles(colors, insets),
+    [colors, insets],
+  );
+  const keyboardVerticalOffset =
+    (Platform.OS === "ios" ? spacing.lg : 0) + insets.top;
+  const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
+  const scrollBottomInset =
+    (Platform.OS === "ios" ? insets.bottom : 0) + spacing.lg;
 
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -64,6 +78,7 @@ const AuthScreen: React.FC = () => {
     visible: boolean;
     type: "terms" | "privacy";
   }>({ visible: false, type: "terms" });
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   // 開発用バイパスは無効化（状態は廃止）
   // const [devBypass, setDevBypass] = useState(false);
   // Password recovery flow (Supabase PASSWORD_RECOVERY event)
@@ -125,6 +140,25 @@ const AuthScreen: React.FC = () => {
         }
       } catch {}
     })();
+  }, []);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, () => {
+      setKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   const validateEmail = useCallback((v: string) => {
@@ -430,18 +464,24 @@ const AuthScreen: React.FC = () => {
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
+        behavior={keyboardBehavior}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <ScrollView
-          contentContainerStyle={styles.container}
+          contentContainerStyle={[
+            styles.container,
+            keyboardVisible && styles.containerKeyboard,
+          ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={
             Platform.OS === "ios" ? "interactive" : "on-drag"
           }
           automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           contentInsetAdjustmentBehavior="always"
-          scrollIndicatorInsets={{ bottom: 16 }}
+          contentInset={
+            Platform.OS === "ios" ? { bottom: scrollBottomInset } : undefined
+          }
+          scrollIndicatorInsets={{ bottom: scrollBottomInset }}
         >
           <View style={styles.card}>
             <Text style={styles.brand}>abstinence</Text>
@@ -980,14 +1020,21 @@ const AuthScreen: React.FC = () => {
   );
 };
 
-const createAuthStyles = (colors: ColorPalette) =>
+const createAuthStyles = (colors: ColorPalette, insets: EdgeInsets) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
       backgroundColor: colors.backgroundSecondary,
       alignItems: "center",
       justifyContent: "center",
-      padding: spacing["2xl"],
+      paddingHorizontal: spacing["2xl"],
+      paddingTop: spacing["2xl"] + insets.top,
+      paddingBottom:
+        spacing["2xl"] + Math.max(insets.bottom, spacing.lg),
+    },
+    containerKeyboard: {
+      justifyContent: "flex-start",
+      paddingTop: spacing.xl + insets.top,
     },
     card: {
       width: "100%",

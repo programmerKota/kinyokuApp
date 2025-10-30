@@ -42,6 +42,8 @@ const ActionCard = ({
   onPress,
   styles,
   colors,
+  iconColor,
+  showDivider = true,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
@@ -49,39 +51,58 @@ const ActionCard = ({
   onPress: () => void | Promise<void>;
   styles: Styles;
   colors: ColorPalette;
+  iconColor?: string;
+  showDivider?: boolean;
 }) => (
-  <TouchableOpacity
-    activeOpacity={0.85}
-    style={styles.actionCard}
-    onPress={() => {
-      void onPress();
-    }}
-  >
-    <View style={styles.actionIconWrap}>
-      <Ionicons name={icon} size={22} color={colors.info} />
-    </View>
-    <View style={styles.actionTextWrap}>
-      <Text style={styles.actionTitle}>{title}</Text>
-      {description ? (
-        <Text style={styles.actionDesc}>{description}</Text>
-      ) : null}
-    </View>
-    <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-  </TouchableOpacity>
+  <>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={styles.actionCard}
+      onPress={() => {
+        void onPress();
+      }}
+    >
+      <View style={styles.actionIconWrap}>
+        <Ionicons 
+          name={icon} 
+          size={20} 
+          color={iconColor || colors.info} 
+        />
+      </View>
+      <View style={styles.actionTextWrap}>
+        <Text style={styles.actionTitle}>{title}</Text>
+        {description ? (
+          <Text style={styles.actionDesc}>{description}</Text>
+        ) : null}
+      </View>
+      <Ionicons 
+        name="chevron-forward" 
+        size={18} 
+        color={colors.textTertiary} 
+      />
+    </TouchableOpacity>
+    {showDivider && <View style={styles.actionDivider} />}
+  </>
 );
 
 const Section = ({
   title,
   children,
   styles,
+  colors,
 }: {
   title: string;
   children: React.ReactNode;
   styles: Styles;
+  colors: ColorPalette;
 }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.sectionBody}>{children}</View>
+  <View style={styles.sectionContainer}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+    <View style={styles.sectionCard}>
+      <View style={styles.sectionBody}>{children}</View>
+    </View>
   </View>
 );
 
@@ -199,63 +220,85 @@ const ProfileScreen: React.FC = () => {
           </View>
         ) : (
           <View style={styles.settingsContainer}>
-            <View style={styles.actionGrid}>
-              <Section title="アカウント" styles={styles}>
-                <ActionCard
-                  icon="pencil"
-                  title="プロフィールを編集"
-                  description="名前や画像を変更できます"
-                  onPress={handleStartEdit}
-                  styles={styles}
-                  colors={colors}
-                />
-                <ActionCard
-                  icon="log-out-outline"
-                  title="ログアウト"
-                  description="サインアウトしてログイン画面に戻ります"
-                  onPress={() => {
-                    setShowLogoutConfirm(true);
-                  }}
-                  styles={styles}
-                  colors={colors}
-                />
-              </Section>
-              <Section title="表示設定" styles={styles}>
-                <View style={styles.themeRow}>
-                  <View style={styles.themeTextWrap}>
-                    <Text style={styles.themeTitle}>ダークモード</Text>
-                    <Text style={styles.themeDesc}>
-                      アプリ全体のテーマを切り替えます
-                    </Text>
-                  </View>
-                  <Switch value={isDark} onValueChange={toggle} />
+            <Section title="アカウント" styles={styles} colors={colors}>
+              <ActionCard
+                icon="person-outline"
+                title="プロフィールを編集"
+                description="名前や画像を変更できます"
+                onPress={handleStartEdit}
+                styles={styles}
+                colors={colors}
+                iconColor={colors.info}
+                showDivider={true}
+              />
+              <ActionCard
+                icon="log-out-outline"
+                title="ログアウト"
+                description="サインアウトしてログイン画面に戻ります"
+                onPress={() => {
+                  setShowLogoutConfirm(true);
+                }}
+                styles={styles}
+                colors={colors}
+                iconColor={colors.error}
+                showDivider={false}
+              />
+            </Section>
+            <Section title="表示設定" styles={styles} colors={colors}>
+              <View style={styles.themeRow}>
+                <View style={styles.themeIconWrap}>
+                  <Ionicons 
+                    name={isDark ? "moon" : "sunny-outline"} 
+                    size={20} 
+                    color={colors.info} 
+                  />
                 </View>
-              </Section>
-              <Section title="プライバシー" styles={styles}>
-                <ActionCard
-                  icon="hand-left-outline"
-                  title="ブロック中のユーザー"
-                  description="ブロックしたユーザーの一覧を表示"
-                  onPress={() => {
-                    void navigation.navigate("BlockedUsers");
+                <View style={styles.themeTextWrap}>
+                  <Text style={styles.themeTitle}>ダークモード</Text>
+                  <Text style={styles.themeDesc}>
+                    アプリ全体のテーマを切り替えます
+                  </Text>
+                </View>
+                <Switch 
+                  value={isDark} 
+                  onValueChange={toggle}
+                  trackColor={{ 
+                    false: colors.gray300, 
+                    true: colors.info + "80" 
                   }}
-                  styles={styles}
-                  colors={colors}
+                  thumbColor={isDark ? colors.info : colors.white}
+                  ios_backgroundColor={colors.gray300}
                 />
-              </Section>
-              <Section title="サポート" styles={styles}>
-                <ActionCard
-                  icon="mail-outline"
-                  title="開発者へフィードバック"
-                  description="不具合報告・改善提案を送信"
-                  onPress={() => {
-                    void navigation.navigate("Feedback");
-                  }}
-                  styles={styles}
-                  colors={colors}
-                />
-              </Section>
-            </View>
+              </View>
+            </Section>
+            <Section title="プライバシー" styles={styles} colors={colors}>
+              <ActionCard
+                icon="shield-checkmark-outline"
+                title="ブロック中のユーザー"
+                description="ブロックしたユーザーの一覧を表示"
+                onPress={() => {
+                  void navigation.navigate("BlockedUsers");
+                }}
+                styles={styles}
+                colors={colors}
+                iconColor={colors.warning}
+                showDivider={false}
+              />
+            </Section>
+            <Section title="サポート" styles={styles} colors={colors}>
+              <ActionCard
+                icon="chatbubble-ellipses-outline"
+                title="開発者へフィードバック"
+                description="不具合報告・改善提案を送信"
+                onPress={() => {
+                  void navigation.navigate("Feedback");
+                }}
+                styles={styles}
+                colors={colors}
+                iconColor={colors.secondary}
+                showDivider={false}
+              />
+            </Section>
           </View>
         )}
       </ScrollView>
@@ -339,8 +382,9 @@ const createStyles = (colors: ColorPalette) => {
     },
     settingsContainer: {
       paddingHorizontal: spacing.xl,
-      paddingTop: spacing.xl,
-      paddingBottom: spacing.xl,
+      paddingTop: spacing["2xl"],
+      paddingBottom: spacing["4xl"],
+      gap: spacing["2xl"],
     },
     loadingContainer: {
       flex: 1,
@@ -368,42 +412,46 @@ const createStyles = (colors: ColorPalette) => {
       shadowColor: isLightMode ? colors.shadowDark : colors.black,
       shadowOpacity: isLightMode ? 0.1 : 0.35,
     },
-    actionGrid: {
-      width: "100%",
-      marginTop: 18,
-      paddingHorizontal: spacing.lg,
-      gap: 12,
+    sectionContainer: {
+      marginBottom: 0,
     },
-    section: {
-      marginBottom: spacing.lg,
+    sectionHeader: {
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.md,
     },
     sectionTitle: {
-      fontSize: typography.fontSize.sm,
-      fontWeight: "600",
+      fontSize: typography.fontSize.xs,
+      fontWeight: "700",
+      letterSpacing: 0.5,
       color: colors.textSecondary,
-      marginLeft: spacing.md,
-      marginBottom: 6,
+      textTransform: "uppercase",
+    },
+    sectionCard: {
+      backgroundColor: screenThemes.profile.cardBg,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: subtleBorder,
+      overflow: "hidden",
+      ...shadows.sm,
+      shadowColor: isLightMode ? colors.shadowMedium : colors.black,
+      shadowOpacity: isLightMode ? 0.06 : 0.25,
     },
     sectionBody: {
-      gap: 10,
+      gap: 1,
+      paddingVertical: spacing.xs,
     },
     actionCard: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: screenThemes.profile.cardBg,
-      borderWidth: 1,
-      borderColor: subtleBorder,
-      borderRadius: 14,
-      paddingVertical: spacing.md,
+      backgroundColor: "transparent",
+      paddingVertical: spacing.lg,
       paddingHorizontal: spacing.lg,
-      ...shadows.base,
-      shadowColor: isLightMode ? colors.shadowMedium : colors.black,
-      shadowOpacity: isLightMode ? 0.08 : 0.3,
+      minHeight: 64,
     },
     actionIconWrap: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 40,
+      height: 40,
+      borderRadius: 12,
       backgroundColor: screenThemes.profile.tintSoft,
       alignItems: "center",
       justifyContent: "center",
@@ -411,16 +459,23 @@ const createStyles = (colors: ColorPalette) => {
     },
     actionTextWrap: {
       flex: 1,
+      justifyContent: "center",
     },
     actionTitle: {
       fontSize: typography.fontSize.base,
       fontWeight: "600",
-      color: colors.gray800,
+      color: colors.textPrimary,
+      marginBottom: 2,
     },
     actionDesc: {
-      marginTop: 2,
       fontSize: typography.fontSize.sm,
       color: colors.textSecondary,
+      lineHeight: 18,
+    },
+    actionDivider: {
+      height: 1,
+      backgroundColor: subtleBorder,
+      marginHorizontal: spacing.lg,
     },
     avatarContainer: {
       marginTop: 8,
@@ -597,23 +652,33 @@ const createStyles = (colors: ColorPalette) => {
     themeRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: spacing.sm,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      minHeight: 64,
+    },
+    themeIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: screenThemes.profile.tintSoft,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: spacing.md,
     },
     themeTextWrap: {
       flex: 1,
-      marginRight: spacing.md,
+      justifyContent: "center",
     },
     themeTitle: {
       fontSize: typography.fontSize.base,
       fontWeight: "600",
       color: colors.textPrimary,
-      marginBottom: 4,
+      marginBottom: 2,
     },
     themeDesc: {
       fontSize: typography.fontSize.sm,
       color: colors.textSecondary,
-      marginBottom: 0,
+      lineHeight: 18,
     },
   });
 };

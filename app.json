@@ -25,6 +25,7 @@
     },
     "android": {
       "package": "com.example.abstinence",
+      "windowSoftInputMode": "adjustResize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

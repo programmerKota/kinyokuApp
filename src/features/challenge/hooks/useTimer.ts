@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import type { FailureReflection } from "@project-types";
+
 import { useAuth } from "@app/contexts/AuthContext";
 import { ChallengeService } from "@core/services/firestore";
 import { useModal } from "@shared/hooks";
@@ -37,7 +39,10 @@ export interface UseTimerActions {
   showStopModal: () => void;
   hideStopModal: () => void;
   startChallenge: (goalDays: number, penaltyAmount: number) => Promise<void>;
-  stopChallenge: (isCompleted: boolean) => Promise<void>;
+  stopChallenge: (
+    isCompleted: boolean,
+    reflection?: FailureReflection | null,
+  ) => Promise<void>;
 }
 
 function safeToDate(input: unknown): Date | undefined {
@@ -184,11 +189,14 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
   );
 
   const stopChallenge = useCallback(
-    async (isCompleted: boolean) => {
+    async (isCompleted: boolean, reflection?: FailureReflection | null) => {
       if (!currentSession) throw new Error("進行中のチャレンジがありません");
       setIsLoading(true);
       try {
         const now = new Date();
+        const reflectionPayload = reflection
+          ? { ...reflection, recordedAt: new Date().toISOString() }
+          : null;
 
         // E2E/web fallback: finalize locally
         if (isE2E) {
@@ -202,6 +210,9 @@ export const useTimer = (): [UseTimerState, UseTimerActions] => {
             completedAt: isCompleted ? now : null,
             failedAt: !isCompleted ? now : null,
             totalPenaltyPaid: isCompleted ? 0 : currentSession.penaltyAmount,
+            reflectionNote: reflectionPayload
+              ? JSON.stringify(reflectionPayload)
+              : null,
           });
         }
 
