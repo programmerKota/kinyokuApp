@@ -34,6 +34,15 @@ import { formatDateTimeJP } from "@shared/utils/date";
 
 const MAX_CUSTOM_NOTES = 30;
 
+const FAILURE_DURATION_BUCKETS = [
+  { key: "days_1_3", label: "1～3日目" },
+  { key: "days_4_7", label: "4～7日目" },
+  { key: "days_8_14", label: "8～14日目" },
+  { key: "days_15_21", label: "15～21日目" },
+  { key: "days_22_30", label: "22～30日目" },
+  { key: "days_31_plus", label: "31日目以降" },
+] as const;
+
 const sanitizeCustomValue = (value?: string | null) => {
   const trimmed = value?.trim() ?? "";
   return trimmed.length > 0 ? trimmed : null;
@@ -60,6 +69,7 @@ type CustomNote = {
 };
 
 type FailureSummaryData = {
+  duration: SummarySectionData;
   time: SummarySectionData;
   device: SummarySectionData;
   place: SummarySectionData;
@@ -101,6 +111,23 @@ const toSummarySection = (
     }))
     .sort((a, b) => b.count - a.count);
   return { title, total, items };
+};
+
+const categorizeFailureDuration = (
+  startedAt?: Date | null,
+  failedAt?: Date | null,
+): (typeof FAILURE_DURATION_BUCKETS)[number]["key"] | null => {
+  if (!startedAt || !failedAt) return null;
+  const start = startedAt.getTime();
+  const end = failedAt.getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+  const diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  if (diffDays <= 3) return "days_1_3";
+  if (diffDays <= 7) return "days_4_7";
+  if (diffDays <= 14) return "days_8_14";
+  if (diffDays <= 21) return "days_15_21";
+  if (diffDays <= 30) return "days_22_30";
+  return "days_31_plus";
 };
 
 const resolveTimestamp = (
@@ -147,6 +174,7 @@ const FailureSummaryScreen: React.FC = () => {
 
       try {
         const challenges = await ChallengeService.getUserChallenges(user.uid);
+        const durationCounts = new Map<string, number>();
         const timeCounts = new Map<string, number>();
         const deviceCounts = new Map<string, number>();
         const placeCounts = new Map<string, number>();
@@ -248,8 +276,15 @@ const FailureSummaryScreen: React.FC = () => {
               recordedAt,
             });
           }
-        });
 
+          const durationKey = categorizeFailureDuration(
+            challenge.startedAt,
+            challenge.failedAt,
+          );
+          if (durationKey) {
+            incrementCount(durationCounts, durationKey);
+          }
+        });
         const sortedNotes = customNotes
           .sort((a, b) => {
             const at = a.recordedAt ?? "";
@@ -260,6 +295,11 @@ const FailureSummaryScreen: React.FC = () => {
           .slice(0, MAX_CUSTOM_NOTES);
 
         setSummary({
+          duration: toSummarySection(
+            "失敗までの日数",
+            durationCounts,
+            FAILURE_DURATION_BUCKETS,
+          ),
           time: toSummarySection(
             "時間帯（失敗発生時）",
             timeCounts,
@@ -325,7 +365,13 @@ const FailureSummaryScreen: React.FC = () => {
 
   const sections = useMemo(() => {
     if (!summary) return [];
-    return [summary.time, summary.device, summary.place, summary.feelings];
+    return [
+      summary.duration,
+      summary.time,
+      summary.device,
+      summary.place,
+      summary.feelings,
+    ];
   }, [summary]);
 
   const groupedNotes = useMemo(() => {

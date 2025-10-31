@@ -17,6 +17,9 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
         "HUSKY": "0"
@@ -24,6 +27,9 @@
     },
     "production": {
       "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
         "HUSKY": "0",

@@ -32,6 +32,7 @@ import AppStatusBar from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import AdBanner from "@shared/components/AdBanner";
 
 type TournamentsScreenNavigationProp = StackNavigationProp<
   TournamentStackParamList,
@@ -260,6 +261,8 @@ const TournamentsScreen: React.FC = () => {
         }
       />
 
+      <AdBanner placement="大会一覧" style={styles.adBanner} />
+
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setShowCreateModal(true)}
@@ -312,6 +315,10 @@ const createStyles = (colors: ColorPalette) => {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
       paddingBottom: spacing.xl,
+    },
+    adBanner: {
+      marginHorizontal: spacing.xl,
+      marginBottom: spacing.lg,
     },
     fab: {
       position: "absolute",

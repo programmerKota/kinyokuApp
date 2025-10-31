@@ -25,7 +25,6 @@
     },
     "android": {
       "package": "com.example.abstinence",
-      "windowSoftInputMode": "adjustResize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -56,6 +55,11 @@
         {
           "ios": {
             "useFrameworks": "static"
+          },
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
           }
         }
       ],

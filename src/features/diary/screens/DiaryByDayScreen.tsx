@@ -38,6 +38,7 @@ import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { toDate, type DateLike } from "@shared/utils/date";
 import { Logger } from "@shared/utils/logger";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import AdBanner from "@shared/components/AdBanner";
 
 interface DayDiaryItem {
   id: string;
@@ -479,80 +480,84 @@ const DiaryByDayScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={items}
-        keyExtractor={(i) => i.id}
-        renderItem={renderItem}
-        style={styles.list}
-        contentContainerStyle={{ padding: spacing.lg }}
-        initialNumToRender={8}
-        windowSize={7}
-        maxToRenderPerBatch={12}
-        removeClippedSubviews
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", padding: spacing.lg }}>
-            <Ionicons
-              name={loading ? "time-outline" : "book-outline"}
-              size={48}
-              color={colors.textSecondary}
+      <View style={styles.listWrapper}>
+        <FlatList
+          data={items}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+          style={styles.list}
+          contentContainerStyle={{ padding: spacing.lg }}
+          initialNumToRender={8}
+          windowSize={7}
+          maxToRenderPerBatch={12}
+          removeClippedSubviews
+          ListEmptyComponent={
+            <View style={{ alignItems: "center", padding: spacing.lg }}>
+              <Ionicons
+                name={loading ? "time-outline" : "book-outline"}
+                size={48}
+                color={colors.textSecondary}
+              />
+              <Text
+                style={{ color: colors.textSecondary, marginTop: spacing.sm }}
+              >
+                {loading ? "読み込み中..." : "この日の記録はまだありません"}
+              </Text>
+            </View>
+          }
+          ListHeaderComponent={
+            <View>
+              <FlatList
+                ref={dayListRef}
+                data={daysData}
+                keyExtractor={(d) => String(d)}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item: d }) => (
+                  <DayCard
+                    day={d}
+                    selected={d === day}
+                    posted={
+                      activeDay !== null && d === activeDay && alreadyPosted
+                    }
+                    onPress={(sel) => setDay(sel)}
+                  />
+                )}
+                contentContainerStyle={styles.cardsRow}
+                initialNumToRender={24}
+                windowSize={5}
+                maxToRenderPerBatch={24}
+                removeClippedSubviews
+              />
+              <Text style={styles.helperText}>
+                {activeDay === null && "チャレンジを開始すると日記を投稿できます"}
+                {activeDay !== null &&
+                  day !== activeDay &&
+                  "日記は当日分のみ投稿できます"}
+                {activeDay !== null &&
+                  day === activeDay &&
+                  alreadyPosted &&
+                  "本日は投稿済みです。明日また書きましょう"}
+                {activeDay !== null &&
+                  day === activeDay &&
+                  !alreadyPosted &&
+                  "今日の日記を投稿しましょう"}
+              </Text>
+            </View>
+          }
+          stickyHeaderIndices={[0]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
             />
-            <Text
-              style={{ color: colors.textSecondary, marginTop: spacing.sm }}
-            >
-              {loading ? "読み込み中..." : "この日の記録はまだありません"}
-            </Text>
-          </View>
-        }
-        ListHeaderComponent={
-          <View>
-            <FlatList
-              ref={dayListRef}
-              data={daysData}
-              keyExtractor={(d) => String(d)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item: d }) => (
-                <DayCard
-                  day={d}
-                  selected={d === day}
-                  posted={
-                    activeDay !== null && d === activeDay && alreadyPosted
-                  }
-                  onPress={(sel) => setDay(sel)}
-                />
-              )}
-              contentContainerStyle={styles.cardsRow}
-              initialNumToRender={24}
-              windowSize={5}
-              maxToRenderPerBatch={24}
-              removeClippedSubviews
-            />
-            <Text style={styles.helperText}>
-              {activeDay === null && "チャレンジを開始すると日記を投稿できます"}
-              {activeDay !== null &&
-                day !== activeDay &&
-                "日記は当日分のみ投稿できます"}
-              {activeDay !== null &&
-                day === activeDay &&
-                alreadyPosted &&
-                "本日は投稿済みです。明日また書きましょう"}
-              {activeDay !== null &&
-                day === activeDay &&
-                !alreadyPosted &&
-                "今日の日記を投稿しましょう"}
-            </Text>
-          </View>
-        }
-        stickyHeaderIndices={[0]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        extraData={{ pv: profilesMap, av: userAverageDays }}
-      />
+          }
+          extraData={{ pv: profilesMap, av: userAverageDays }}
+        />
+      </View>
+
+      {!showAdd && <AdBanner placement="日記" style={styles.adBanner} />}
 
       <TouchableOpacity
         style={[
@@ -654,8 +659,16 @@ const DiaryByDayScreen: React.FC = () => {
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.backgroundTertiary },
+    listWrapper: {
+      flex: 1,
+    },
     list: {
       backgroundColor: colors.backgroundTertiary,
+      flex: 1,
+    },
+    adBanner: {
+      marginHorizontal: spacing.xl,
+      marginBottom: spacing.lg,
     },
     header: {
       flexDirection: "row",

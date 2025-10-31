@@ -31,6 +31,7 @@ import AppStatusBarComponent from "@shared/theme/AppStatusBar";
 import { colorSchemes, type ColorPalette } from "@shared/theme/colors";
 import { createScreenThemes } from "@shared/theme/screenThemes";
 import { toDate, type DateLike } from "@shared/utils/date";
+import AdBanner from "@shared/components/AdBanner";
 
 const HistoryScreen: React.FC = () => {
   const { user } = useAuth();
@@ -329,6 +330,8 @@ const HistoryScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
+
+      <AdBanner placement="履歴" style={styles.adBanner} />
     </SafeAreaView>
   );
 };
@@ -340,6 +343,10 @@ const createStyles = (colors: ColorPalette) => {
     container: {
       flex: 1,
       backgroundColor: colors.backgroundTertiary,
+    },
+    adBanner: {
+      marginTop: spacing.md,
+      marginBottom: spacing.md,
     },
     header: {
       flexDirection: "row",

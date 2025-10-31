@@ -27,6 +27,7 @@ import { useThemedStyles, useAppTheme } from "@shared/theme";
 import AppStatusBar from "@shared/theme/AppStatusBar";
 import { createUiStyles } from "@shared/ui/styles";
 import { navigateToUserDetail } from "@shared/utils/navigation";
+import AdBanner from "@shared/components/AdBanner";
 
 const RankingScreen: React.FC = () => {
   const { user } = useAuth();
@@ -527,6 +528,8 @@ const RankingScreen: React.FC = () => {
           </View>
         }
       />
+
+      <AdBanner placement="ランキング" style={styles.adBanner} />
     </SafeAreaView>
   );
 };
@@ -748,6 +751,10 @@ const createStyles = (mode: "light" | "dark") => {
       color: colors.textTertiary,
       textAlign: "center",
       lineHeight: 14 * 1.5,
+    },
+    adBanner: {
+      marginHorizontal: 16,
+      marginBottom: 16,
     },
   });
 };

@@ -14,6 +14,7 @@ import HistoryButton from "@features/home/components/HistoryButton";
 import RankingButton from "@features/home/components/RankingButton";
 import ProfileEditModal from "@features/profile/components/ProfileEditModal";
 import FailureStrategyService from "@core/services/supabase/failureStrategyService";
+import AdBanner from "@shared/components/AdBanner";
 import { spacing, useAppTheme } from "@shared/theme";
 import type { ColorPalette } from "@shared/theme/colors";
 import AppStatusBar from "@shared/theme/AppStatusBar";
@@ -149,6 +150,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           />
         </View>
       </View>
+
+      <AdBanner placement="ホーム" style={styles.adBanner} />
     </SafeAreaView>
   );
 };
@@ -215,6 +218,9 @@ const createStyles = (colors: ColorPalette) =>
       lineHeight: 20,
       textAlign: "center",
       width: "100%",
+    },
+    adBanner: {
+      marginTop: spacing.sm,
     },
     buttonContainer: {
       flexDirection: "row",
